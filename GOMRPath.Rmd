@@ -220,6 +220,7 @@ GOM.landings <- GOM.landings[, SPPLIVMT := SPPLIVMT / GOM.com.area]
 
 #Estimating biological parameters
 -Explain data sources - NWACS, EMAX, GB model
+-Add code for pulling data
 
 ```{r bioparams}
 ```
