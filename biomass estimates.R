@@ -104,5 +104,5 @@ GOM.biomass.80s<-GOM.biomass.80s[is.na(Biomass.y) , Biomass.y := Biomass.x]
 GOM.biomass.80s<-GOM.biomass.80s[,Biomass.x :=NULL]
 setnames(GOM.biomass.80s,"Biomass.y","Biomass")
 
-#save as .csv
+#Save as .csv
 write.csv(GOM.biomass, 'GOM_Parameters_V1.csv')
