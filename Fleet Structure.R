@@ -2,13 +2,13 @@
 library(Survdat); library(ggplot2); library(data.table); library(rgdal)
 
 #load commercial landings data (comland)
-load("/Users/sjw/Desktop/RPath-GOM/comland_meatwt_deflated_stat_areas.RData")
+load("/Users/sjw/Desktop/RPath-GOM-workshop/comland_meatwt_deflated_stat_areas.RData")
 
 #load species codes (spp)
-load("/Users/sjw/Desktop/RPath-GOM/Species_codes.RData")
+load("speciescodesandstrata/Species_codes.RData")
 
 #Load shape files and calculate total area
-stat.areas <- readOGR('/Users/sjw/Desktop/RPath-GOM/gis','Statistical_Areas_2010')
+stat.areas <- readOGR('gis','Statistical_Areas_2010')
 stat.areas.area <- getarea(stat.areas, 'Id')
 GOM.com.area <- stat.areas.area[Id %in% c(500, 510, 512:515, 521, 522), sum(Area)]
 
