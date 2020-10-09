@@ -89,7 +89,12 @@ GOM.EMAX<- GOM.EMAX[RPATH %notin% c('Larval-juv fish- all','Sharks- pelagics','S
 
 
 BenthosBiomass<-GOM.EMAX[RPATH == 'Macrobenthos', sum(Biomass),]
+BenthosPB<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(PB)]
+BenthosTL<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(TL)]
+BenthosQB<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(QB)]
 
+GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', PB:=BenthosPB,]
+GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', QB:=BenthosQB,]
 GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', Biomass:=BenthosBiomass,]
 GOM.EMAX<-GOM.EMAX[!duplicated(GOM.EMAX),]
 
