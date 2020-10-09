@@ -1,0 +1,227 @@
+---
+title: "GOM-Rpath"
+author: "Sarah Weisberg"
+date: "10/1/2020"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+
+```{r setup, echo=FALSE}
+library(knitr)
+knitr::opts_chunk$set(
+  comment = '#>',
+  collapse = T)
+library(Rpath); library(data.table); library(Survdat); library(ggplot2); library(rgdal); library(here)
+
+#install.packages("remotes")
+#remotes::install_github("NOAA-EDAB/Rpath")
+#devtools::install_github('slucey/RSurvey/Survdat')
+
+```
+
+## Intro text
+- building Rpath model of the Gulf of Maine (GOM)
+- parameterized for 1980-1985
+- using fall data
+- key data sources = bottom trawl survey, NOAA landings data (aggregated by statistical areas), stomach content analysis data for diet matrix, EMAX and NWACS models for species not collected in trawl.
+- I define GOM as bottom trawl strata 1220, 1240, 1260:1290, 1360:1400, 3560:3830 and statistical areas 500, 510, 512:515, 521 & 522 for landings analysis.
+- Code is frequently adapted from Sean Lucey's tools for survey analysis (cite) & Rpath model creating
+- Group structure within model designed to be able to be analogous to Georges Bank Rpath model
+
+## Generating list of functional groups
+-add more detail on how these groups were derived
+
+
+```{r groups, echo=TRUE}
+GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 'GelZooplankton','LgCopepods', 'SmCopepods', 'Micronekton', 'Illex',' Loligo', 'OtherCephalopods','Macrobenthos','AmLobster','OceanPout','SmPelagics','SmFlatfishes','NShrimp','RiverHerring','AtlScallop','OtherPelagics','SummerFlounder','AtlHerring','Mesopelagics','SouthernDemersals','YTFlounder','Cod','Haddock','AmPlaice','AtlMackerel','Cusk','OtherDemersals','HMS','OtherSkates','RedHake','Barndoor Skate','Fourspot','SmoothDogfish','Pollock','Goosefish','SilverHake','WhiteHake','SpinyDogfish','Redfish','LittleSkate','SeaBirds','Windowpane','WinterFlounder','WitchFlounder','BlackSeaBass','Sharks','WinterSkate','Pinnipeds','BaleenWhales','Odontocetes'))
+setnames(GOM.groups,'V1','RPATH')
+
+```
+
+
+## Compiling Biomass Data
+
+## Generating Biomass Estimates of Surveyed Species
+Load in NEFSC bottom trawl data ('survdat') from all time, shape file of survey strata ('strata') and species list for matching survey species codes with RPATH codes ('spp'). Note species of lower abundance / biomass will be aggregated into larger functional groups. Calculate mean stratified biomass for each RPATH group per year, using fall data only. Multiply by total area surveyed per year and divide by area swept per tow to generate swept area biomass. Divide by total survey area to arrive at biomass density estimate (t/km^2). Average over 1980-1985.
+
+```{r survey biomass}
+#Load data------------------------------------------------------------------
+
+#Load survey data
+load('Survdat.RData')
+
+#Load strata
+strata <- readOGR('strata.shp', 'strata')
+
+#Load species code list
+load("Species_codes.RData")
+
+#Generate area table
+strat.area <- getarea(strata, 'STRATA')
+setnames(strat.area, 'STRATA', 'STRATUM')
+
+#---------------------------------------------------------------------------
+
+#Subset by season & strata set - choose fall for GOM strata
+fall.GOM <- survdat[SEASON == 'FALL' & STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), ]
+
+#Calculate total survey area
+GOM.strat.area <- strat.area[STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), sum(Area)]
+
+#Run stratification prep
+setnames(fall.GOM, 'EST_YEAR', 'YEAR')
+GOM.prep <- stratprep(fall.GOM, strat.area, strat.col = 'STRATUM', 
+                      area.col = 'Area')
+
+#Merge with RPATH names
+spp <- spp[!duplicated(spp$SVSPP),]
+GOM.prep<-merge(GOM.prep, spp[,list(SVSPP,COMNAME,RPATH,SCINAME)], by = 'SVSPP')
+
+#Calculate stratified means 
+mean.biomass <- stratmean(GOM.prep, group.col = 'SVSPP', strat.col = 'STRATUM')
+
+#Merge stratified means with RPATH names
+mean.biomass<-merge(mean.biomass,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
+
+#Calculate total biomass estimates
+total.biomass <- sweptarea(GOM.prep, mean.biomass, strat.col = 'STRATUM', area.col = 'Area')
+
+#Merge total biomass with RPATH names
+total.biomass<-merge(total.biomass,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
+
+#Calcuate biomass / area in mt
+total.biomass <- total.biomass[, biomass.t_area   :=    (tot.biomass*.001)/(Fall.q*GOM.strat.area)]
+
+#Average over 1980-1985
+GOM.biomass.80s <- total.biomass[YEAR %in% 1980:1985, mean(biomass.t_area), by = RPATH]
+setnames(GOM.biomass.80s,'V1','Biomass')
+
+kable(GOM.biomass.80s, booktabs = F, align = 'c')
+
+#Output results to csv
+#write.csv(GOM.biomass.80s, 'Mean Biomass_GoM_1980-85.csv')
+```
+
+##Pulling biomass estimates from EMAX model
+-consider adding code to pull data from Ecobase
+-using EMAX biomass esimates for non-trawled species
+
+```{r EMAX biomass}
+#Load data------------------------------------------------------------------
+
+#load EMAX model
+GOM.EMAX<-as.data.table(read.csv('GOM_EMAX_params.csv'))
+
+#User created functions-----------------------------------------------------
+'%notin%' <-Negate('%in%')
+#---------------------------------------------------------------------------
+
+##Merge group list with survey biomass estimates
+GOM.groups<-merge(GOM.biomass.80s, GOM.groups, by = 'RPATH', all.y=TRUE)
+setnames(GOM.groups,'V1','Biomass', skip_absent = TRUE)
+
+#Filter EMAX model for group, biomass
+setnames(GOM.EMAX,'model.Group','RPATH')
+setnames(GOM.EMAX,'model.Biomass','Biomass')
+GOM.EMAX<-GOM.EMAX[, c('RPATH','Biomass')]
+
+#Change EMAX names to match RPATH names
+GOM.EMAX<-GOM.EMAX[RPATH == 'Small copepods', RPATH := 'SmCopepods',]
+GOM.EMAX<-GOM.EMAX[RPATH == 'Large Copepods', RPATH := 'LgCopepods',]
+GOM.EMAX<-GOM.EMAX[RPATH == 'Sea Birds', RPATH := 'SeaBirds',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Macro', RPATH:='Macrobenthos',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Baleen', RPATH := 'BaleenWhales',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Gel',RPATH := 'GelZooplankton',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Phyto', RPATH :='Phytoplankton',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Megabenthos',RPATH := 'Mega',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Pelagics',RPATH := 'Pelagics',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Demersals',RPATH := 'Demersals',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Sharks', RPATH :='Sharks']
+
+#Aggregate EMAX macrobenthos groups into one 
+BenthosBiomass<-GOM.EMAX[RPATH == 'Macrobenthos', sum(Biomass),]
+GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', Biomass:=BenthosBiomass,]
+
+#Remove groups not included in Rpath model
+GOM.EMAX<- GOM.EMAX[RPATH %notin% c('Larval-juv fish- all','Shrimp et al.','Mega','Pelagics','Demersals','Discard','Detritus-POC','Fishery'),]
+GOM.EMAX<-unique(GOM.EMAX)
+#Merge survey and EMAX biomass estimates
+GOM.biomass.80s<-merge(GOM.groups,GOM.EMAX,by='RPATH', all=TRUE)
+GOM.biomass.80s<-GOM.biomass.80s[is.na(Biomass.y) , Biomass.y := Biomass.x]
+GOM.biomass.80s<-GOM.biomass.80s[,Biomass.x :=NULL]
+setnames(GOM.biomass.80s,"Biomass.y","Biomass")
+
+#save as .csv, generate table
+write.csv(GOM.biomass.80s, 'GOM_Biomass.csv')
+
+kable(GOM.biomass.80s, booktabs = T, align = 'c')
+
+```
+
+#Generating fleet strucutre
+-From commercial landings data
+-Use statistical areas 500, 510, 512:515, 521, 522
+-Segmented by major gear type
+-Esimated mean landings for 1980-85, divide by total area
+
+```{r fleets, echo=TRUE}
+
+#Load data------------------------------------------------------------------
+#load commercial landings data 
+load("comland_meatwt_deflated_stat_areas.RData")
+
+#Load shape files and calculate total area
+stat.areas <- readOGR('gis','Statistical_Areas_2010')
+
+#Calculate total commercial fishing area included in GOM model
+stat.areas.area <- getarea(stat.areas, 'Id')
+GOM.com.area <- stat.areas.area[Id %in% c(500, 510, 512:515, 521, 522), sum(Area)]
+
+#delete NAs
+spp <- unique(spp[!is.na(NESPP3), list(NESPP3, RPATH)])
+comland <- comland[!is.na(NESPP3)]
+
+#check for duplicate NESPP3 entries, reassign, remove duplicates
+spp.dupes<-spp[duplicated(NESPP3)]
+spp<-spp[NESPP3 %in% spp.dupes$NESPP3, RPATH := 'OtherDemersals']
+spp <- unique(spp)
+
+#merge landings with species codes
+landings <- as.data.table(merge(comland, spp, by = 'NESPP3'))
+
+#subset for GOM 
+GOM.stat.areas <- c(500, 510, 512:515, 521, 522)
+GOM.landings <- landings[AREA %in% GOM.stat.areas, ]
+
+#Decouple small and large otter trawl fisheries
+GOM.landings[SIZE == 'small' & GEAR == 'otter', GEAR := 'otter.sm']
+GOM.landings[SIZE == 'large' & GEAR == 'otter', GEAR := 'otter.lg']
+
+#Sum by Rpath group
+GOM.sums <- GOM.landings[, sum(SPPLIVMT), by = c('YEAR', 'RPATH', 'GEAR')]
+setnames(GOM.sums, 'V1', 'SPPLIVMT')
+
+#Subset & sum for 1980-1985
+GOM.landings <- GOM.landings[YEAR %in% 1980:1985]
+GOM.sums <- GOM.landings[, sum(SPPLIVMT), by = c('YEAR', 'RPATH', 'GEAR')]
+setnames(GOM.sums, 'V1', 'SPPLIVMT')
+
+#Get five year means
+GOM.landings <- GOM.sums[YEAR %in% 1980:1985, mean(SPPLIVMT), by = c('RPATH', 'GEAR')]
+setnames(GOM.landings, 'V1', 'SPPLIVMT')
+
+#Calculate landings in mt / km^2
+GOM.landings <- GOM.landings[, SPPLIVMT := SPPLIVMT / GOM.com.area]
+
+```
+
+#Estimating biological parameters
+-Explain data sources - NWACS, EMAX, GB model
+
+```{r bioparams}
+```
+
+
