@@ -1,38 +1,35 @@
-##trying to get biomass estimates directly from Sean's code
+#Calculate biomass estimates for RPath groups
+#Using Sean's stratified mean biomass & swept area biomass functions for surveyed groups
+#Using EMAX values for others
 
-library(data.table); library(rgdal); library(Survdat)
+library(data.table); library(rgdal); library(Survdat); library(here)
 
-setwd("~/Desktop/RPath-GOM")
+#User define
 
 '%notin%' <-Negate('%in%')
 
 #Grab survdat.r
 #load(file.path(data.dir, 'Survdat.RData'))
 #Load species list
-load("/Users/sjw/Desktop/RPath-GOM/Survdat.RData")
+load("Survdat.RData")
 
 #Load species list
-load("/Users/sjw/Desktop/RPath-GOM/Species_codes.RData")
+load("Species_codes.RData")
 
 #Grab strata
 #strata <- readOGR(gis.dir, 'strata')
-strata<- readOGR('/Users/sjw/Desktop/RPath-GOM/speciescodesandstrata','strata')
+strata<- readOGR('speciescodesandstrata','strata')
 
 #Generate area table
 strat.area<- getarea(strata, 'STRATA')
 setnames(strat.area, 'STRATA', 'STRATUM')
-
-#Post stratify data if necessary
-#survdat.epu <- poststrat(survdat, strata)
-#setnames(survdat.epu, 'newstrata', 'EPU')
 
 #Subset by season/ strata set - fall for GOM (inc. inshore)
 fall.GOM <- survdat[SEASON == 'FALL' & STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), ]
 
 #Run stratification prep
 setnames(fall.GOM, 'EST_YEAR', 'YEAR')
-GOM.prep <- stratprep(fall.GOM, strat.area, strat.col = 'STRATUM', 
-                      area.col = 'Area')
+GOM.prep <- stratprep(fall.GOM, strat.area, strat.col = 'STRATUM', area.col = 'Area')
 
 #Merge with RPATH names
 spp <- spp[!duplicated(spp$SVSPP),]
@@ -70,7 +67,6 @@ write.csv(GOM.biomass.80s, 'Mean Biomass_GoM_1980-85.csv')
 GOM.groups<- read.csv('Groups.csv')
 setnames(GOM.groups, 'GOM.Group','RPATH')
 GOM.groups<-GOM.groups[1:53,]
-#still don't understand why this loaded 14 empty rows or the best way to eliminate them but OK
 
 GOM.groups<-merge(GOM.biomass.80s, GOM.groups, by = 'RPATH', all.y=TRUE)
 setnames(GOM.groups,'V1','Biomass')
@@ -93,12 +89,7 @@ GOM.EMAX<- GOM.EMAX[RPATH %notin% c('Larval-juv fish- all','Sharks- pelagics','S
 
 
 BenthosBiomass<-GOM.EMAX[RPATH == 'Macrobenthos', sum(Biomass),]
-BenthosPB<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(PB)]
-BenthosTL<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(TL)]
-BenthosQB<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(QB)]
 
-GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', PB:=BenthosPB,]
-GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', QB:=BenthosQB,]
 GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', Biomass:=BenthosBiomass,]
 GOM.EMAX<-GOM.EMAX[!duplicated(GOM.EMAX),]
 
