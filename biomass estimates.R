@@ -58,8 +58,6 @@ total.biomass <- total.biomass[, biomass.t_area   :=       (tot.biomass*.001)/(F
 GOM.biomass.80s <- total.biomass[YEAR %in% 1980:1985, mean(biomass.t_area), by = RPATH]
 setnames(GOM.biomass.80s,'V1','Biomass')
 
-kable(GOM.biomass.80s, booktabs = T)
-
 #Output results to csv
 write.csv(GOM.biomass.80s, 'Mean Biomass_GoM_1980-85.csv')
 
