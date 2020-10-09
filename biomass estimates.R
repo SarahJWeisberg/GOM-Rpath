@@ -4,6 +4,7 @@
 
 library(data.table); library(rgdal); library(Survdat); library(here)
 
+here()
 #User define
 
 '%notin%' <-Negate('%in%')
@@ -24,6 +25,10 @@ strata<- readOGR('speciescodesandstrata','strata')
 strat.area<- getarea(strata, 'STRATA')
 setnames(strat.area, 'STRATA', 'STRATUM')
 
+#Input species list
+GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 'GelZooplankton','LgCopepods', 'SmCopepods', 'Micronekton', 'Illex',' Loligo', 'OtherCephalopods','Macrobenthos','AmLobster','OceanPout','SmPelagics','SmFlatfishes','NShrimp','RiverHerring','AtlScallop','OtherPelagics','SummerFlounder','AtlHerring','Mesopelagics','SouthernDemersals','YTFlounder','Cod','Haddock','AmPlaice','AtlMackerel','Cusk','OtherDemersals','HMS','OtherSkates','RedHake','Barndoor Skate','Fourspot','SmoothDogfish','Pollock','Goosefish','SilverHake','WhiteHake','SpinyDogfish','Redfish','LittleSkate','SeaBirds','Windowpane','WinterFlounder','WitchFlounder','BlackSeaBass','Sharks','WinterSkate','Pinnipeds','BaleenWhales','Odontocetes'))
+setnames(GOM.groups,'V1','RPATH')
+
 #Subset by season/ strata set - fall for GOM (inc. inshore)
 fall.GOM <- survdat[SEASON == 'FALL' & STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), ]
 
@@ -42,8 +47,7 @@ mean.biomass <- stratmean(GOM.prep, group.col = 'SVSPP',
 mean.biomass<-merge(mean.biomass,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
 
 #Calculate total biomass/abundance estimates
-total.biomass <- sweptarea(GOM.prep, mean.biomass, strat.col = 'STRATUM', 
-                           area.col = 'Area')
+total.biomass <- sweptarea(GOM.prep, mean.biomass, strat.col = 'STRATUM', area.col = 'Area')
 
 #merge with RPATH names
 total.biomass<-merge(total.biomass,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
@@ -52,7 +56,7 @@ total.biomass<-merge(total.biomass,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 
 GOM.strat.area <- strat.area[STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), sum(Area)]
 
 #biomass / area in mt
-total.biomass <- total.biomass[, biomass.t_area   :=       (tot.biomass*.001)/(Fall.q*GOM.strat.area)]
+total.biomass <- total.biomass[, biomass.t_area :=(tot.biomass*.001)/(Fall.q*GOM.strat.area)]
 
 #average over 1980s
 GOM.biomass.80s <- total.biomass[YEAR %in% 1980:1985, mean(biomass.t_area), by = RPATH]
@@ -62,47 +66,43 @@ setnames(GOM.biomass.80s,'V1','Biomass')
 write.csv(GOM.biomass.80s, 'Mean Biomass_GoM_1980-85.csv')
 
 ##add EMAX groups
-GOM.groups<- read.csv('Groups.csv')
-setnames(GOM.groups, 'GOM.Group','RPATH')
-GOM.groups<-GOM.groups[1:53,]
+GOM.EMAX<-as.data.table(read.csv('GOM_EMAX_params.csv'))
 
+##Merge group list with survey biomass estimates
 GOM.groups<-merge(GOM.biomass.80s, GOM.groups, by = 'RPATH', all.y=TRUE)
-setnames(GOM.groups,'V1','Biomass')
+setnames(GOM.groups,'V1','Biomass', skip_absent = TRUE)
 
-##Add GOM.EMAX biomass from Ecobase pulls (separate script)
-setnames(GOM.EMAX,'Group','RPATH')
-GOM.EMAX<-GOM.EMAX[, 1:5]
-GOM.EMAX<-GOM.EMAX[RPATH %like% 'Macro', RPATH:='Macrobenthos',]
+#Filter EMAX model for group, biomass
+setnames(GOM.EMAX,'model.Group','RPATH')
+setnames(GOM.EMAX,'model.Biomass','Biomass')
+GOM.EMAX<-GOM.EMAX[, c('RPATH','Biomass')]
+
+#Change EMAX names to match RPATH names
 GOM.EMAX<-GOM.EMAX[RPATH == 'Small copepods', RPATH := 'SmCopepods',]
-GOM.EMAX<-GOM.EMAX[RPATH == 'Large Copepods',RPATH := 'LgCopepods',]
-GOM.EMAX<-GOM.EMAX[RPATH %like% 'Baleen',RPATH := 'BaleenWhales',]
+GOM.EMAX<-GOM.EMAX[RPATH == 'Large Copepods', RPATH := 'LgCopepods',]
+GOM.EMAX<-GOM.EMAX[RPATH == 'Sea Birds', RPATH := 'SeaBirds',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Macro', RPATH:='Macrobenthos',]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Baleen', RPATH := 'BaleenWhales',]
 GOM.EMAX<-GOM.EMAX[RPATH %like% 'Gel',RPATH := 'GelZooplankton',]
-GOM.EMAX<-GOM.EMAX[RPATH == 'Small Copepods',RPATH := 'SmCopepods',]
 GOM.EMAX<-GOM.EMAX[RPATH %like% 'Phyto', RPATH :='Phytoplankton',]
-GOM.EMAX<-GOM.EMAX[RPATH == 'SeaBirds',RPATH := 'Sea Bird',]
 GOM.EMAX<-GOM.EMAX[RPATH %like% 'Megabenthos',RPATH := 'Mega',]
 GOM.EMAX<-GOM.EMAX[RPATH %like% 'Pelagics',RPATH := 'Pelagics',]
 GOM.EMAX<-GOM.EMAX[RPATH %like% 'Demersals',RPATH := 'Demersals',]
-GOM.EMAX<- GOM.EMAX[RPATH %notin% c('Larval-juv fish- all','Sharks- pelagics','Shrimp et al.','Mega','Pelagics','Demersals','Discard','Detritus-POC','Macrobenthos'),]
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Sharks', RPATH :='Sharks']
 
-
+#Aggregate EMAX macrobenthos groups into one 
 BenthosBiomass<-GOM.EMAX[RPATH == 'Macrobenthos', sum(Biomass),]
-BenthosPB<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(PB)]
-BenthosTL<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(TL)]
-BenthosQB<-GOM.EMAX[RPATH == 'Macrobenthos',weighted.mean(QB)]
-
-GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', PB:=BenthosPB,]
-GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', QB:=BenthosQB,]
 GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', Biomass:=BenthosBiomass,]
-GOM.EMAX<-GOM.EMAX[!duplicated(GOM.EMAX),]
 
-GOM.final<-merge(GOM.groups,GOM.EMAX,by='RPATH',all=TRUE)
-GOM.final<-as.data.table(GOM.final)
-GOM.final<-GOM.final[,"TL" :=NULL]
-GOM.final<-GOM.final[is.na(Biomass.x) , Biomass.x := Biomass.y]
+#Remove groups not included in Rpath model
+GOM.EMAX<- GOM.EMAX[RPATH %notin% c('Larval-juv fish- all','Shrimp et al.','Mega','Pelagics','Demersals','Discard','Detritus-POC','Fishery'),]
+GOM.EMAX<-unique(GOM.EMAX)
 
-GOM.final<-GOM.final[,"Biomass.y" :=NULL]
-setnames(GOM.final,"Biomass.x","Biomass")
+#Merge survey and EMAX biomass estimates
+GOM.biomass.80s<-merge(GOM.groups,GOM.EMAX,by='RPATH', all=TRUE)
+GOM.biomass.80s<-GOM.biomass.80s[is.na(Biomass.y) , Biomass.y := Biomass.x]
+GOM.biomass.80s<-GOM.biomass.80s[,Biomass.x :=NULL]
+setnames(GOM.biomass.80s,"Biomass.y","Biomass")
 
 #save as .csv
-write.csv(GOM.final, 'GOM_Parameters_V1.csv')
+write.csv(GOM.biomass, 'GOM_Parameters_V1.csv')
