@@ -54,7 +54,7 @@ Load in NEFSC bottom trawl data ('survdat') from all time, shape file of survey 
 load('Survdat.RData')
 
 #Load strata
-strata <- readOGR('strata.shp', 'strata')
+strata <- readOGR('speciescodesandstrata', 'strata')
 
 #Load species code list
 load("Species_codes.RData")
