@@ -49,18 +49,8 @@ total.biomass <- total.biomass[, biomass.t_area   :=    (tot.biomass*.001)/(Fall
 
 #RPATH GOM groups
 RPATH.GOM <- unique(total.biomass$RPATH, na.rm=true)
-#RPATH.GOM <-RPATH.GOM[RPATH.GOM %notin% c("NA","Clams","AtlCroaker",'LargePelagics')]
 
 #Write a loop to run lm for all RPATH groups, extract slope
-spF<-c()
-spP<-c()
-ba <- c()
-length(lob<-subset(total.biomass, RPATH == 'AmLobster'))
-lm.lob<-lm(biomass.t_area~YEAR, data = subset(total.biomass, RPATH == 'AmLobster'))
-spF.lob <- as.numeric(summary(lm.lob)$fstatistic)
-spF.lob
-spP.lob <- pf(spF.lob[1], spF.lob[2], spF.lob[3], lower = F)
-ba[i] <-as.numeric((lm[[1]][2]))
 
 ba<-c()
 p<-c()
