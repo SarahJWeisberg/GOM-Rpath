@@ -1,6 +1,9 @@
 #Generate simple linear regressions for all functional groups
 #Determine if biomass accumulation (BA) terms are necessary
 
+library(Survdat); library(ggplot2); library(data.table); library(rgdal)
+
+
 #Load data-------------------------------------------------------------------
 
 #Load survey data
@@ -33,23 +36,74 @@ spp <- spp[!duplicated(spp$SVSPP),]
 GOM.prep<-merge(GOM.prep, spp[,list(SVSPP,COMNAME,RPATH,SCINAME)], by = 'SVSPP')
 
 #Calculate stratified means by RPATH group
-mean.biomass <- stratmean(GOM.prep, group.col = 'RPATH', strat.col = 'STRATUM')
-setnames(mean.biomass, 'strat.biomass','biomass')
+mean.biomass <- stratmean(GOM.prep, group.col = 'SVSPP', strat.col = 'STRATUM')
+
+#Calculate total biomass estimates
+total.biomass <- sweptarea(GOM.prep, mean.biomass, strat.col = 'STRATUM', area.col = 'Area')
+
+#Merge total biomass with RPATH names
+total.biomass<-merge(total.biomass,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
+
+#Calcuate biomass / area in mt
+total.biomass <- total.biomass[, biomass.t_area   :=    (tot.biomass*.001)/(Fall.q*GOM.strat.area)]
 
 #RPATH GOM groups
-RPATH.GOM <- unique(mean.biomass$RPATH, na.rm=true)
-RPATH.GOM[2]
+RPATH.GOM <- unique(total.biomass$RPATH, na.rm=true)
+#RPATH.GOM <-RPATH.GOM[RPATH.GOM %notin% c("NA","Clams","AtlCroaker",'LargePelagics')]
 
 #Write a loop to run lm for all RPATH groups, extract slope
+spF<-c()
+spP<-c()
 ba <- c()
-for (i in 2:59) {
-  lm<-lm(biomass~YEAR, data = subset(mean.biomass, RPATH == RPATH.GOM[i]))
-  ba[i]<-as.numeric(lm[[1]][2])
+length(lob<-subset(total.biomass, RPATH == 'AmLobster'))
+lm.lob<-lm(biomass.t_area~YEAR, data = subset(total.biomass, RPATH == 'AmLobster'))
+spF.lob <- as.numeric(summary(lm.lob)$fstatistic)
+spF.lob
+spP.lob <- pf(spF.lob[1], spF.lob[2], spF.lob[3], lower = F)
+ba[i] <-as.numeric((lm[[1]][2]))
+
+ba<-c()
+p<-c()
+for (i in 2:59){
+    lm<-lm(biomass.t_area~YEAR, data = subset(total.biomass, RPATH == RPATH.GOM[i]))
+    spF <- as.numeric(summary(lm)$fstatistic)
+    p[i] <- pf(spF[1], spF[2], spF[3], lower = F)
+    ba[i] <-as.numeric(lm[[1]][2])
 }
 
-ba<-cbind(RPATH.GOM,ba)
+ba<-cbind(RPATH.GOM,ba,p)
 
+#write to csv
+write.csv(ba, 'ba.csv')
 
+#sample single species lm plot
+plot(biomass.t_area~YEAR, data = subset(total.biomass, RPATH == 'AtlHerring'))
+abline(lm(biomass.t_area~YEAR, data = subset(total.biomass, RPATH == 'AtlHerring')))
+summary(lm(biomass.t_area~YEAR, data = subset(total.biomass, RPATH == 'AtlHerring')))
+
+#Sean's code
+groups <- unique(GB.raw[, RPATH])
+BA.all <- c()
+for(igroup in groups){
+  species <- GB.raw[RPATH == igroup, ]
+  #Default is BA = 0 unless significant
+  BA.sp <- data.table(RPATH = igroup, BA = 0, m = 0, b = 0)
+  #Test significance using lm
+  if(length(species[, swept.bio.mt]) > 2){
+    spLM <- lm(swept.bio.mt ~ YEAR, data = species)
+    spF <- summary(spLM)$fstatistic
+    spP <- pf(spF[1], spF[2], spF[3], lower = F)
+    #If significant replace 0 with slope divided by GB area (scaled)
+    if(spP <= 0.05) BA.sp[, BA := spLM$coefficients[2] / A]
+    #Add slope and intercept term for plots
+    BA.sp[, m := spLM$coefficients[2]]
+    BA.sp[, b := spLM$coefficients[1]]
+  }
+  BA.all <- rbindlist(list(BA.all, BA.sp))
+}
+BA.sig <- BA.all[BA != 0, RPATH]
+
+summary(lm)$fstatistic
 
 
 
