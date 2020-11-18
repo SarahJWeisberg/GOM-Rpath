@@ -85,13 +85,21 @@ prep <- stratprep(fall, strat.area, strat.col = 'STRATUM', area.col ='Area')
 #Merge with RPATH names
 #Aggregate groups below 0.05 t/km^2 threshold
 spp <- spp[!duplicated(spp$SVSPP),]
-spp <- spp[RPATH == 'RedCrab', RPATH := 'Macrobenthos',]
-spp <- spp[RPATH == 'Scup', RPATH := 'OtherDemersals',]
-spp <- spp[RPATH == 'OffHake', RPATH := 'OtherDemersals',]
-spp <- spp[RPATH == 'Bluefish', RPATH := 'OtherPelagics',]
-spp <- spp[RPATH == 'AmShad', RPATH := 'SmPelagics',]
+spp <- spp[RPATH == 'RedCrab', RPATH := 'Macrobenthos']
+spp <- spp[RPATH == 'AtlScallop', RPATH := 'Megabenthos']
+spp <- spp[RPATH == 'Clams', RPATH := 'Megabenthos']
+spp <- spp[RPATH == 'Scup', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'OffHake', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'Bluefish', RPATH := 'OtherPelagics']
+spp <- spp[RPATH == 'AmShad', RPATH := 'SmPelagics']
 spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
 spp <- spp[RPATH == 'SmallPelagics', RPATH := 'SmPelagics']
+spp <- spp[RPATH == 'AtlCroaker', RPATH := 'SouthernDemersals']
+spp <- spp[RPATH == 'LargePelagics', RPATH := 'OtherPelagics']
+spp <- spp[RPATH == 'OtherFlatfish', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'StripedBass', RPATH := 'OtherPelagics']
+spp <- spp[RPATH == 'Sturgeon', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'Weakfish', RPATH := 'OtherDemersals']
 prep<-merge(prep, spp[,list(SVSPP,COMNAME,RPATH,SCINAME)], by = 'SVSPP')
 
 #Calculate stratified means 
@@ -109,58 +117,12 @@ swept<-merge(swept,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
 #Calcuate biomass / area in mt
 swept <- swept[, biomass.area   := (tot.biomass*.001)/(Fall.q*area)]
 
-#Sum multispecies groups
-#OtherDemersals
-OtherDemersals.Biomass<-swept[RPATH == 'OtherDemersals', sum(biomass.area), by = YEAR]
-setnames(OtherDemersals.Biomass,'V1','Biomass')
-OtherDemersals.80s <- OtherDemersals.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#SmFlatfishes
-SmFlatfishes.Biomass<-swept[RPATH == 'SmFlatfishes', sum(biomass.area), by = YEAR]
-setnames(SmFlatfishes.Biomass,'V1','Biomass')
-SmFlatFishes.80s <- SmFlatfishes.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#OtherPelagics
-OtherPelagics.Biomass<-swept[RPATH == 'OtherPelagics', sum(biomass.area), by = YEAR]
-setnames(OtherPelagics.Biomass,'V1','Biomass')
-OtherPelagics.80s <- OtherPelagics.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#OtherCephalopods
-OtherCeph.Biomass<-swept[RPATH == 'OtherCephalopods', sum(biomass.area), by = YEAR]
-setnames(OtherCeph.Biomass,'V1','Biomass')
-OtherCeph.80s <- OtherCeph.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#Mesopelagics
-Mesopelagics.Biomass<-swept[RPATH == 'Mesopelagics', sum(biomass.area), by = YEAR]
-setnames(Mesopelagics.Biomass,'V1','Biomass')
-Mesopelagics.80s <- Mesopelagics.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#SmPelagics
-SmPelagics.Biomass<-swept[RPATH == 'SmPelagics', sum(biomass.area), by = YEAR]
-setnames(SmPelagics.Biomass,'V1','Biomass')
-SmPelagics.80s <- SmPelagics.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#OtherShrimps
-OtherShrimps.Biomass<-swept[RPATH == 'OtherShrimps', sum(biomass.area), by = YEAR]
-setnames(OtherShrimps.Biomass,'V1','Biomass')
-OtherShrimps.80s <- OtherShrimps.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#OtherSkates
-OtherSkates.Biomass<-swept[RPATH == 'OtherSkates', sum(biomass.area), by = YEAR]
-setnames(OtherSkates.Biomass,'V1','Biomass')
-OtherSkates.80s <- OtherSkates.Biomass[YEAR %in% 1980:1985, mean(Biomass)]
-
-#Average over 1980-1985
-biomass.80s <- swept[YEAR %in% 1980:1985, mean(biomass.area), by = RPATH]
-setnames(biomass.80s,'V1','Biomass')
-biomass.80s<-biomass.80s[RPATH == 'OtherDemersals', Biomass := OtherDemersals.80s,]
-biomass.80s<-biomass.80s[RPATH == 'Mesopelagics', Biomass := Mesopelagics.80s,]
-biomass.80s<-biomass.80s[RPATH == 'OtherCephalopods', Biomass := OtherCeph.80s,]
-biomass.80s<-biomass.80s[RPATH == 'OtherPelagics', Biomass := OtherPelagics.80s,]
-biomass.80s<-biomass.80s[RPATH == 'OtherShrimps', Biomass := OtherShrimps.80s,]
-biomass.80s<-biomass.80s[RPATH == 'OtherSkates', Biomass := OtherSkates.80s,]
-biomass.80s<-biomass.80s[RPATH == 'SmFlatfishes', Biomass := SmFlatFishes.80s,]
-biomass.80s<-biomass.80s[RPATH == 'SmPelagics', Biomass := SmPelagics.80s,]
+#average over 1980-85
+setkey(swept,RPATH,YEAR)
+swept2 <- swept[, sum(biomass.area), by = key(swept)]
+setnames(swept2, 'V1','Biomass')
+biomass.80s<-swept2[YEAR %in% 1980:1985, mean(Biomass), by=RPATH]
+setnames(biomass.80s, 'V1','Biomass')
 
 
 kable(biomass.80s, booktabs = F, align = 'c')
@@ -305,17 +267,13 @@ NWACS[, new.QB := sum(QB.weight) / Rpath.bio, by = RPATH]
 
 ```{r biomass accumluation}
 #RPATH GOM groups
-survey.groups <- as.data.table(unique(swept$RPATH, na.rm=true))
+survey.groups <- as.data.table(unique(swept2$RPATH, na.rm=true))
 colnames(survey.groups)<-"RPATH"
-
-#Remove multispecies groups
-survey.groups<-survey.groups[RPATH %like% 'Other', RPATH := 'Other']
-survey.groups<-subset(survey.groups[RPATH %notin% c('Other','SmPelagics','SouthernDemersals','SmFlatfish','SmFlatfishes','LargePelagics',),])
 
 #Run lm for all surveyed RPATH groups, extract slope
 ba<-c()
 p<-c()
-for (i in 2:44){
+for (i in 2:46){
     lm<-lm(biomass.area~YEAR, data = subset(swept, RPATH == survey.groups$RPATH[i]))
     spF <- as.numeric(summary(lm)$fstatistic)
     p[i] <- pf(spF[1], spF[2], spF[3], lower = F)
@@ -324,18 +282,6 @@ for (i in 2:44){
 
 biomass.accum<-cbind(survey.groups,ba,p)
 biom<-subset(biomass.accum, p<=0.05 & abs(ba) >= 0.005)
-
-#OtherCeph.ba <-lm(Biomass~YEAR, data = OtherCeph.Biomass)
-#spF <- as.numeric(summary(OtherCeph.ba)$fstatistic)
-#p <- pf(spF[1], spF[2], spF[3], lower = F)
-#ba <-as.numeric(OtherCeph.ba[[1]][2])
-#OtherCeph.ba<-cbind('OtherCeph',ba,p)
-
-#OtherSkates.ba <-lm(Biomass~YEAR, data = OtherSkates.Biomass)
-#spF <- as.numeric(summary(OtherSkates.ba)$fstatistic)
-#p <- pf(spF[1], spF[2], spF[3], lower = F)
-#ba <-as.numeric(OtherSkates.ba[[1]][2])
-#OtherSkates.ba<-cbind('OtherSkates',ba,p)
 
 write.csv(ba,'ba.csv')
 ```
