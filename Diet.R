@@ -173,7 +173,7 @@ setnames(GOM.fh, 'RPATH', 'Rpred')
 GOM.fh <- merge(GOM.fh, prey[, list(PYNAM, RPATH)], by = 'PYNAM', all.x = T)
 setnames(GOM.fh, 'RPATH', 'Rprey')
 
-#Remove NotUsed, AR, UNKFish and UNKSkate - Talk to Sarah about how to deal with these
+#Remove NotUsed, AR, UNKFish and UNKSkate
 GOM.fh <- GOM.fh[!Rprey %in% c('NotUsed', 'AR', 'UNKFish', 'UNKSkate'), ]
 
 #Merge prey items
@@ -212,32 +212,53 @@ GOM.diet.survey[, preyper := sum.rhat / tot.preyw]
 GOM.diet.survey[, c('sum.rhat', 'tot.preyw') := NULL]
 setkey(GOM.diet.survey, Rpred, preyper)
 
-#Extract groups not in survey
-EMAX.groups<-GOM.groups[!RPATH %in% GOM.diet.survey$Rpred,]
-
-#Calculate proportionality for EMAX:RPATH many:1s
-EMAX.params <- as.data.table(read_csv("GOM_EMAX_params.csv"))
-Megabenthos.filterers <- EMAX.params[model.Group == 'Megabenthos- filterers',model.Biomass] - all.groups[RPATH == 'AtlScallop',Biomass]
-Megabenthos.filterers <- as.data.table(cbind('Megabenthos',Megabenthos.filterers,'Megabenthos- filterers'))
-setnames(Megabenthos.filterers, c("RPATH","Biomass","EMAX"))
-Megabenthos.other <-EMAX.params[model.Group == 'Megabenthos- other',model.Biomass] - all.groups[RPATH == 'AmLobster',Biomass]
-Megabenthos.other <- as.data.table(cbind('Megabenthos',Megabenthos.other,'Megabenthos- other'))
-setnames(Megabenthos.other, c("RPATH","Biomass","EMAX"))
-Macrobenthos <- as.data.table(EMAX.params[model.Group %like% 'Macrobenthos',c(2,4)])
-Macrobenthos <- cbind(Macrobenthos,"Macrobenthos")
-setnames(Macrobenthos,c('EMAX','Biomass','RPATH'))
+#Remove OtherDemersals, SmPelagics, Illex and Loligo
+#Will use EMAX diet estimates for these 4 groups
+GOM.diet.survey <- GOM.diet.survey[!Rpred %in% c('OtherDemersals','SmPelagics','Loligo','Illex')]
 
 #Load in params table with biomass as previously calculated
 all.groups <- read_csv("GOM_Parameters_V4.csv")
 all.groups <- as.data.table(all.groups[,c(1,2,3)])
-all.groups <- all.groups[!RPATH %in% c('Megabenthos','Macrobenthos'),]
-all.groups <- rbind(all.groups,Megabenthos.filterers,Megabenthos.other,Macrobenthos)
-all.groups <- all.groups[,Biomass := as.numeric(Biomass)]
 
+#Remove EMAX:RPATH many:1s
+all.groups <- all.groups[!RPATH %in% c('Megabenthos','Macrobenthos'),]
+
+#Calculate proportionality for EMAX:RPATH many:1s
+EMAX.params <- as.data.table(read_csv("GOM_EMAX_params.csv"))
+
+#Megabenthos groups
+#Calculate biomass remaining in Megabenthos- filterers after removing scallops
+Megabenthos.filterers <- EMAX.params[model.Group == 'Megabenthos- filterers',model.Biomass] - all.groups[RPATH == 'AtlScallop',Biomass]
+Megabenthos.filterers <- as.data.table(cbind('Megabenthos',Megabenthos.filterers,'Megabenthos- filterers'))
+setnames(Megabenthos.filterers, c("RPATH","Biomass","EMAX"))
+#Calculate biomass remaining in Megabenthos- other after removing lobster
+Megabenthos.other <-EMAX.params[model.Group == 'Megabenthos- other',model.Biomass] - all.groups[RPATH == 'AmLobster',Biomass]
+Megabenthos.other <- as.data.table(cbind('Megabenthos',Megabenthos.other,'Megabenthos- other'))
+setnames(Megabenthos.other, c("RPATH","Biomass","EMAX"))
+
+#Macrobenthos groups
+Macrobenthos <- as.data.table(EMAX.params[model.Group %like% 'Macrobenthos',c(2,4)])
+Macrobenthos <- cbind(Macrobenthos,"Macrobenthos")
+setnames(Macrobenthos,c('EMAX','Biomass','RPATH'))
+
+#Micronekton groups
+Micronekton <- as.data.table(EMAX.params[model.Group %in% c('Micronekton','Larval-juv fish- all'),c(2,4)])
+Micronekton <- cbind(Micronekton,"Micronekton")
+setnames(Micronekton,c('EMAX','Biomass','RPATH'))
+
+#SmPelagics groups
+SmPelagics <- as.data.table(EMAX.params[model.Group =='Small Pelagics- anadromous', c(2,4)])
+SmPelagics <- cbind(SmPelagics,"SmPelagics")
+setnames(SmPelagics,c('EMAX','Biomass','RPATH'))
+
+#Merge all groups
+all.groups <- rbind(all.groups,Megabenthos.filterers,Megabenthos.other,Macrobenthos,Micronekton,SmPelagics)
+all.groups <- all.groups[,Biomass := as.numeric(Biomass)]
 all.groups[, EMAX.tot := sum(Biomass), by = EMAX]
 all.groups[, Rpath.prop := Biomass / EMAX.tot]
 
-#Whale diet from Laurel/new bird data - used in Sarah's GOM
+
+#Whale diet from Laurel - used in Sarah Gaichas's GOM
 balwhale <- data.table(EMAX = c('Large Copepods', 'Micronekton', 'Small Pelagics- commercial',
                                 'Small Pelagics- other', 'Small Pelagics- squid',
                                 'Demersals- benthivores', 'Demersals- omnivores',
@@ -315,7 +336,9 @@ GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,sharks))
 shrimp <- EMAX.params[, list(diet.Shrimp.et.al.,diet.Group)]
 setnames(shrimp,'diet.Group','EMAX')
 shrimp <- merge(shrimp, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+#shrimp <- shrimp[,RPATH.sum := sum(diet.Shrimp.et.al.), by = RPATH]
 shrimp[, preyper := diet.Shrimp.et.al. * Rpath.prop]
+#shrimp <- unique(shrimp[,c('RPATH','preyper')])
 #Need to sum many:1 EMAX:Rpath
 shrimp <- shrimp[, sum(preyper), by = RPATH]
 others <- copy(shrimp[, Rpred := 'OtherShrimps'])
@@ -422,6 +445,30 @@ setnames(ceph, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,ceph))
 
+#Illex - use EMAX squid diet
+illex <- EMAX.params[, list(diet.Small.Pelagics..squid,diet.Group)]
+setnames(illex,'diet.Group','EMAX')
+illex <- merge(illex, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+illex[, preyper := diet.Small.Pelagics..squid * Rpath.prop]
+#Need to sum many:1 EMAX:Rpath
+illex <- illex[, sum(preyper), by = RPATH]
+illex[,Rpred := 'Illex']
+setnames(illex, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+
+GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,illex))
+
+#Loligo - use EMAX squid diet
+loligo <- EMAX.params[, list(diet.Small.Pelagics..squid,diet.Group)]
+setnames(loligo,'diet.Group','EMAX')
+loligo <- merge(loligo, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+loligo[, preyper := diet.Small.Pelagics..squid * Rpath.prop]
+#Need to sum many:1 EMAX:Rpath
+loligo <- loligo[, sum(preyper), by = RPATH]
+loligo[,Rpred := 'Loligo']
+setnames(loligo, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+
+GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,loligo))
+
 #SmCopepods
 smcope <- EMAX.params[, list(diet.Small.copepods,diet.Group)]
 setnames(smcope,'diet.Group','EMAX')
@@ -446,4 +493,88 @@ setnames(lgcope, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,lgcope))
 
+#SmPelagics - use diet from Small Pelagics- other
+smpel <- EMAX.params[, list(diet.Small.Pelagics..other,diet.Group)]
+setnames(smpel,'diet.Group','EMAX')
+smpel <- merge(smpel, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+smpel[, preyper := diet.Small.Pelagics..other * Rpath.prop]
+#Need to sum many:1 EMAX:Rpath
+smpel <- smpel[, sum(preyper), by = RPATH]
+smpel[,Rpred := 'SmPelagics']
+setnames(smpel, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+
+GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,smpel))
+
+#Bacteria
+bacteria <- EMAX.params[, list(diet.Bacteria,diet.Group)]
+setnames(bacteria,'diet.Group','EMAX')
+bacteria <- merge(bacteria, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+bacteria[, preyper := diet.Bacteria * Rpath.prop]
+bacteria <- bacteria[, sum(preyper), by = RPATH]
+bacteria[,Rpred := 'Bacteria']
+setnames(bacteria, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+
+GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,bacteria))
+
+#Macrobenthos - need to merge multiple EMAX groups
+Macrobenthos<-Macrobenthos[,macro.prop := Biomass/sum(Biomass)]
+poly<-EMAX.params[, list(diet.Macrobenthos..polychaetes,diet.Group)]
+setnames(poly, 'diet.Macrobenthos..polychaetes','DC')
+poly<-poly[,macro.prop := Macrobenthos[EMAX == 'Macrobenthos- polychaetes',macro.prop]]
+crus<-EMAX.params[, list(diet.Macrobenthos..crustaceans,diet.Group)]
+setnames(crus, 'diet.Macrobenthos..crustaceans','DC')
+crus<-crus[,macro.prop := Macrobenthos[EMAX == 'Macrobenthos- crustaceans',macro.prop]]
+moll<-EMAX.params[, list(diet.Macrobenthos..molluscs,diet.Group)]
+setnames(moll, 'diet.Macrobenthos..molluscs','DC')
+moll<-moll[,macro.prop := Macrobenthos[EMAX == 'Macrobenthos- molluscs',macro.prop]]
+oth<-EMAX.params[, list(diet.Macrobenthos..other,diet.Group)]
+setnames(oth, 'diet.Macrobenthos..other','DC')
+oth<-oth[,macro.prop := Macrobenthos[EMAX == 'Macrobenthos- other',macro.prop]]
+
+#Combine all EMAX groups into one
+combo <- rbindlist(list(poly, crus, moll, oth))
+combo[, newDC := DC * macro.prop]
+combo<-(combo[,sumnewDC := sum(newDC), by = 'diet.Group'])
+combo<-unique(combo[,c('diet.Group','sumnewDC')])
+setnames(combo, 'diet.Group','EMAX')
+combo <- merge(combo, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+combo[, preyper := sumnewDC * Rpath.prop]
+#Need to sum many:1 EMAX:Rpath
+combo <- combo[, sum(preyper), by = RPATH]
+setnames(combo, c('RPATH','V1'),c('Rprey','preyper'))
+combo[, Rpred := 'Macrobenthos']
+
+GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combo))
+
+#Megabenthos - need to merge multiple EMAX groups
+Megabenthos<-all.groups[RPATH == 'Megabenthos',]
+Megabenthos<-Megabenthos[,mega.prop := Biomass/sum(Biomass)]
+filter<- EMAX.params[, list(diet.Megabenthos..filterers,diet.Group)]
+setnames(filter, 'diet.Megabenthos..filterers','DC')
+filter<-filter[,mega.prop := Megabenthos[EMAX == 'Megabenthos- filterers',mega.prop]]
+othermega<-EMAX.params[, list(diet.Megabenthos..other,diet.Group)]
+setnames(othermega, 'diet.Megabenthos..other','DC')
+othermega<-othermega[,mega.prop := Megabenthos[EMAX == 'Megabenthos- other',mega.prop]]
+
+#Combine all EMAX groups into one
+combomega <- rbindlist(list(filter, othermega))
+combomega[, newDC := DC * mega.prop]
+combomega<-(combomega[,sumnewDC := sum(newDC), by = 'diet.Group'])
+combomega<-unique(combomega[,c('diet.Group','sumnewDC')])
+setnames(combomega, 'diet.Group','EMAX')
+combomega <- merge(combomega, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+combomega[, preyper := sumnewDC * Rpath.prop]
+
+#Need to sum many:1 EMAX:Rpath
+combomega <- combomega[, sum(preyper), by = RPATH]
+setnames(combomega, c('RPATH','V1'),c('Rprey','preyper'))
+combomega[, Rpred := 'Megabenthos']
+
+GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combomega))
+
+#Merge diet.survey with diet.EMAX
+GOM.diet <- rbindlist(list(GOM.diet.survey, GOM.diet.EMAX), use.names = T)
+
+#Output results to csv
+write.csv(GOM.diet,'GOM_Diet_Matrix.csv')
 
