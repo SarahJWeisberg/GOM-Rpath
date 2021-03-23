@@ -17,11 +17,11 @@ knitr::opts_chunk$set(
   collapse = T)
 
 #Load required packages
-library(Rpath); library(data.table); library(Survdat); library(ggplot2); library(rgdal); library(here);library(readr)
+library(Rpath); library(data.table); library(survdat); library(ggplot2); library(rgdal); library(here);library(readr)
 
 #install.packages("remotes")
-#remotes::install_github("NOAA-EDAB/Rpath")
-#devtools::install_github('slucey/RSurvey/Survdat')
+#remotes::install_github("NOAA-EDAB/survdat",build_vignettes = TRUE)
+
 
 ```
 
@@ -46,7 +46,7 @@ As in the GB model, initial biological parameter estimates are derived from eith
 
 
 ```{r groups, echo=TRUE}
-GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 'GelZooplankton','LgCopepods', 'SmCopepods', 'Micronekton', 'Illex','Loligo', 'OtherCephalopods','Macrobenthos','AmLobster','OceanPout','SmPelagics','SmFlatfishes','NShrimp','OtherShrimps','RiverHerring','AtlScallop','OtherPelagics','AtlHerring','Mesopelagics','YTFlounder','Cod','Haddock','AmPlaice','AtlMackerel','AtlHalibut','SummerFlounder', 'Cusk','OtherDemersals','HMS','OtherSkates','RedHake','BarndoorSkate','Fourspot','SmoothDogfish','Pollock','Goosefish','SilverHake','WhiteHake','SpinyDogfish','Redfish','LittleSkate','SeaBirds','Windowpane','WinterFlounder','WitchFlounder','BlackSeaBass','Butterfish','Sharks','WinterSkate','Pinnipeds','BaleenWhales','Odontocetes', 'Megabenthos'))
+GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 'GelZooplankton','LgCopepods', 'SmCopepods', 'Micronekton', 'Illex','Loligo', 'OtherCephalopods','Macrobenthos','AmLobster','OceanPout','SmPelagics','SmFlatfishes','NShrimp','OtherShrimps','RiverHerring','AtlScallop','OtherPelagics','AtlHerring','Mesopelagics','YTFlounder','Cod','Haddock','AmPlaice','AtlMackerel','AtlHalibut','SummerFlounder', 'Cusk','OtherDemersals','HMS','OtherSkates','RedHake','Barndoor','Fourspot','SmoothDogfish','Pollock','Goosefish','SilverHake','WhiteHake','SpinyDogfish','Redfish','LittleSkate','SeaBirds','Windowpane','WinterFlounder','WitchFlounder','BlackSeaBass','Butterfish','Sharks','WinterSkate','Pinnipeds','BaleenWhales','Odontocetes', 'Megabenthos'))
 setnames(GOM.groups,'V1','RPATH')
 
 ```
@@ -61,31 +61,21 @@ Load in NEFSC bottom trawl data ('survdat') from all time, shape file of survey 
 #Load data------------------------------------------------------------------
 
 #Load survey data
-load('Survdat.RData')
+load('NEFSC_BTS_2021_all_seasons.RData')
 
-#Load strata
-strata <- readOGR('speciescodesandstrata', 'strata')
+#Calculate mean stratified biomass
+#GOM strata
+#Fall season only
+stratmean<-calc_stratified_mean(surveyData=survey$survdat, areaPolygon = 'NEFSC strata', areaDescription = 'STRATA', filterByArea = c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), filterBySeason= "FALL", groupDescription = "SVSPP", filterByGroup = "all", mergesexFlag = T, tidy = F, returnPrepData = F)
 
-#Load species code list
-load("speciescodesandstrata/Species_codes.RData")
+#Merge stratified means with RPATH names
+stratmean<-merge(stratmean,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
 
-#Generate area table
-strat.area <- getarea(strata, 'STRATA')
-setnames(strat.area, 'STRATA', 'STRATUM')
+#Calculate swept area biomass
+swept<-calc_swept_area(surveyData=survey$survdat, areaPolygon = 'NEFSC strata', areaDescription = 'STRATA', filterByArea = c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), filterBySeason= "FALL", groupDescription = "SVSPP", filterByGroup = "all", mergesexFlag = T,tidy = F, q = NULL, a = 0.0384)
 
-#---------------------------------------------------------------------------
-
-#Subset by season & strata set - choose fall for GOM strata
-fall <- survdat[SEASON == 'FALL' & STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), ]
-
-#Calculate total survey area
-area <- strat.area[STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), sum(Area)]
-#Result is close to but not exactly the same as EMAX area = 79127.95 km^2
-#EMAX included more inshore strata
-
-#Run stratification prep
-setnames(fall, 'EST_YEAR', 'YEAR')
-prep <- stratprep(fall, strat.area, strat.col = 'STRATUM', area.col ='Area')
+#Merge swept area biomass with RPATH names
+swept<-merge(swept,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
 
 #Merge with RPATH names
 #RPATH names are the same as in Georges Bank model
@@ -109,21 +99,6 @@ spp <- spp[RPATH == 'Weakfish', RPATH := 'OtherDemersals']
 #Cusk not included in Georges Bank model -- need to create RPATH name
 spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
 
-#Merge RPATH names with stratprep output by unique SVSPP
-prep<-merge(prep, spp[,list(SVSPP,COMNAME,RPATH,SCINAME)], by = 'SVSPP')
-
-#Calculate stratified means 
-stratmean <- stratmean(prep, group.col = 'SVSPP', strat.col = 'STRATUM')
-
-#Merge stratified means with RPATH names
-stratmean<-merge(stratmean,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
-
-#Calculate swept area biomass
-swept <- sweptarea(prep, stratmean, strat.col = 'STRATUM', area.col = 'Area')
-
-#Merge swept area biomass with RPATH names
-swept<-merge(swept,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
-
 #Calcuate biomass / area in mt
 swept <- swept[, biomass.area   := (tot.biomass*.001)/(Fall.q*area)]
 
@@ -137,7 +112,7 @@ setnames(biomass.80s, 'V1','Biomass')
 kable(biomass.80s, booktabs = F, align = 'c')
 
 #Output results to csv
-write.csv(biomass.80s, 'Survey_Biomass_GoM_1980-85.csv')
+write.csv(biomass.80s, 'Survey_Biomass_GoM_1980-85_v2.csv')
 
 ```
 
@@ -150,10 +125,6 @@ write.csv(biomass.80s, 'Survey_Biomass_GoM_1980-85.csv')
 
 #load EMAX model
 GOM.EMAX<-as.data.table(read.csv('GOM_EMAX_params.csv'))
-
-#User created functions-----------------------------------------------------
-'%notin%' <-Negate('%in%')
-#---------------------------------------------------------------------------
 
 ##Merge group list with survey biomass estimates
 GOM.groups<-merge(biomass.80s, GOM.groups, by = 'RPATH', all.y=TRUE)
@@ -186,7 +157,7 @@ MegabenthosBiomass<-GOM.EMAX[RPATH == 'Megabenthos', sum(Biomass)] - GOM.groups[
 GOM.EMAX<-GOM.EMAX[RPATH == 'Megabenthos', Biomass:=MegabenthosBiomass,]
 
 #Remove groups not included in Rpath model
-GOM.EMAX<- GOM.EMAX[RPATH %notin% c('Larval-juv fish- all','Shrimp et al.','Pelagics','Demersals','Discard','Detritus-POC','Fishery'),]
+GOM.EMAX<- GOM.EMAX[!RPATH %in% c('Larval-juv fish- all','Shrimp et al.','Pelagics','Demersals','Discard','Detritus-POC','Fishery'),]
 GOM.EMAX<-unique(GOM.EMAX)
 
 #Merge survey and EMAX biomass estimates
@@ -384,13 +355,13 @@ prey[is.na(RPATH) & MODCAT == 'BENINV', RPATH := 'Macrobenthos']
 prey[is.na(RPATH) & Collcom == 'COMB JELLIES', RPATH := 'GelZooplankton']
 prey[PYCOMNAM == 'ROTIFERS', RPATH := 'Microzooplankton']
 prey[is.na(RPATH) & Collcom == 'KRILL', RPATH := 'Micronekton'] 
-prey[is.na(RPATH) & Collcom == 'COPEPODA', RPATH := 'Mesozooplankton']
+prey[is.na(RPATH) & Collcom == 'COPEPODA', RPATH := 'LgCopepods']
 prey[is.na(RPATH) & MODCAT == 'PELINV', RPATH := 'Micronekton']
 
 #MODCAT LDEM
 prey[is.na(RPATH) & ANALCAT %in% c('BOTFAM', 'SOLFAM'), RPATH := 'SmFlatfishes']
 prey[is.na(RPATH) & ANALCAT == 'RAJORD', RPATH := 'OtherSkates']
-prey[is.na(RPATH) & ANALCAT %in% c('LUTFAM', 'SCAFAM', 'SCIFAM', 'SPAFAM', 'SERFA3'), RPATH := 'SouthernDemersals']
+prey[is.na(RPATH) & ANALCAT %in% c('LUTFAM', 'SCAFAM', 'SCIFAM', 'SPAFAM', 'SERFA3'), RPATH := 'OtherDemersals']
 prey[is.na(RPATH) & ANALCAT == 'SHARK', RPATH := 'Sharks']
 prey[is.na(RPATH) & ANALCAT == 'MACFAM', RPATH := 'Mesopelagics']
 prey[is.na(RPATH) & ANALCAT %in% c('PLEFAM', 'PLEORD'), RPATH := 'OtherDemersals']
@@ -427,7 +398,7 @@ prey[is.na(RPATH) & MODCAT == 'MISC', RPATH := 'NotUsed']
 prey[PYABBR %in% c('INVERT', 'ARTHRO', 'CRUSTA', 'CRUEGG', 'INSECT', 'UROCHO'),
      RPATH := 'Macrobenthos']
 prey[PYABBR %in% c('MARMAM', 'MARMA2', 'DELDEL', 'GLOBSP'), RPATH := 'Odontocetes']
-prey[PYABBR %in% c('AVES', 'AVEFEA'), RPATH := 'Seabirds']
+prey[PYABBR %in% c('AVES', 'AVEFEA'), RPATH := 'SeaBirds']
 prey[PYABBR %in% c('PLANKT', 'DIATOM'), RPATH := 'Phytoplankton']
 prey[is.na(RPATH) & MODCAT == 'OTHER', RPATH := 'NotUsed'] #Plants and Parasites
 
@@ -457,6 +428,10 @@ setnames(GOM.fh, 'RPATH', 'Rprey')
 
 #Remove NotUsed, AR, UNKFish and UNKSkate
 GOM.fh <- GOM.fh[!Rprey %in% c('NotUsed', 'AR', 'UNKFish', 'UNKSkate'), ]
+
+#Assign missing RPATH names
+GOM.fh<-GOM.fh[PYNAM=='NEPTUNEA DECEMCOSTATA',Rprey:='Macrobenthos']
+GOM.fh<-GOM.fh[PYNAM=='STERNOPTYCHIDAE',Rprey:='Mesopelagics']
 
 #Merge prey items
 setkey(GOM.fh, YEAR, SEASON, CRUISE6, STRATUM, STATION, TOW, Rpred, PDID, Rprey)
@@ -858,7 +833,7 @@ GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combomega))
 GOM.diet <- rbindlist(list(GOM.diet.survey, GOM.diet.EMAX), use.names = T)
 
 #Output results to csv
-write.csv(GOM.diet,'GOM_Diet_Matrix.csv')
+#write.csv(GOM.diet,'GOM_Diet_Matrix.csv')
 
 ```
 ## References
