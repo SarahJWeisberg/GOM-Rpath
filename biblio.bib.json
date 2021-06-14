@@ -1,0 +1,6 @@
+{
+  "id":"lucey20",
+     "type":"article",
+     "title":"Book Title",
+     "arbitraryField":"An example arbitrary field with arbitrary data. This field will be ignored by the CSL Processor."
+}

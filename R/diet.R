@@ -1,6 +1,37 @@
-## Import data
-library(readr); library(data.table); library(rgdal)
+#Title: GOM Rpath Diet Matrix
+
+# Purpose: This script generates a diet matric for all 
+#       functional groups used in the GOM-Rpath model.
+#       Data are sourced from the NESFC food habits database. 
+#       Data are reported as proportion of prey group in predator diet.
+#       Model is built to be analogous to Georges Bank Rpath model
+#       https://github.com/NOAA-EDAB/GBRpath
+
+# DataFile:"GOM_foodhabits.RData"
+
+# Author: S. Weisberg
+# Contact details: sarah.j.weisberg@stonybrook.edu
+
+xfun::session_info()
+# Mon Jun 14 16:53:24 2021 ------------------------------
+
+#Load packages
+library(readr)
+
+#load stomach data
+load("data/GOM_foodhabits.RData")
+
+# Import prey naming table
 prey <- as.data.table(read_csv("SASPREY12B.csv"))
+
+#load GOM groups
+#source('R/Groups.R')
+
+#load biomass estimates from survey (single species)
+#source('R/survey_biomass_estimates.R')
+
+#load biomass estimates from EMAX
+source('R/EMAX_biomass_estimates.R')
 
 #Match prey codes with RPath group names
 #Start with 1:1
@@ -53,7 +84,7 @@ prey[PYCOMNAM %in% c('LONGFIN SQUID', 'LOLIGO SP PEN'), RPATH := 'Loligo']
 prey[PYNAM    %in% c('LOLIGO SP', 'LOLIGO SP BEAKS'),   RPATH := 'Loligo']
 
 #Use higher level categories
-#A majority of unassigned prey are in the MODCAT BENINV - whittle out those that
+#A majority of unassigned prey are in the MODCAT BENINV - whittle out those that 
 #don't go into macrobenthos then assign the rest
 
 #Megabenthos - Asteroids, mantis shrimp, crabs other than hermits, lobsters
@@ -75,13 +106,13 @@ prey[is.na(RPATH) & MODCAT == 'BENINV', RPATH := 'Macrobenthos']
 prey[is.na(RPATH) & Collcom == 'COMB JELLIES', RPATH := 'GelZooplankton']
 prey[PYCOMNAM == 'ROTIFERS', RPATH := 'Microzooplankton']
 prey[is.na(RPATH) & Collcom == 'KRILL', RPATH := 'Micronekton'] 
-prey[is.na(RPATH) & Collcom == 'COPEPODA', RPATH := 'Mesozooplankton']
+prey[is.na(RPATH) & Collcom == 'COPEPODA', RPATH := 'LgCopepods']
 prey[is.na(RPATH) & MODCAT == 'PELINV', RPATH := 'Micronekton']
 
 #MODCAT LDEM
 prey[is.na(RPATH) & ANALCAT %in% c('BOTFAM', 'SOLFAM'), RPATH := 'SmFlatfishes']
 prey[is.na(RPATH) & ANALCAT == 'RAJORD', RPATH := 'OtherSkates']
-prey[is.na(RPATH) & ANALCAT %in% c('LUTFAM', 'SCAFAM', 'SCIFAM', 'SPAFAM', 'SERFA3'), RPATH := 'SouthernDemersals']
+prey[is.na(RPATH) & ANALCAT %in% c('LUTFAM', 'SCAFAM', 'SCIFAM', 'SPAFAM', 'SERFA3'), RPATH := 'OtherDemersals']
 prey[is.na(RPATH) & ANALCAT == 'SHARK', RPATH := 'Sharks']
 prey[is.na(RPATH) & ANALCAT == 'MACFAM', RPATH := 'Mesopelagics']
 prey[is.na(RPATH) & ANALCAT %in% c('PLEFAM', 'PLEORD'), RPATH := 'OtherDemersals']
@@ -99,8 +130,6 @@ prey[is.na(RPATH) & AnalCom == 'GREENEYES', RPATH := 'Mesopelagics']
 prey[is.na(RPATH) & MODCAT == 'SDEM', RPATH := 'OtherDemersals']
 
 #MODCAT SPEL
-#Note - RiverHerring biomass was not present enough on Georges Bank during 2012-2016
-#They are included as other pelagics here
 prey[is.na(RPATH) & MODCAT == 'SPEL' & AnalCom == 'LANTERNFISHES', RPATH := 'Mesopelagics']
 prey[PYABBR == 'MAUWEI', RPATH := 'Mesopelagics']
 prey[is.na(RPATH) & MODCAT == 'SPEL' & AnalCom == 'HERRINGS', RPATH := 'RiverHerring']
@@ -120,14 +149,13 @@ prey[is.na(RPATH) & MODCAT == 'MISC', RPATH := 'NotUsed']
 prey[PYABBR %in% c('INVERT', 'ARTHRO', 'CRUSTA', 'CRUEGG', 'INSECT', 'UROCHO'),
      RPATH := 'Macrobenthos']
 prey[PYABBR %in% c('MARMAM', 'MARMA2', 'DELDEL', 'GLOBSP'), RPATH := 'Odontocetes']
-prey[PYABBR %in% c('AVES', 'AVEFEA'), RPATH := 'Seabirds']
+prey[PYABBR %in% c('AVES', 'AVEFEA'), RPATH := 'SeaBirds']
 prey[PYABBR %in% c('PLANKT', 'DIATOM'), RPATH := 'Phytoplankton']
 prey[is.na(RPATH) & MODCAT == 'OTHER', RPATH := 'NotUsed'] #Plants and Parasites
 
 #Leftovers
 prey[AnalCom == 'SAND LANCES', RPATH := 'SmPelagics']
 prey[PYABBR %in% c('PERORD', 'MYOOCT'), RPATH := 'OtherDemersals']
-
 prey[PYABBR %in% c('CLUSCA', 'CLUHA2'), RPATH := 'AtlHerring']
 
 
@@ -137,33 +165,6 @@ prey[is.na(RPATH) & AnalCom == 'OTHER FISH', RPATH := 'UNKFish']
 prey[PYABBR == 'FISSCA', RPATH := 'UNKFish']
 prey[PYABBR == 'CHONDR', RPATH := 'UNKSkate']
 prey[PYABBR == 'PRESER', RPATH := 'NotUsed']
-
-#load stomach data
-load("~/Desktop/GOM-Rpath/GOM_foodhabits.RData")
-
-#Load strata
-#strata <- readOGR('speciescodesandstrata', 'strata')
-
-#Load species code list
-load("speciescodesandstrata/Species_codes.RData")
-
-#Reassign groups
-spp <- spp[!duplicated(spp$SVSPP),]
-spp <- spp[RPATH == 'RedCrab', RPATH := 'Macrobenthos']
-spp <- spp[RPATH == 'AtlScallop', RPATH := 'Megabenthos']
-spp <- spp[RPATH == 'Clams', RPATH := 'Megabenthos']
-spp <- spp[RPATH == 'Scup', RPATH := 'OtherDemersals']
-spp <- spp[RPATH == 'OffHake', RPATH := 'OtherDemersals']
-spp <- spp[RPATH == 'Bluefish', RPATH := 'OtherPelagics']
-spp <- spp[RPATH == 'AmShad', RPATH := 'SmPelagics']
-spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
-spp <- spp[RPATH == 'SmallPelagics', RPATH := 'SmPelagics']
-spp <- spp[RPATH == 'AtlCroaker', RPATH := 'SouthernDemersals']
-spp <- spp[RPATH == 'LargePelagics', RPATH := 'OtherPelagics']
-spp <- spp[RPATH == 'OtherFlatfish', RPATH := 'OtherDemersals']
-spp <- spp[RPATH == 'StripedBass', RPATH := 'OtherPelagics']
-spp <- spp[RPATH == 'Sturgeon', RPATH := 'OtherDemersals']
-spp <- spp[RPATH == 'Weakfish', RPATH := 'OtherDemersals']
 
 #Assign Rpath codes to predators
 GOM.fh <- merge(GOM.fh, spp, by = 'SVSPP', all.x = T)
@@ -175,6 +176,10 @@ setnames(GOM.fh, 'RPATH', 'Rprey')
 
 #Remove NotUsed, AR, UNKFish and UNKSkate
 GOM.fh <- GOM.fh[!Rprey %in% c('NotUsed', 'AR', 'UNKFish', 'UNKSkate'), ]
+
+#Assign missing RPATH names
+GOM.fh<-GOM.fh[PYNAM=='NEPTUNEA DECEMCOSTATA',Rprey:='Macrobenthos']
+GOM.fh<-GOM.fh[PYNAM=='STERNOPTYCHIDAE',Rprey:='Mesopelagics']
 
 #Merge prey items
 setkey(GOM.fh, YEAR, SEASON, CRUISE6, STRATUM, STATION, TOW, Rpred, PDID, Rprey)
@@ -385,17 +390,17 @@ setnames(micronekton, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,micronekton))
 
-#OtherPelagics
-otherpel <- EMAX.params[, list(diet.Medium.Pelagics...piscivores...other.,diet.Group)]
-setnames(otherpel,'diet.Group','EMAX')
-otherpel <- merge(otherpel, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
-otherpel[, preyper := diet.Medium.Pelagics...piscivores...other. * Rpath.prop]
+#OtherPelagics-- going to try to use diet fromfood habits database for initial balancing, rather than EMAX
+#otherpel <- EMAX.params[, list(diet.Medium.Pelagics...piscivores...other.,diet.Group)]
+#setnames(otherpel,'diet.Group','EMAX')
+#otherpel <- merge(otherpel, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+#otherpel[, preyper := diet.Medium.Pelagics...piscivores...other. * Rpath.prop]
 #Need to sum many:1 EMAX:Rpath
-otherpel <- otherpel[, sum(preyper), by = RPATH]
-otherpel[, Rpred := 'OtherPelagics']
-setnames(otherpel, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+#otherpel <- otherpel[, sum(preyper), by = RPATH]
+#otherpel[, Rpred := 'OtherPelagics']
+#setnames(otherpel, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
-GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,otherpel))
+#GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,otherpel))
 
 #OtherDemersals
 otherdem <- EMAX.params[, list(diet.Demersals..benthivores,diet.Group)]
@@ -574,7 +579,3 @@ GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combomega))
 
 #Merge diet.survey with diet.EMAX
 GOM.diet <- rbindlist(list(GOM.diet.survey, GOM.diet.EMAX), use.names = T)
-
-#Output results to csv
-write.csv(GOM.diet,'GOM_Diet_Matrix.csv')
-
