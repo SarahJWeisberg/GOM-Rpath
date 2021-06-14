@@ -1,7 +1,7 @@
-#Title: GOM Rpath Biomass estimates
+#Title: GOM Rpath Biomass Estimates (Survey)
 
 # Purpose: This script generates biomass estimates for 
-#       the single-species functional groups usedin the GOM-Rpath model.
+#       the single-species functional groups used in the GOM-Rpath model.
 #       Data are sourced from the NEFSC bottom trawl. Model is parameterized
 #       for 1980-85 using fall survey data only. Model is built
 #       to be analogous to Georges Bank Rpath model
