@@ -46,6 +46,7 @@ As in the GB model, initial biological parameter estimates are derived from eith
 
 
 ```{r groups, echo=TRUE}
+#Functional groups for GOM RPath model
 GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 'GelZooplankton','LgCopepods', 'SmCopepods', 'Micronekton', 'Illex','Loligo', 'OtherCephalopods','Macrobenthos','AmLobster','OceanPout','SmPelagics','SmFlatfishes','NShrimp','OtherShrimps','RiverHerring','AtlScallop','OtherPelagics','AtlHerring','Mesopelagics','YTFlounder','Cod','Haddock','AmPlaice','AtlMackerel','AtlHalibut','SummerFlounder', 'Cusk','OtherDemersals','HMS','OtherSkates','RedHake','Barndoor','Fourspot','SmoothDogfish','Pollock','Goosefish','SilverHake','WhiteHake','SpinyDogfish','Redfish','LittleSkate','SeaBirds','Windowpane','WinterFlounder','WitchFlounder','BlackSeaBass','Butterfish','Sharks','WinterSkate','Pinnipeds','BaleenWhales','Odontocetes', 'Megabenthos'))
 setnames(GOM.groups,'V1','RPATH')
 
@@ -61,7 +62,7 @@ Load in NEFSC bottom trawl data ('survdat') from all time, shape file of survey 
 #Load data------------------------------------------------------------------
 
 #Load survey data
-load('NEFSC_BTS_2021_all_seasons.RData')
+load('data/NEFSC_BTS_2021_all_seasons.RData')
 
 #Calculate mean stratified biomass
 #GOM strata
