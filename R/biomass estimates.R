@@ -17,7 +17,7 @@ xfun::session_info()
 
 #Load needed packages
 #Load required packages
-library(survdat); library(ggplot2); library(rgdal); library(here);library(readr)
+library(survdat)
 
 #Load survey data
 load('data/NEFSC_BTS_2021_all_seasons.RData')
@@ -27,7 +27,7 @@ load('data/NEFSC_BTS_2021_all_seasons.RData')
 load("speciescodesandstrata/Species_codes.Rdata")
 
 #Load strata
-strata<- readOGR('speciescodesandstrata','strata')
+#strata<- readOGR('speciescodesandstrata','strata')
 
 #Calculate total GOM area
 area<-sf::st_read(dsn=system.file("extdata","strata.shp",package="survdat"))
@@ -78,5 +78,5 @@ swept <- swept[, biomass.area   := (tot.biomass*.001)/(Fall.q*GOM.area)]
 setkey(swept,RPATH,YEAR)
 swept <- swept[, sum(biomass.area), by = key(swept)]
 setnames(swept, 'V1','Biomass')
-biomass.80s<-swept[YEAR %in% 1980:1985, mean(Biomass), by=RPATH]
-setnames(biomass.80s, 'V1','Biomass')
+biomass_80s<-swept[YEAR %in% 1980:1985, mean(Biomass), by=RPATH]
+setnames(biomass_80s, 'V1','Biomass')
