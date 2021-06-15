@@ -14,13 +14,22 @@ xfun::session_info()
 # Tue Jun 15 14:54:44 2021 ------------------------------
 
 #Load required packages
-library(here)
+library(here);library(data.table);library(dplyr);library(tidyverse)
 
 #Load all found parameter values
 params_start<-read.csv('data/GOM_Starting_Parameters.csv')
 
 #Trim to select needed columns only
 params<-params_start[,c("RPATH","PB","QB")]
+
+#Load groups from Groups.R script
+#Should be the same as in params except for Southern Demersals, Detritus, Discards
+source('R/Groups.R')
+
+#Remove mismatched rows
+#Merge
+params<-filter(params,RPATH %in% GOM.groups$RPATH)
+params<-left_join(GOM.groups,params,by="RPATH")
 
 #Make vector of all PB values
 PB<-params[,"PB"]
