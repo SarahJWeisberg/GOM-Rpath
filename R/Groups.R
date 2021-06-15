@@ -1,3 +1,21 @@
+#Title: GOM Rpath Functional Groups
+
+# Purpose: This script simply creates a data table with all of the functional 
+#           groups used in the GOM Rpath model. Functional group selection is 
+#           a matter of modeler choice and relates to the specific questions
+#           being addressed by the model. 
+
+# DataFile: NA
+
+# Author: S. Weisberg
+# Contact details: sarah.j.weisberg@stonybrook.edu
+
+# Tue Jun 15 15:18:36 2021 ------------------------------
+
+
+#Load needed packages
+library(data.table)
+
 #Functional groups for GOM RPath model
 GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 
                              'GelZooplankton','LgCopepods', 'SmCopepods', 
