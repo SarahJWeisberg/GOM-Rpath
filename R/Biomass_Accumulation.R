@@ -13,7 +13,11 @@
 
 xfun::session_info()
 
-# Mon Jun 14 17:10:51 2021 ------------------------------
+# Last modified Tue Jun 15 17:26:44 2021 -----------------------------
+
+#Load needed packages
+library(here);library(data.table)
+
 #Run survey biomass estimate code
 source('R/survey_biomass_estimates.R')
 

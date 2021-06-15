@@ -10,11 +10,11 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Tue Jun 15 15:18:36 2021 ------------------------------
+# Last modified: Tue Jun 15 15:18:36 2021 ------------------------------
 
 
 #Load needed packages
-library(data.table)
+library(here);library(data.table)
 
 #Functional groups for GOM RPath model
 GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 

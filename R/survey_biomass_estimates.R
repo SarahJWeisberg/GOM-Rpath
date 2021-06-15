@@ -13,18 +13,18 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 xfun::session_info()
-# Mon Jun 14 14:55:48 2021 ------------------------------
+# Last modified: Mon Jun 14 14:55:48 2021 ------------------------------
 
 #Load needed packages
 #Load required packages
-library(survdat)
+library(here);library(data.table);library(survdat)
 
 #Load survey data
 load('data/NEFSC_BTS_2021_all_seasons.RData')
 
 #Load species codes
 #Use these codes to translate survey species codes ('SVSPP') to RPATH species codes ('spp')
-load("speciescodesandstrata/Species_codes.Rdata")
+load('data/speciescodesandstrata/Species_codes.Rdata')
 
 #Load strata
 #strata<- readOGR('speciescodesandstrata','strata')
@@ -45,9 +45,6 @@ stratmean<-merge(stratmean,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
 
 #Calculate swept area biomass
 swept<-calc_swept_area(surveyData=survey$survdat, areaPolygon = 'NEFSC strata', areaDescription = 'STRATA', filterByArea = c(1220, 1240, 1260:1290, 1360:1400, 3560:3830), filterBySeason= "FALL", groupDescription = "SVSPP", filterByGroup = "all", mergesexFlag = T,tidy = F, q = NULL, a = 0.0384)
-
-#Merge swept area biomass with RPATH names
-swept<-merge(swept,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
 
 #Merge with RPATH names
 #RPATH names are the same as in Georges Bank model
@@ -70,6 +67,9 @@ spp <- spp[RPATH == 'Weakfish', RPATH := 'OtherDemersals']
 
 #Cusk not included in Georges Bank model -- need to create RPATH name
 spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
+
+#Merge swept area biomass with RPATH names
+swept<-merge(swept,spp[,list(SVSPP,RPATH,SCINAME,Fall.q)], by = 'SVSPP')
 
 #Calcuate biomass / area in mt
 swept <- swept[, biomass.area   := (tot.biomass*.001)/(Fall.q*GOM.area)]

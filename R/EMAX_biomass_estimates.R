@@ -12,7 +12,10 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 xfun::session_info()
-# Mon Jun 14 16:39:48 2021 ------------------------------
+#Last modified: # Tue Jun 15 17:31:55 2021 ------------------------------
+
+#Load needed packages
+library(here); library(data.table)
 
 #load EMAX model
 GOM.EMAX<-as.data.table(read.csv('GOM_EMAX_params.csv'))
