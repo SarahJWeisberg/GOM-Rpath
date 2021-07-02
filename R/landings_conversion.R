@@ -47,7 +47,7 @@ mean.land<-mean.land %>% group_by(FLEET,RPATH) %>% summarise(SPPLIVMT=sum(SPPLIV
 
 #Convert to t/km^2
 #Remove SPPLIVMT for clarity
-mean.land$t_sq.km<-mean.land$SPPLIVMT/GOM.area
+mean.land$landings<-mean.land$SPPLIVMT/GOM.area
 mean.land<-mean.land[,-3]
 
 #Separate each fleet into its own data frame
@@ -93,7 +93,7 @@ scallop[is.na(scallop)]<-0
 #Trap
 trap<-left_join(GOM.groups,trap,by="RPATH")
 trap$FLEET<-"Trap"
-trap[is.na(lg_mesh)]<-0
+trap[is.na(trap)]<-0
 
 #HMS
 hms<-left_join(GOM.groups,hms,by="RPATH")
