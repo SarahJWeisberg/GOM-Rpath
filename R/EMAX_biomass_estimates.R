@@ -18,7 +18,7 @@ xfun::session_info()
 library(here); library(data.table)
 
 #load EMAX model
-GOM.EMAX<-as.data.table(read.csv('GOM_EMAX_params.csv'))
+GOM.EMAX<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 
 #load GOM groups
 source('R/Groups.R')
