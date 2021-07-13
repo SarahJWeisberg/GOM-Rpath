@@ -22,7 +22,7 @@ library(readr)
 load("data/GOM_foodhabits.RData")
 
 # Import prey naming table
-prey <- as.data.table(read_csv("SASPREY12B.csv"))
+prey <- as.data.table(read_csv("data/SASPREY12B.csv"))
 
 #load GOM groups
 #source('R/Groups.R')
