@@ -13,10 +13,12 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 xfun::session_info()
-# Mon Jun 14 16:53:24 2021 ------------------------------
+#Last modified 
+# Fri Jul 16 11:11:53 2021 ------------------------------
+
 
 #Load packages
-library(readr)
+library(readr);library (data.table);library(here)
 
 #load stomach data
 load("data/GOM_foodhabits.RData")
@@ -222,14 +224,14 @@ setkey(GOM.diet.survey, Rpred, preyper)
 GOM.diet.survey <- GOM.diet.survey[!Rpred %in% c('OtherDemersals','SmPelagics','Loligo','Illex')]
 
 #Load in params table with biomass as previously calculated
-all.groups <- read_csv("GOM_Parameters_V4.csv")
+all.groups <- read_csv("data/GOM_Starting_Parameters.csv")
 all.groups <- as.data.table(all.groups[,c(1,2,3)])
 
 #Remove EMAX:RPATH many:1s
 all.groups <- all.groups[!RPATH %in% c('Megabenthos','Macrobenthos'),]
 
 #Calculate proportionality for EMAX:RPATH many:1s
-EMAX.params <- as.data.table(read_csv("GOM_EMAX_params.csv"))
+#EMAX.params <- as.data.table(read_csv("GOM_EMAX_params.csv"))
 
 #Megabenthos groups
 #Calculate biomass remaining in Megabenthos- filterers after removing scallops
@@ -579,3 +581,5 @@ GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combomega))
 
 #Merge diet.survey with diet.EMAX
 GOM.diet <- rbindlist(list(GOM.diet.survey, GOM.diet.EMAX), use.names = T)
+
+write.csv(GOM.diet,"outputs/GOM_Diet_Matrix.csv")

@@ -23,6 +23,9 @@ GOM.EMAX<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 #load GOM groups
 source('R/Groups.R')
 
+#Convert biomass to numeric
+GOM.groups$Biomass<-as.numeric(GOM.groups$Biomass)
+
 #load biomass estimates from survey (single species)
 source('R/survey_biomass_estimates.R')
 
