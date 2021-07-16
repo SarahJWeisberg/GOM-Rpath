@@ -23,15 +23,15 @@ GOM.EMAX<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 #load GOM groups
 source('R/Groups.R')
 
-#Convert biomass to numeric
-GOM.groups$Biomass<-as.numeric(GOM.groups$Biomass)
-
 #load biomass estimates from survey (single species)
 source('R/survey_biomass_estimates.R')
 
 ##Merge group list with survey biomass estimates
-GOM.groups<-merge(biomass_80s, GOM.groups, by = 'RPATH', all.y=TRUE)
+GOM.groups<-merge(biomass_80s, GOM.groups, by = 'RPATH',all.y = TRUE)
 setnames(GOM.groups,'V1','Biomass', skip_absent = TRUE)
+
+#Convert biomass to numeric
+GOM.groups$Biomass<-as.numeric(GOM.groups$Biomass)
 
 #Filter EMAX model for group and biomass only
 setnames(GOM.EMAX,'model.Group','RPATH')

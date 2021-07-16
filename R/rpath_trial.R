@@ -15,18 +15,13 @@ REco.params<-create.rpath.params(group = groups,type=types)
 
 #Fill in biomass estimates
 source("R/EMAX_biomass_estimates.R")
-#Get an error: in Ops.units(GOM.EMAX[RPATH == "Megabenthos", sum(Biomass)], GOM.groups[RPATH ==  : 
-#both operands of the expression should be "units" objects
-#Something funny is happening here, need to fix
-#For now, just try to get the model to run by running EMAX biomass code separately
-#Somehow that works fine
 
-biomass_80s<-na.omit(biomass_80s)
+#biomass_80s<-na.omit(biomass_80s)
 
 biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
 
 #Remove barndoor
-biomass<-biomass[-35,]
+#biomass<-biomass[-35,]
 
 #Turn biomass into vector & fill model
 biomass<-as.vector(biomass$Biomass)
@@ -185,13 +180,10 @@ REco.params$model[, "Clam Dredge.disc" := clam.d]
 
 #Complete diet table
 source("R/diet.R")
-#Get the same error as with EMAX biomass code 
-#Will run in separate tab for now
 
+#Run diet filling
+source("R/diet_filling.R")
 
-
-
-
-
-
-
+#Run model
+REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
+REco
