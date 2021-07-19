@@ -16,8 +16,6 @@ for (i in 1:length(diet$Rpred)){
   REco.params$diet[Group==temp_group,(diet$Rpred[i]):=diet$preyper[i]]
 }
 
-REco.params$diet[REco.params$diet==0]<-NA
-
 #write.csv(REco.params$diet,"diet_filled.csv")
 
 
