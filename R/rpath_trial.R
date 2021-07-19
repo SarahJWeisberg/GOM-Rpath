@@ -23,9 +23,16 @@ biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
 #Remove barndoor
 #biomass<-biomass[-35,]
 
-#Turn biomass into vector & fill model
+
+#Turn biomass into vector
 biomass<-as.vector(biomass$Biomass)
+
+#Change barndoor to 0 biomass
+biomass[35]<-0
+
+#Fill model
 REco.params$model[,Biomass:=biomass]
+
 
 #Fill pb
 source("R/biological_parameters.R")

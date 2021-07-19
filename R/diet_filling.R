@@ -5,10 +5,10 @@
 
 
 library(readr);library(here)
-GOM_Diet_Matrix <- read_csv("outputs/GOM_Diet_Matrix.csv")
+#GOM_Diet_Matrix <- read_csv("outputs/GOM_Diet_Matrix.csv")
 
 #Remove extraneous columns
-diet<-GOM_Diet_Matrix[,-1]
+diet<-GOM.diet
 
 
 for (i in 1:length(diet$Rpred)){
@@ -16,7 +16,7 @@ for (i in 1:length(diet$Rpred)){
   REco.params$diet[Group==temp_group,(diet$Rpred[i]):=diet$preyper[i]]
 }
 
-REco.params$diet[is.na(REco.params$diet)]<-0
+REco.params$diet[REco.params$diet==0]<-NA
 
 #write.csv(REco.params$diet,"diet_filled.csv")
 

@@ -14,7 +14,7 @@
 
 xfun::session_info()
 #Last modified 
-# Fri Jul 16 11:11:53 2021 ------------------------------
+# Mon Jul 19 14:44:34 2021 ------------------------------
 
 
 #Load packages
@@ -25,6 +25,9 @@ load("data/GOM_foodhabits.RData")
 
 # Import prey naming table
 prey <- as.data.table(read_csv("data/SASPREY12B.csv"))
+
+#load EMAX model
+EMAX.params<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 
 #load GOM groups
 #source('R/Groups.R')
@@ -176,8 +179,11 @@ setnames(GOM.fh, 'RPATH', 'Rpred')
 GOM.fh <- merge(GOM.fh, prey[, list(PYNAM, RPATH)], by = 'PYNAM', all.x = T)
 setnames(GOM.fh, 'RPATH', 'Rprey')
 
-#Remove NotUsed, AR, UNKFish and UNKSkate
+#Remove NotUsed, AR, UNKFish and UNKSkate as prey
 GOM.fh <- GOM.fh[!Rprey %in% c('NotUsed', 'AR', 'UNKFish', 'UNKSkate'), ]
+
+#Remove Freshwater as predator
+GOM.fh <- GOM.fh[!Rpred %in% 'Freshwater', ]
 
 #Assign missing RPATH names
 GOM.fh<-GOM.fh[PYNAM=='NEPTUNEA DECEMCOSTATA',Rprey:='Macrobenthos']
@@ -582,4 +588,4 @@ GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combomega))
 #Merge diet.survey with diet.EMAX
 GOM.diet <- rbindlist(list(GOM.diet.survey, GOM.diet.EMAX), use.names = T)
 
-write.csv(GOM.diet,"outputs/GOM_Diet_Matrix.csv")
+#write.csv(GOM.diet,"outputs/GOM_Diet_Matrix.csv")
