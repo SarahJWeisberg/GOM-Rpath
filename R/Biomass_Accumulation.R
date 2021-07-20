@@ -19,7 +19,7 @@ xfun::session_info()
 library(here);library(data.table)
 
 #Run survey biomass estimate code
-source('R/survey_biomass_estimates.R')
+#source('R/survey_biomass_estimates.R')
 
 # Pull out Rpath groups from survey data
 survey.groups <- as.data.table(unique(swept$RPATH))

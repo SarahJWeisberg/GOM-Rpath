@@ -7,9 +7,8 @@
 library(readr);library(here)
 #GOM_Diet_Matrix <- read_csv("outputs/GOM_Diet_Matrix.csv")
 
-#Remove extraneous columns
+#Rename
 diet<-GOM.diet
-
 
 for (i in 1:length(diet$Rpred)){
   temp_group<-diet$Rprey[i]
