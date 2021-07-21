@@ -15,10 +15,10 @@
 library(here);library(data.table)
 
 #Load landings data
-load("~/Desktop/GOM-Rpath/data/mean_landings_gom_80_85.RData")
+load(here("data/mean_landings_gom_80_85.RData"))
 
 #Load functional groups
-source("R/Groups.R")
+source(here("R/Groups.R"))
 
 #Pull out unique fleets
 fleets<-as.data.table(unique(mean.land$FLEET))
