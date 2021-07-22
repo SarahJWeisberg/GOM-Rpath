@@ -17,20 +17,23 @@ library(here);library(data.table)
 #Load landings data
 load("~/Desktop/GOM-Rpath/data/mean_landings_gom_80_85.RData")
 
+#Change "HMS" to "HMS Fleet" to avoid confusion
+mean.land[FLEET =="HMS",FLEET:="HMS Fleet"]
+
 #Load functional groups
 source("R/Groups.R")
-
-#Pull out unique fleets
-fleets<-as.data.table(unique(mean.land$FLEET))
-colnames(fleets)<-"RPATH"
-fleets[fleets$RPATH == "HMS"]<-"HMS.fleet"
-
-#Bind fleets and functional groups
-groups_fleets<-rbind(GOM.groups,fleets)
 
 #Add detritus and discards
 d.d<-as.data.table(rbind("Detritus","Discards"))
 colnames(d.d)<-"RPATH"
-groups_fleets<-rbind(groups_fleets,d.d)
+groups_fleets<-rbind(GOM.groups,d.d)
+
+#Pull out unique fleets
+fleets<-as.data.table(unique(mean.land$FLEET))
+colnames(fleets)<-"RPATH"
+
+#Bind fleets and functional groups
+groups_fleets<-rbind(groups_fleets,fleets)
+
 
 

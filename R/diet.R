@@ -29,6 +29,7 @@ prey <- as.data.table(read_csv("data/SASPREY12B.csv"))
 #load EMAX model
 EMAX.params<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 
+
 #load GOM groups
 #source('R/Groups.R')
 

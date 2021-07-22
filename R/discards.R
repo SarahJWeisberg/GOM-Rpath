@@ -24,6 +24,9 @@ library(here);library(tidyr);library(data.table)
 #Load observer data
 load("data/observer_data.RData")
 
+#Change "HMS" to "HMS Fleet" to avoid confusion
+ob.all[FLEET =="HMS",FLEET:="HMS Fleet"]
+
 #Load landings data
 source("R/landings_conversion.R")
 
@@ -129,7 +132,7 @@ other.d<-filter(discards,FLEET == "Other")
 sm_mesh.d<-filter(discards,FLEET == "SM Mesh")
 scallop.d<-filter(discards,FLEET == "Scallop Dredge")
 trap.d<-filter(discards,FLEET == "Trap")
-hms.d<-filter(discards,FLEET == "HMS")
+hms.d<-filter(discards,FLEET == "HMS Fleet")
 pelagic.d<-filter(discards,FLEET == "Pelagic")
 other_dredge.d<-filter(discards,FLEET == "Other Dredge")
 
@@ -168,7 +171,7 @@ trap.d[is.na(trap.d)]<-0
 
 #HMS
 hms.d<-left_join(GOM.groups,hms.d,by="RPATH")
-hms.d$FLEET<-"HMS"
+hms.d$FLEET<-"HMS Fleet"
 hms.d[is.na(hms.d)]<-0
 
 #Pelagic

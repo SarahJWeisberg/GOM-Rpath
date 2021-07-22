@@ -10,6 +10,9 @@ library(readr);library(here)
 #Rename
 diet<-GOM.diet
 
+#Change "Discard" to Discards"
+diet[Rprey=="Discard",Rprey:="Discards"]
+
 for (i in 1:length(diet$Rpred)){
   temp_group<-diet$Rprey[i]
   REco.params$diet[Group==temp_group,(diet$Rpred[i]):=diet$preyper[i]]

@@ -16,6 +16,9 @@ library(here);library(tidyr);library(dplyr);library(survdat)
 #Load data
 load("data/mean_landings_gom_80_85.RData")
 
+#Change "HMS" to "HMS Fleet" to avoid confusion
+mean.land[FLEET =="HMS",FLEET:="HMS Fleet"]
+
 #Load species codes
 #Use these codes to translate landings species codes ('SVSPP') to RPATH species codes ('spp')
 load('data/speciescodesandstrata/Species_codes.Rdata')
@@ -57,7 +60,7 @@ other<-filter(mean.land,FLEET == "Other")
 sm_mesh<-filter(mean.land,FLEET == "SM Mesh")
 scallop<-filter(mean.land,FLEET == "Scallop Dredge")
 trap<-filter(mean.land,FLEET == "Trap")
-hms<-filter(mean.land,FLEET == "HMS")
+hms<-filter(mean.land,FLEET == "HMS Fleet")
 pelagic<-filter(mean.land,FLEET == "Pelagic")
 other_dredge<-filter(mean.land,FLEET == "Other Dredge")
 clam<-filter(mean.land,FLEET == "Clam Dredge")
@@ -97,7 +100,7 @@ trap[is.na(trap)]<-0
 
 #HMS
 hms<-left_join(GOM.groups,hms,by="RPATH")
-hms$FLEET<-"HMS"
+hms$FLEET<-"HMS Fleet"
 hms[is.na(hms)]<-0
 
 #Pelagic
