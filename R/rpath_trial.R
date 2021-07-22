@@ -6,7 +6,7 @@
 #Load packages
 library(Rpath); library(data.table);library(dplyr);library(here)
 
-source("R/groups_fleets.R")
+source(here("R/groups_fleets.R"))
 
 #Set up model with group names and types
 groups<-as.vector(groups_fleets$RPATH)
@@ -14,7 +14,7 @@ types<-c(1,rep(0,55),rep(2,2),rep(3,10))
 REco.params<-create.rpath.params(group = groups,type=types)
 
 #Fill in biomass estimates
-source("R/EMAX_biomass_estimates.R")
+source(here("R/EMAX_biomass_estimates.R"))
 
 #biomass_80s<-na.omit(biomass_80s)
 
@@ -35,7 +35,7 @@ REco.params$model[,Biomass:=biomass]
 
 
 #Fill pb
-source("R/biological_parameters.R")
+source(here("R/biological_parameters.R"))
 pb<-cbind(GOM.groups,PB)
 pb<-left_join(groups_fleets,pb,by="RPATH")
 pb<-as.vector(pb$PB)
@@ -48,7 +48,7 @@ qb<-as.vector(qb$QB)
 REco.params$model[,QB:=qb]
 
 #Fill biomass accumulation
-source("R/Biomass_Accumulation.R")
+source(here("R/Biomass_Accumulation.R"))
 ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
@@ -65,7 +65,7 @@ REco.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 10))]
 
 #Fisheries
 #Landings
-source("R/discards.R")
+source(here("R/discards.R"))
 
 #Fixed Gear
 fixed<-left_join(groups_fleets,fixed,by="RPATH")
@@ -188,11 +188,12 @@ REco.params$model[, "Clam Dredge.disc" := clam.d]
 
 
 #Complete diet table
-source("R/diet.R")
+source(here("R/diet.R"))
 
 #Run diet filling
-source("R/diet_filling.R")
+source(here("R/diet_filling.R"))
 
+check.rpath.params(REco.params)
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
 REco

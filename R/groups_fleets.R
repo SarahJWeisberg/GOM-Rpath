@@ -15,7 +15,6 @@
 library(here);library(data.table)
 
 #Load landings data
-load(here("data/mean_landings_gom_80_85.RData"))
 
 #Change "HMS" to "HMS Fleet" to avoid confusion
 mean.land[FLEET =="HMS",FLEET:="HMS Fleet"]
