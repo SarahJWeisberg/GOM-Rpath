@@ -15,13 +15,13 @@
 library(here);library(data.table)
 
 #Load landings data
-load("~/Desktop/GOM-Rpath/data/mean_landings_gom_80_85.RData")
+load(here("data/mean_landings_gom_80_85.RData"))
 
 #Change "HMS" to "HMS Fleet" to avoid confusion
 mean.land[FLEET =="HMS",FLEET:="HMS Fleet"]
 
 #Load functional groups
-source("R/Groups.R")
+source(here("R/Groups.R"))
 
 #Add detritus and discards
 d.d<-as.data.table(rbind("Detritus","Discards"))
