@@ -26,7 +26,7 @@ source('R/Groups.R')
 #load biomass estimates from survey (single species)
 source('R/survey_biomass_estimates.R')
 
-##Merge group list with survey biomass estimates
+#Merge group list with survey biomass estimates
 GOM.groups<-merge(biomass_80s, GOM.groups, by = 'RPATH',all.y = TRUE)
 setnames(GOM.groups,'V1','Biomass', skip_absent = TRUE)
 

@@ -1,6 +1,6 @@
 #Title: GOM Rpath Diet Matrix
 
-# Purpose: This script generates a diet matric for all 
+# Purpose: This script generates a diet matrix for all 
 #       functional groups used in the GOM-Rpath model.
 #       Data are sourced from the NESFC food habits database. 
 #       Data are reported as proportion of prey group in predator diet.
@@ -447,7 +447,7 @@ setnames(scallop, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,scallop))
 
-#OtherCephalopods
+#OtherCephalopods - use EMAX squid diet
 ceph <- EMAX.params[, list(diet.Small.Pelagics..squid,diet.Group)]
 setnames(ceph,'diet.Group','EMAX')
 ceph <- merge(ceph, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
