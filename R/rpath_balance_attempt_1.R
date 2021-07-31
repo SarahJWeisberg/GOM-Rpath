@@ -208,14 +208,14 @@ REco.params$diet[15,25]<-REco.params$diet[15,25]-.001
 REco.params$diet[8,25]<-REco.params$diet[8,25]+0.012
 
 #Shift predation of Other Skates (33) from OtherCeph(10) to Illex(8)
-#Shift 3%
-REco.params$diet[10,34]<-REco.params$diet[10,34]-0.03
-REco.params$diet[8,34]<-REco.params$diet[8,34]+0.03
+#Shift 4%
+REco.params$diet[10,34]<-REco.params$diet[10,34]-0.04
+REco.params$diet[8,34]<-REco.params$diet[8,34]+0.04
 
 #Shift predation of WhiteHake OtherCeph(10) to Illex(8)
-#Shift 1%
-REco.params$diet[10,42]<-REco.params$diet[10,42]-0.01
-REco.params$diet[8,42]<-REco.params$diet[8,42]+0.01
+#Shift 1.5%
+REco.params$diet[10,42]<-REco.params$diet[10,42]-0.015
+REco.params$diet[8,42]<-REco.params$diet[8,42]+0.015
 
 #Shift predation of SpinyDogfish(42) from OtherCeph(10) to Illex(8)
 #Shift 1.5%
