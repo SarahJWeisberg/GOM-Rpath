@@ -30,6 +30,12 @@ biomass<-as.vector(biomass$Biomass)
 #Change barndoor to 0 biomass
 biomass[35]<-0
 
+#Multiply OtherCeph biomass by 10
+biomass[10]<-biomass[10]*10
+
+#Multiply SmFlatfish biomass by 10
+biomass[15]<-biomass[15]*10
+
 #Fill model
 REco.params$model[,Biomass:=biomass]
 
@@ -193,31 +199,47 @@ source(here("R/diet.R"))
 #Run diet filling
 source(here("R/diet_filling.R"))
 
+#Change DC of Cod(24)
+#Decrease predation on OtherCeph(10)by 1.1%
+#Decrease predation on SmFlatfishes(15) by .1%
+#Increase predation on Illex(8) by 1.2%
+REco.params$diet[10,25]<-REco.params$diet[10,25]-.011
+REco.params$diet[15,25]<-REco.params$diet[15,25]-.001
+REco.params$diet[8,25]<-REco.params$diet[8,25]+0.012
+
+#Shift predation of Other Skates (33) from OtherCeph(10) to Illex(8)
+#Shift 3%
+REco.params$diet[10,34]<-REco.params$diet[10,34]-0.03
+REco.params$diet[8,34]<-REco.params$diet[8,34]+0.03
+
+#Shift predation of WhiteHake OtherCeph(10) to Illex(8)
+#Shift 1%
+REco.params$diet[10,42]<-REco.params$diet[10,42]-0.01
+REco.params$diet[8,42]<-REco.params$diet[8,42]+0.01
+
+#Shift predation of SpinyDogfish(42) from OtherCeph(10) to Illex(8)
+#Shift 1.5%
+REco.params$diet[10,43]<-REco.params$diet[10,43]-0.015
+REco.params$diet[8,43]<-REco.params$diet[8,43]+0.015
+
+#Shift predation of Cusk(30) from OtherCeph(10) to Illex(8)
+#Shift 10%
+REco.params$diet[10,31]<-REco.params$diet[10,31]-0.1
+REco.params$diet[8,31]<-0.1
+
+#Shift predation of Pollock(38) from OtherCeph(10) to Illex(8)
+#Shift 0.5%
+REco.params$diet[10,39]<-REco.params$diet[10,39]-0.005
+REco.params$diet[8,39]<-REco.params$diet[8,39]+0.005
+
+#Shift predation of Haddock(25) from OtherCeph(10) to Illex(8)
+#Shift 0.8%
+REco.params$diet[10,26]<-REco.params$diet[10,26]-0.008
+REco.params$diet[8,26]<-0.008
+
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
 REco
 
-#Plot trophic level vs. log biomass
-prebal<-as.data.frame(REco$TL)
-log_biomass<-log(biomass)
-prebal<-cbind(prebal,log_biomass)
-row.names(prebal)<-groups
-colnames(prebal)<-c("TL","log_biomass")
-
-
-#Remove fleets, discards, detritus
-prebal<-prebal[1:56,]
-
-#Remove barndoor
-prebal<-prebal[-35,]
-
-#Linear regression
-model1<-lm(log_biomass~TL,data=prebal)
-summary(model1)
-
-plot(log_biomass~TL,data=prebal,pch=19)
-abline(model1)
-text(log_biomass~TL,data=prebal, labels=rownames(prebal), cex=0.9, font=2)
-
-#check.rpath.params(REco.params)#
+check.rpath.params(REco.params)
 
