@@ -33,8 +33,26 @@ biomass[35]<-0
 #Multiply OtherCeph biomass by 10
 biomass[10]<-biomass[10]*10
 
-#Multiply SmFlatfish biomass by 10
-biomass[15]<-biomass[15]*10
+#Multiply SmFlatfish biomass by 20
+biomass[15]<-biomass[15]*20
+
+#Multiply SpinyDogfish biomass by 0.5
+biomass[42]<-biomass[42]*0.5
+
+#Multiply OtherPelagics biomass by 200
+biomass[20]<-biomass[20]*200
+
+#Multiply SmPelagics biomass by 5
+biomass[14]<-biomass[14]*5
+
+#Multiply Mesopelagics biomass by 10
+biomass[22]<-biomass[22]*10
+
+#Multiply SummerFlounder biomass by 3
+biomass[29]<-biomass[29]*3
+
+#Multiply Sharks biomass by 3
+biomass[51]<-biomass[51]*3
 
 #Fill model
 REco.params$model[,Biomass:=biomass]
@@ -45,6 +63,14 @@ source(here("R/biological_parameters.R"))
 pb<-cbind(GOM.groups,PB)
 pb<-left_join(groups_fleets,pb,by="RPATH")
 pb<-as.vector(pb$PB)
+
+#Increase pb of SmPelagics to 2
+#Value from Sean's GB model
+pb[14]<-2
+
+#Increase pb of RedHake to 1.3
+pb[34]<-1.3
+
 REco.params$model[,PB:=pb]
 
 #Fill qb
@@ -207,6 +233,9 @@ REco.params$diet[10,25]<-REco.params$diet[10,25]-.011
 REco.params$diet[15,25]<-REco.params$diet[15,25]-.001
 REco.params$diet[8,25]<-REco.params$diet[8,25]+0.012
 
+#Focus on shifting predation from OtherCeph to Illex to be more realistic
+#Starting OtherCeph EE is ~1000, starting Illex EE is ~0.3
+
 #Shift predation of Other Skates (33) from OtherCeph(10) to Illex(8)
 #Shift 4%
 REco.params$diet[10,34]<-REco.params$diet[10,34]-0.04
@@ -232,14 +261,33 @@ REco.params$diet[8,31]<-0.1
 REco.params$diet[10,39]<-REco.params$diet[10,39]-0.005
 REco.params$diet[8,39]<-REco.params$diet[8,39]+0.005
 
-#Shift predation of Haddock(25) from OtherCeph(10) to Illex(8)
+#Shift predatlogion of Haddock(25) from OtherCeph(10) to Illex(8)
 #Shift 0.8%
 REco.params$diet[10,26]<-REco.params$diet[10,26]-0.008
 REco.params$diet[8,26]<-0.008
 
+#Shift predation of OtherPelagics (20) from OtherCeph(10) to Illex(8)
+#Shift 0.4%
+REco.params$diet[10,21]<-REco.params$diet[10,21]-0.004
+REco.params$diet[8,21]<-0.004
+
+#Shifting some predation on SmFlatfishes to SummerFlounder
+#Starting EE of SmFlat is ~900, starting EE of SummerFlounder is ~1.5
+
+#Shift predation of Goosefish(39) from SmFlat(15) to SummerFlounder (29)
+#Shift 0.2%
+REco.params$diet[15,40]<-REco.params$diet[15,40]-0.002
+REco.params$diet[29,40]<-0.002
+
+
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
-REco
 
 check.rpath.params(REco.params)
 
+#Examine EEs
+EE<-REco$EE
+EE[order(EE)]
+
+#Print EEs
+write.csv(EE,"outputs/EE_3.csv")

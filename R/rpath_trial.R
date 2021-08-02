@@ -199,7 +199,7 @@ REco
 
 #Plot trophic level vs. log biomass
 prebal<-as.data.frame(REco$TL)
-log_biomass<-log(biomass)
+log_biomass<-log10(biomass)
 prebal<-cbind(prebal,log_biomass)
 row.names(prebal)<-groups
 colnames(prebal)<-c("TL","log_biomass")
@@ -215,9 +215,9 @@ prebal<-prebal[-35,]
 model1<-lm(log_biomass~TL,data=prebal)
 summary(model1)
 
-plot(log_biomass~TL,data=prebal,pch=19)
+plot(log_biomass~TL,data=prebal,pch=1,cex=0.001)
 abline(model1)
-text(log_biomass~TL,data=prebal, labels=rownames(prebal), cex=0.9, font=2)
+text(log_biomass~TL,data=prebal, labels=rownames(prebal), cex=0.5, font=2)
 
 #check.rpath.params(REco.params)#
 
