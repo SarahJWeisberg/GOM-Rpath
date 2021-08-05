@@ -46,10 +46,10 @@ SilverHake,1.015,Demersal- piscivores,Demersal (Round),Pisc,0.4,3.06,0.033,GB mo
 SmCopepods,10.403,Small copepods,Zooplankton,NA,30.92,127.75,0,EMAX,,,
 SmFlatfishes,0,Demersals- benthivores,Demersal (Flat),Benth,1.61,5.39,0,GB model,,,
 SmoothDogfish,0.003,Demersal- piscivores,Demersal (round),Pisc,0.45,2.44,0,GB model,,,
-SmPelagics,0.127,Small Pelagics- other,Pelagic (Small; Round),Plank,1.61,5.39,0,NWACS,2,,
+SmPelagics,0.127,Small Pelagics- other,Pelagic (Small; Round),Plank,1.61,5.39,0,NWACS,2,GB model,
 SouthernDemersals,0,Demersal- piscivores,Demersal (round),Pisc,1.02,3.73,0,NWACS,,,
 SpinyDogfish,1.484,Demersal- piscivores,Demersal (Round),Pisc,0.32,2.32,0.174,NWACS,0.7,1.6,GB model
-SummerFlounder,0.002,Demersals- benthivores,Demersal (Flat),Benth,1.12,3.34,0,NWACS,,2.5,GB model
+SummerFlounder,0.002,Demersals- benthivores,Demersal (Flat),Benth,1.12,3.34,0,NWACS,0.46,2.5,Heymans (for PB); GB model (for QB)
 WhiteHake,1.828,Demersal- piscivores,Demersal (Round),Pisc,0.38,3.1,-0.019,GB model,,,
 Windowpane,0.008,Demersals- benthivores,Demersal (Flat),Benth,0.25,0.9,0,NWACS,,,
 WinterFlounder,0.096,Demersals- benthivores,Demersal (Flat),Benth,0.17,0.92,0,GB model,,,

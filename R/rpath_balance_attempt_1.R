@@ -1,6 +1,7 @@
-#RPath model run - version 1
+#RPath model run - balancing attempt 1
 
-# Fri Jul  2 14:07:39 2021 ------------------------------
+# Mon Aug  2 18:39:44 2021 ------------------------------
+
 
 
 #Load packages
