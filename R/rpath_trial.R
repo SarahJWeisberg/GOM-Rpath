@@ -205,7 +205,6 @@ prebal<-cbind(prebal,log_biomass)
 row.names(prebal)<-groups
 colnames(prebal)<-c("TL","log_biomass")
 
-
 #Remove fleets, discards, detritus
 prebal<-prebal[1:56,]
 
