@@ -40,7 +40,7 @@ for (i in 1:length(survey.groups$RPATH)){
 }
 
 biomass.accum<-cbind(survey.groups,ba,p)
-biomass.accum<-subset(biomass.accum, p<=0.05 & abs(ba) >= 0.005)
+biomass.accum<-subset(biomass.accum, p<=0.05 & abs(ba) >= 0.001)
 biomass.accum<-biomass.accum[,-3]
 
 
