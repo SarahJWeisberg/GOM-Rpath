@@ -1,7 +1,7 @@
 #RPath model run - balancing attempt 2
-#Differs from attempt 1 in the decrease in fishing pressure on OtherPel
+#Differs from attempt 1 in that I've removed some of the fishing pressure on OtherPel
 
-# Tue Aug 17 11:58:27 2021 ------------------------------
+# Thu Aug 19 10:15:25 2021 ------------------------------
 
 
 #Load packages
@@ -40,11 +40,11 @@ biomass[15]<-biomass[15]*40
 #Multiply SpinyDogfish biomass by 0.5
 biomass[42]<-biomass[42]*0.5
 
-#Multiply OtherPelagics biomass by 100
-biomass[20]<-biomass[20]*100
+#Multiply OtherPelagics biomass by 106
+biomass[20]<-biomass[20]*106
 
-#Multiply SmPelagics biomass by 10
-biomass[14]<-biomass[14]*10
+#Multiply SmPelagics biomass by 12
+biomass[14]<-biomass[14]*12
 
 #Multiply Mesopelagics biomass by 12
 biomass[22]<-biomass[22]*12
@@ -55,29 +55,29 @@ biomass[29]<-biomass[29]*2
 #Multiply Sharks biomass by 3
 biomass[51]<-biomass[51]*3
 
-#Multiply Cod biomass by 0.4
-#In accordance with Yong
-biomass[24]<-biomass[24]*0.4
+#Multiply Cod biomass by 0.5
+#Similar to Yong's estimate
+biomass[24]<-biomass[24]*0.5
 
 #Multiply RiverHerring biomass by 20
 biomass[18]<-biomass[18]*20
 
-#Multiply AtlHerring biomass by 5
+#Multiply AtlHerring biomass by 6.8
 #In accordance with Yong
-biomass[21]<-biomass[21]*5
+biomass[21]<-biomass[21]*6.8
 
-#Multiply AtlMackerel biomass by 1.2
-biomass[27]<-biomass[27]*1.2
+#Multiply AtlMackerel biomass by 3.6
+biomass[27]<-biomass[27]*3.6
 
 #Multiply AmLobster biomass by 3
 #In accordance with Yong
 biomass[12]<-biomass[12]*3
 
-#Multiply WinterFlounder biomass by 2x
-biomass[47]<-biomass[47]*2
+#Multiply WinterFlounder biomass by 2.7x
+biomass[47]<-biomass[47]*2.7
 
-#Multiply Windowpane by 1.5
-biomass[46]<-biomass[46]*1.5
+#Multiply Windowpane by 2
+biomass[46]<-biomass[46]*2
 
 #Multiply Phytoplankton biomass by 0.5
 #biomass[1]<-biomass[1]*0.5
@@ -88,8 +88,8 @@ biomass[46]<-biomass[46]*1.5
 #Multiply WhiteHake biomass by 0.75
 biomass[41]<-biomass[41]*0.75
 
-#Multiply SilverHake biomass by 2
-biomass[40]<-biomass[40]*2
+#Multiply SilverHake biomass by 1.65
+biomass[40]<-biomass[40]*1.65
 
 #Multiply WitchFlounder biomass by 5
 biomass[48]<-biomass[48]*5
@@ -100,11 +100,39 @@ biomass[33]<-biomass[33]*0.35
 #Multiply Redfish biomass by 3
 biomass[43]<-biomass[43]*3
 
-#Multiply OtherShrimps biomass by 4
-biomass[17]<-biomass[17]*4
+#Multiply OtherShrimps biomass by 4.05
+biomass[17]<-biomass[17]*4.05
+
+#Multiply NShrimp biomass by 2.2
+#Getting closer to Yong's shrimp group
+biomass[16]<-biomass[16]*2.2
 
 #Multiply Pollock biomass by 0.75
 biomass[38]<-biomass[38]*0.75
+
+#Multiply Butterfish biomass by 2
+biomass[50]<-biomass[50]*2
+
+#Multiply OceanPout biomass by 1.5
+biomass[13]<-biomass[13]*1.5
+
+#Multiply Macrobenthos biomass by 0.5
+biomass[11]<-biomass[11]*0.5
+
+#Multiply AmPlaice biomass by 1.2
+biomass[26]<-biomass[26]*1.2
+
+#Multiply YTFlounder biomass by 1.15
+biomass[23]<-biomass[23]*1.15
+
+#Multiply Fourspot biomass by 1.05
+biomass[36]<-biomass[36]*1.05
+
+#Multiply BlackSeaBass biomass by 1.4
+biomass[49]<-biomass[49]*1.4
+
+#Multiply OtherDemersals biomass by 1.6
+biomass[31]<-biomass[31]*1.6
 
 
 #Fill model
@@ -131,11 +159,11 @@ pb[27]<-pb[27]*3
 
 #Increase pb of AtlHerring 1.5x
 #Copying Sean
-pb[27]<-pb[27]*1.5
+pb[21]<-pb[21]*1.5
 
-#Increase pb of SilverHake to 0.735
-#Value from Yong
-pb[40]<-0.735
+#Increase pb of SilverHake to 1.15
+#0.735 according to Yong; 0.4 according to Sean
+pb[40]<-1.15
 
 #Increase pb of OtherShrimps 2.25x
 #Copying Sean
@@ -149,8 +177,12 @@ pb[31]<-pb[31]*1.36
 #Copying Sean
 pb[22]<-pb[22]*1.5
 
-#Increase pb of WinterFlounder 2x
-pb[47]<-pb[47]*2
+#Increase pb of WinterFlounder 2.2x
+pb[47]<-pb[47]*2.2
+
+#Increase pb of SpinyDogfish 1.2x
+#Similar to Sean
+pb[42]<-pb[42]*1.2
 
 REco.params$model[,PB:=pb]
 
@@ -176,8 +208,14 @@ qb[39]<-qb[39]*0.5
 #Decrease qb of Redfish - 0.5x
 qb[43]<-qb[43]*0.5
 
-#Decrease qb of WhiteHake - 0.5x
-qb[41]<-qb[41]*0.5
+#Decrease qb of WhiteHake - 0.25x
+qb[41]<-qb[41]*0.25
+
+#Decrease qb of Macrobenthos - 0.75x
+qb[11]<-qb[11]*0.75
+
+#Decrease qb of OtherPelagics - 0.5x
+qb[20]<-qb[20]*0.5
 
 REco.params$model[,QB:=qb]
 
@@ -248,8 +286,8 @@ pelagic<-left_join(groups_fleets,pelagic,by="RPATH")
 pelagic<-as.vector(pelagic$landings)
 pelagic[57:58]<-0
 
-#Reduce fishing on OtherPel by 50%
-pelagic[20]<-pelagic[20]*0.5
+#Reduce fishing on OtherPelagics, multiply by 0.75
+pelagic[20]<-pelagic[20]*0.75
 
 REco.params$model[, "Pelagic" := pelagic]
 
@@ -333,11 +371,11 @@ source(here("R/diet_filling.R"))
 
 #Change DC of Cod(24)
 #Decrease predation on OtherCeph(10)by 1.1%
-#Decrease predation on SmFlatfishes(15) by .1%
+#Decrease predation on SmFlatfishes(15) by .11%
 #Increase predation on Illex(8) by 1.2%
 REco.params$diet[10,25]<-REco.params$diet[10,25]-.011
-REco.params$diet[15,25]<-REco.params$diet[15,25]-.001
-REco.params$diet[8,25]<-REco.params$diet[8,25]+0.012
+REco.params$diet[15,25]<-REco.params$diet[15,25]-.0011
+REco.params$diet[8,25]<-REco.params$diet[8,25]+0.0121
 
 #Focus on shifting predation from OtherCeph to Illex to be more realistic
 #Starting OtherCeph EE is ~1000, starting Illex EE is ~0.3
@@ -422,6 +460,15 @@ REco.params$diet[12,48]<-REco.params$diet[12,48]+0.016
 REco.params$diet[15,40]<-REco.params$diet[15,40]-0.0025
 REco.params$diet[29,40]<-0.0025
 
+#Shift predation of WhiteHake(41) from SmFlatfishes(15) to Illex(8)
+#Shift 0.005%
+REco.params$diet[15,42]<-REco.params$diet[15,42]-0.00005
+REco.params$diet[8,42]<-REco.params$diet[8,42]+0.00005
+
+#Shift predation of RedHake(34) from SmFlatfishes(15) to Illex(8)
+#Shift 0.025%
+REco.params$diet[15,35]<-REco.params$diet[15,35]-0.00025
+REco.params$diet[8,35]<-REco.params$diet[8,35]+0.00025
 
 #Shifting predation on OtherDemersals
 
@@ -451,9 +498,9 @@ REco.params$diet[31,34]<-REco.params$diet[31,34]-0.01
 REco.params$diet[12,34]<-REco.params$diet[12,34]+0.01
 
 #Shift predation of OtherPelagics(20) from OtherDem(31) to Megabenthos(56)
-#Shift 5%
-REco.params$diet[31,21]<-REco.params$diet[31,21]-0.05
-REco.params$diet[56,21]<-REco.params$diet[56,21]+0.05
+#Shift 6%
+REco.params$diet[31,21]<-REco.params$diet[31,21]-0.06
+REco.params$diet[56,21]<-REco.params$diet[56,21]+0.06
 
 #Shift predation of SpinyDogfish(42) from OtherDem(31) to WhiteHake(41)
 #Shift 5%
@@ -496,6 +543,11 @@ REco.params$diet[38,40]<-REco.params$diet[38,40]+0.08
 REco.params$diet[31,40]<-REco.params$diet[31,40]-0.05
 REco.params$diet[39,40]<-REco.params$diet[39,40]+0.05
 
+#Shift predation of Haddock(25) from OtherDem(31) to Megabenthos(56)
+#Shift 0.9%
+REco.params$diet[31,26]<-REco.params$diet[31,26]-0.009
+REco.params$diet[8,26]<-REco.params$diet[8,26]+0.009
+
 #Shifting some predation of Butterfish 
 
 #Shift predation of OtherPelagics(20) from Butterfish(50) to Illex(8)
@@ -503,15 +555,31 @@ REco.params$diet[39,40]<-REco.params$diet[39,40]+0.05
 REco.params$diet[50,21]<-REco.params$diet[50,21]-0.076
 REco.params$diet[8,21]<-REco.params$diet[8,21]+0.076
 
-#Shift predation of SilverHake(40) from Butterfish(50) to Illex (8)
+#Shift predation of SilverHake(40) from Butterfish(50) to Illex(8)
 #Shift 0.8%
 REco.params$diet[50,41]<-REco.params$diet[50,41]-0.008
 REco.params$diet[8,41]<-REco.params$diet[8,41]+0.008
 
-#Shift predation of BaleenWhales(54) from Butterfish(50) to Illex (8)
+#Shift predation of BaleenWhales(54) from Butterfish(50) to Illex(8)
 #Shift 0.7%
 REco.params$diet[50,55]<-REco.params$diet[50,55]-0.007
 REco.params$diet[8,55]<-REco.params$diet[8,55]+0.007
+
+#Shift predation of SummerFlounder(29) from Butterfish(50) to Illex(8) 
+#Shift 8%
+REco.params$diet[50,30]<-REco.params$diet[50,30]-0.08
+REco.params$diet[8,30]<-0.08
+
+#Shift predation of SummerFlounder(29) from Butterfish(50) to Megabenthos(56) 
+#Shift 8%
+REco.params$diet[50,30]<-REco.params$diet[50,30]-0.08
+REco.params$diet[56,30]<-REco.params$diet[56,30]+0.08
+
+#Shift predation of SpinyDogfish(42) from Butterfish(50) to Illex(8)
+#Shift 0.9%
+REco.params$diet[50,43]<-REco.params$diet[50,43]-0.009
+REco.params$diet[8,43]<-REco.params$diet[8,43]+0.009
+
 
 #Shifting some predation of WinterFlounder
 
@@ -537,6 +605,22 @@ REco.params$diet[56,43]<-REco.params$diet[56,43]+0.0004
 REco.params$diet[49,41]<-REco.params$diet[49,41]-0.00009
 REco.params$diet[56,41]<-REco.params$diet[56,41]+0.00009
 
+#Shifting some predation of BlackSeaBass
+#Shift predation of Cod(24) from BlackSeaBass(49) to Illex(8)
+#Shift 0.01%
+REco.params$diet[49,25]<-REco.params$diet[49,25]-0.0001
+REco.params$diet[8,25]<-REco.params$diet[8,25]+0.0001
+
+#Shift some predation of Macrobenthos(11) from BlackSeaBass(49) to AtlScallop(19)
+#Shift 0.00001%
+REco.params$diet[49,12]<-REco.params$diet[49,12]-0.0000001
+REco.params$diet[19,12]<-REco.params$diet[19,12]+0.0000001
+
+#Shift some predation of Goosefish(39) from BlackSeaBass(49) to Illex(8)
+#Shift 0.015%
+REco.params$diet[49,40]<-REco.params$diet[49,40]-0.00015
+REco.params$diet[8,40]<-REco.params$diet[8,40]+0.00015
+
 #Shifting some predation of Windowpane
 #Shift predation of OtherSkates(33) from Windowpane(46) to Megabenthos(56)
 #Shift 0.15%
@@ -555,17 +639,107 @@ REco.params$diet[8,39]<-REco.params$diet[8,39]+0.007
 REco.params$diet[51,25]<-REco.params$diet[51,25]-0.0017
 REco.params$diet[38,25]<-REco.params$diet[38,25]+0.0017
 
-#Shifting some predation of BlackSeaBass
-#Shift predation of Cod(24) from BlackSeaBass(49) to Illex(8)
-#Shift 0.01%
-REco.params$diet[49,25]<-REco.params$diet[49,25]-0.0001
-REco.params$diet[8,25]<-REco.params$diet[8,25]+0.0001
 
 #Shifting some predation of Redfish
 #Shift predation of Macrobenthos(11) from Redfish(43) to Megabenthos(56)
 #Shift 0.011%
 REco.params$diet[43,12]<-REco.params$diet[43,12]-0.00011
 REco.params$diet[56,12]<-REco.params$diet[56,12]+0.00011
+
+#Shifting some predation of SilverHake
+#Shift predation of SilverHake(40) from SilverHake(40) to Megabenthos(56)
+#Shift 5%
+REco.params$diet[40,41]<-REco.params$diet[40,41]-0.05
+REco.params$diet[56,41]<-REco.params$diet[56,41]+0.05
+
+#Shift predation of SilverHake(40) from SilverHake(40) to Illex(8)
+#Shift 5%
+REco.params$diet[40,41]<-REco.params$diet[40,41]-0.05
+REco.params$diet[8,41]<-REco.params$diet[8,41]+0.05
+
+#Shift predation of Pollock(38) from SilverHake(40) to Pollock(38)
+#Shift 5%
+REco.params$diet[40,39]<-REco.params$diet[40,39]-0.05
+REco.params$diet[38,39]<-REco.params$diet[38,39]+0.05
+
+#Shift predation of Pollock(38) from SilverHake(40) to RedHake(34)
+#Shift 5%
+REco.params$diet[40,39]<-REco.params$diet[40,39]-0.05
+REco.params$diet[34,39]<-REco.params$diet[34,39]+0.05
+
+#Shift predation of Pollock from SilverHake(40) to Illex(8)
+#Shift 5%
+REco.params$diet[40,39]<-REco.params$diet[40,39]-0.05
+REco.params$diet[8,39]<-REco.params$diet[8,39]+0.05
+
+#Shift predation of WhiteHake(41) from SilverHake(40) to Megabenthos(56)
+#Shift 5%
+REco.params$diet[40,42]<-REco.params$diet[40,42]-0.05
+REco.params$diet[56,42]<-REco.params$diet[56,42]+0.05
+
+#Shift predation of WhiteHake(41) from SilverHake(40) to Illex(8)
+#Shift 8%
+REco.params$diet[40,42]<-REco.params$diet[40,42]-0.08
+REco.params$diet[8,42]<-REco.params$diet[8,42]+0.08
+
+#Shift predation of WhiteHake(41) from SilverHake(40) to RedHake(34)
+#Shift 8%
+REco.params$diet[40,42]<-REco.params$diet[40,42]-0.08
+REco.params$diet[34,42]<-REco.params$diet[34,42]+0.08
+
+#Shift predation of WhiteHake(41) from SilverHake(40) to WhiteHake(41)
+#Shift 2%
+REco.params$diet[40,42]<-REco.params$diet[40,42]-0.02
+REco.params$diet[41,42]<-REco.params$diet[41,42]+0.02
+
+#Shift predation of Cod(24) from SilverHake(40) to Illex(8)
+#Shift 10%
+REco.params$diet[40,25]<-REco.params$diet[40,25]-0.1
+REco.params$diet[8,25]<-REco.params$diet[8,25]+0.1
+
+#Shifting some predation of OceanPout
+#Shift predation of OtherPelagics(20) from OceanPout(13) to Illex(8)
+#Shift 0.29%
+REco.params$diet[13,21]<-REco.params$diet[13,21]-0.029
+REco.params$diet[8,21]<-REco.params$diet[8,21]+0.029
+
+#Shifting some predation to AtlScallop (EE too low)
+#Shift predation of Macrobenthos(11) from AtlHalibut(28) to AtlScallop(19)
+#Shift 0.0004%
+REco.params$diet[28,12]<-REco.params$diet[28,12]-0.000004
+REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000004
+
+#Shift predation of Macrobenthos(11) from Fourspot(36) to AtlScallop(19)
+#Shift #Shift 0.0001%
+REco.params$diet[36,12]<-REco.params$diet[36,12]-0.000001
+REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000001
+
+#Shift predation of Macrobenthos(11) from Windowpane(46) to AtlScallop(19)
+#Shift #Shift 0.0002%
+REco.params$diet[46,12]<-REco.params$diet[46,12]-0.000002
+REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000002
+
+#Shift predation of Macrobenthos(11) from WinterFlounder(47) to AtlScallop(19)
+#Shift 0.0004%
+REco.params$diet[47,12]<-REco.params$diet[47,12]-0.000004
+REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000004
+
+#Shift predation of Macrobenthos(11) from WinterSkate(52) to AtlScallop(19)
+#Shift 0.002%
+REco.params$diet[52,12]<-REco.params$diet[52,12]-0.00002
+REco.params$diet[19,12]<-REco.params$diet[19,12]+0.00002
+
+#Shift predation of OtherPelagics
+
+#Shift predation of OtherPelagics(20) from OtherPelagics(20) to Megabenthos(56)
+#Shift 4%
+REco.params$diet[20,21]<-REco.params$diet[20,21]-0.04
+REco.params$diet[56,21]<-REco.params$diet[56,21]+0.04
+
+#Shift predation of SilverHake (40) from OtherPelagics(20) to Illex(8)
+#Shift 1%
+REco.params$diet[20,41]<-REco.params$diet[20,41]-0.01
+REco.params$diet[8,41]<-REco.params$diet[8,41]+0.01
 
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
@@ -577,6 +751,9 @@ EE<-REco$EE
 EE[order(EE)]
 
 #Print EEs
-#write.csv(EE,"outputs/EE_7.csv")
+#write.csv(EE,"outputs/EE_8.csv")
 
-#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_9.csv")
+#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_11.csv")
+
+#Print final modeal
+REco
