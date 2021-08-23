@@ -20,11 +20,11 @@ xfun::session_info()
 library(here);library(data.table);library(survdat)
 
 #Load survey data
-load('data/NEFSC_BTS_2021_all_seasons.RData')
+load(here('data/NEFSC_BTS_2021_all_seasons.RData'))
 
 #Load species codes
 #Use these codes to translate survey species codes ('SVSPP') to RPATH species codes ('spp')
-load('data/speciescodesandstrata/Species_codes.Rdata')
+load(here('data/speciescodesandstrata/Species_codes.Rdata'))
 
 #Load strata
 #strata<- readOGR('speciescodesandstrata','strata')
@@ -78,5 +78,5 @@ swept <- swept[, biomass.area   := (tot.biomass*.001)/(Fall.q*GOM.area)]
 setkey(swept,RPATH,YEAR)
 swept <- swept[, sum(biomass.area), by = key(swept)]
 setnames(swept, 'V1','Biomass')
-biomass_80s<-swept[YEAR %in% 1980:1985, mean(Biomass), by=RPATH]
+biomass_80s<-swept[YEAR %in% 1980:1985, sum(Biomass)/6, by=RPATH]
 setnames(biomass_80s, 'V1','Biomass')
