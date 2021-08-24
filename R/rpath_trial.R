@@ -1,7 +1,8 @@
 #RPath model run - version 1
 #Using all original data
+#Run PREBAL diagnostics on original data to flag issues
 
-# Mon Aug  2 18:39:21 2021 ------------------------------
+# Tue Aug 24 10:09:05 2021 ------------------------------
 
 
 #Load packages
@@ -198,10 +199,12 @@ source(here("R/diet_filling.R"))
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
 REco
 
+#### PREBAL ####
+
 #Plot trophic level vs. log biomass
-prebal<-as.data.frame(REco$TL)
+TL<-REco$TL
 log_biomass<-log10(biomass)
-prebal<-cbind(prebal,log_biomass)
+prebal<-as.data.frame(cbind(TL,log_biomass))
 row.names(prebal)<-groups
 colnames(prebal)<-c("TL","log_biomass")
 
@@ -211,6 +214,9 @@ prebal<-prebal[1:56,]
 #Remove barndoor
 prebal<-prebal[-35,]
 
+#Remove AtlScallop
+#prebal<-prebal[-19,]
+
 #Linear regression
 model1<-lm(log_biomass~TL,data=prebal)
 summary(model1)
@@ -219,5 +225,218 @@ plot(log_biomass~TL,data=prebal,pch=1,cex=0.001)
 abline(model1)
 text(log_biomass~TL,data=prebal, labels=rownames(prebal), cex=0.5, font=2)
 
-#check.rpath.params(REco.params)#
+#Prediction intervals
+newdata<-data.frame(TL=seq(min(TL),max(TL)))
+#confidence.bands<-predict(eruption.lm,newdata,interval="confidence")
+prediction.bands<-predict(model1,newdata,interval="predict")
+#lines(newdata[,1],confidence.bands[,1],col=1)
+#lines(newdata[,1],confidence.bands[,2],col=2)
+#lines(newdata[,1],confidence.bands[,3],col=2)
+lines(newdata[,1],prediction.bands[,2],col=3)
+lines(newdata[,1],prediction.bands[,3],col=3)
 
+#Plot SD lines
+sd2 <- sd(abs(model1$residuals))*2
+abline(model1$coefficients[1],model1$coefficients[2])
+abline(model1$coefficients[1]+sd2,model1$coefficients[2])
+abline(model1$coefficients[1]-sd2,model1$coefficients[2])
+
+#Sum by quarter trophic level
+prebal<-as.data.frame(REco$TL)
+prebal<-cbind(prebal,biomass)
+row.names(prebal)<-groups
+colnames(prebal)<-c("TL","biomass")
+
+#Remove fleets, discards, detritus
+prebal<-prebal[1:56,]
+
+#Remove barndoor
+prebal<-prebal[-35,]
+
+#Sum by quarter trophic level
+prebal$rounded<-round(prebal$TL*4)/4
+prebal<-aggregate(x=prebal$biomass,by=list(prebal$rounded),FUN=sum)
+colnames(prebal)<-c("TL","biomass")
+prebal$log_biomass<-log10(prebal$biomass)
+
+#Linear regression
+model1<-lm(biomass~TL,data=prebal)
+summary(model1)
+
+plot(biomass~TL,data=prebal,pch=19,cex=1)
+abline(model1)
+
+#Biomass ratios
+#Use classification from starting parameters doc
+class<-params_start[,c(1,2,4)]
+
+#Remove SDemersals, Detritus, Discards
+class<-class[-c(49,58,59),]
+
+#Update class dataframe with new biomass estimates
+biomass_new<-as.data.frame(cbind(groups,biomass),stringsAsFactors = F)
+biomass_new<-biomass_new[1:56,]
+colnames(biomass_new)<-c("RPATH","biomass_new")
+biomass_new$biomass_new<-as.numeric(biomass_new$biomass_new)
+class<-left_join(class,biomass_new,by="RPATH")
+
+#Sum biomass by classification
+class<-aggregate(x=class$biomass_new,by=list(class$Classification),FUN=sum)
+colnames(class)<-c("Taxa","Biomass")
+
+#Demersal and medium pelagics:small pelagics
+DM<-sum(class$Biomass[which(class$Taxa == "Demersal (Round)" | class$Taxa == "Demersal (Flat)")])
+MP<-class$Biomass[which(class$Taxa == "Pelagic (Medium; Round)")]
+SP<-sum(class$Biomass[which(class$Taxa == "Pelagic (Small; Round)" | class$Taxa == "Pelagic (Small)")])
+
+DMP_SP<-(DM+MP)/SP
+
+#Small pelagics:zooplankton
+ZP<-class$Biomass[which(class$Taxa == "Zooplankton")]
+SP_ZP<-SP/ZP
+
+#Zooplankton:phytoplankton
+PP<-class$Biomass[which(class$Taxa == "Primary Producer")]
+ZP_PP<-ZP/PP
+
+#Small pelagics:phytoplankton
+SP_PP<-SP/PP
+
+#Demersal:benthic invertebrates
+BI<-class$Biomass[which(class$Taxa == "Invertebrate (Benthic)")]
+DM_BI<-DM/BI
+
+#Sharks and HMS:small pelagics
+SH<-class$Biomass[which(class$Taxa == "Shark")]
+HMS<-class$Biomass[which(class$Taxa == "HMS")]
+SHMS_SP<-(SH+HMS)/SP
+
+#Marine mammals and birds:small pelagics
+MB<-sum(class$Biomass[which(class$Taxa == "Mammal" | class$Taxa == "Whale" | class$Taxa == "Bird")])
+MB_SP<-MB/SP
+
+#Whales: zooplankton
+W<-class$Biomass[which(class$Taxa == "Whale")]
+W_ZP<-W/ZP
+
+#Ratio between fish aggregate groups
+#Demersal:pelagics
+PL<-MP+SP
+DM_PL<-DM/PL
+
+#Flatfish:roundfish
+FF<-class$Biomass[which(class$Taxa == "Demersal (Flat)")]
+RF<-class$Biomass[which(class$Taxa == "Demersal (Round)")]+MP+SP
+FF_RF<-FF/RF
+
+#Small pelagics: all fish
+AF<-DM+MP+SP+HMS+SH
+SP_AF<-SP/AF
+
+#Medium pelagics:all fish
+MP_AF<-MP/AF
+
+#HMS:all fish
+HMS_AF<-HMS/AF
+
+#Sharks:all fish
+SH_AF<-SH/AF
+                      
+#Demersals:all fish
+DM_AF<-DM/AF
+
+#Ratio between invertebrate aggregate groups
+PI<-class$Biomass[which(class$Taxa == "Invertebrate (Pelagic)")]
+AI<-BI+ZP+PI
+
+#Benthic invertebrate: all invertebrate
+BI_AI<-BI/AI
+
+#Zooplankton: all invertebrate
+ZP_AI<-ZP/AI
+
+#Pelagic invertebrate:all invertebrate
+PI_AI<-PI/AI
+
+#Other trophic ratios
+#Zooplankton:benthos
+ZP_BI<-ZP/BI
+
+#Feeding guild ratios
+class<-params_start[,c(1,2,5)]
+
+#Remove SDemersals, Detritus, Discards
+class<-class[-c(49,58,59),]
+
+#Update class dataframe with new biomass estimates
+biomass_new<-as.data.frame(cbind(groups,biomass),stringsAsFactors = F)
+biomass_new<-biomass_new[1:56,]
+colnames(biomass_new)<-c("RPATH","biomass_new")
+biomass_new$biomass_new<-as.numeric(biomass_new$biomass_new)
+class<-left_join(class,biomass_new,by="RPATH")
+
+#Sum biomass by classification
+class<-aggregate(x=class$biomass_new,by=list(class$Diet),FUN=sum)
+colnames(class)<-c("Diet","Biomass")
+
+#Benth:Pisc
+Benth<-class$Biomass[which(class$Diet == "Benth")]
+Pisc<-class$Biomass[which(class$Diet == "Pisc")]
+Benth_Pisc<-Benth/Pisc
+                      
+#Benth:Plank
+Plank<-class$Biomass[which(class$Diet == "Plank")]
+Benth_Plank<-Benth/Plank
+
+#Plank:Pisc
+Plank_Pisc<-Plank/Pisc
+
+#Vital rates across taxa
+#Plot trophic level vs. log P/B
+TL<-REco$TL
+log_pb<-log10(pb)
+prebal<-as.data.frame(cbind(TL,log_pb))
+row.names(prebal)<-groups
+colnames(prebal)<-c("TL","log_pb")
+
+#Remove fleets, discards, detritus
+prebal<-prebal[1:56,]
+
+#Remove barndoor
+prebal<-prebal[-35,]
+
+#Remove AtlScallop
+#prebal<-prebal[-19,]
+
+#Linear regression
+model1<-lm(log_pb~TL,data=prebal)
+summary(model1)
+
+plot(log_pb~TL,data=prebal,pch=1,cex=0.1)
+abline(model1)
+text(log_pb~TL,data=prebal, labels=rownames(prebal), cex=0.5, font=2)
+
+#Vital rates across taxa
+#Plot trophic level vs. log Q/B
+TL<-REco$TL
+log_qb<-log10(qb)
+prebal<-as.data.frame(cbind(TL,log_qb))
+row.names(prebal)<-groups
+colnames(prebal)<-c("TL","log_qb")
+
+#Remove fleets, discards, detritus
+prebal<-prebal[1:56,]
+
+#Remove phytoplankton, barndoor
+prebal<-prebal[-c(1,35),]
+
+#Remove AtlScallop
+#prebal<-prebal[-19,]
+
+#Linear regression
+model1<-lm(log_qb~TL,data=prebal)
+summary(model1)
+
+plot(log_qb~TL,data=prebal,pch=1,cex=0.001)
+abline(model1)
+text(log_qb~TL,data=prebal, labels=rownames(prebal), cex=0.5, font=2)
