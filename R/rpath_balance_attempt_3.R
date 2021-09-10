@@ -34,8 +34,8 @@ biomass[35]<-0
 #Multiply OtherCeph biomass by 30
 biomass[10]<-biomass[10]*30
 
-#Multiply SmFlatfish biomass by 100
-biomass[15]<-biomass[15]*100
+#Multiply SmFlatfish biomass by 105
+biomass[15]<-biomass[15]*105
 
 #Multiply SpinyDogfish biomass by 0.5
 biomass[42]<-biomass[42]*0.5
@@ -833,3 +833,17 @@ EE[order(EE)]
 
 #Print final modeal
 REco
+
+#Run EcoSim
+#Run model forward 50 years
+REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
+REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
+rsim.plot(REco.run1, groups[1:7])
+rsim.plot(REco.run1, groups[8:14])
+rsim.plot(REco.run1, groups[15:21])
+rsim.plot(REco.run1, groups[22:28])
+rsim.plot(REco.run1, groups[29:35])
+rsim.plot(REco.run1, groups[36:42])
+rsim.plot(REco.run1, groups[43:49])
+rsim.plot(REco.run1, groups[50:56])
+
