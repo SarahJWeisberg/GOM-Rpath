@@ -8,6 +8,8 @@
 #Load packages
 library(Rpath); library(data.table);library(dplyr);library(here)
 
+
+
 source(here("R/groups_fleets.R"))
 
 #Set up model with group names and types
@@ -477,7 +479,7 @@ REco.params$diet[12,48]<-REco.params$diet[12,48]+0.016
 
 #Shift predation on SmFlatfishes
 
-#Shift predation of Goosefish(39) from SmFlat(15) to SWitchFlounder(48)
+#Shift predation of Goosefish(39) from SmFlat(15) to WitchFlounder(48)
 #Shift 0.25%
 REco.params$diet[15,40]<-REco.params$diet[15,40]-0.0025
 REco.params$diet[48,40]<-REco.params$diet[48,40]+0.0025
@@ -836,14 +838,14 @@ REco
 
 #Run EcoSim
 #Run model forward 50 years
-REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
-REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
-rsim.plot(REco.run1, groups[1:7])
-rsim.plot(REco.run1, groups[8:14])
-rsim.plot(REco.run1, groups[15:21])
-rsim.plot(REco.run1, groups[22:28])
-rsim.plot(REco.run1, groups[29:35])
-rsim.plot(REco.run1, groups[36:42])
-rsim.plot(REco.run1, groups[43:49])
-rsim.plot(REco.run1, groups[50:56])
+#REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
+#REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
+#rsim.plot(REco.run1, groups[1:7])
+#rsim.plot(REco.run1, groups[8:14])
+#rsim.plot(REco.run1, groups[15:21])
+#rsim.plot(REco.run1, groups[22:28])
+#rsim.plot(REco.run1, groups[29:35])
+#rsim.plot(REco.run1, groups[36:42])
+#rsim.plot(REco.run1, groups[43:49])
+#rsim.plot(REco.run1, groups[50:56])
 

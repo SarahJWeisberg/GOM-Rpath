@@ -1,18 +1,18 @@
-#Georges Bank Rpath Ecosense
-#SML
+#Gulf of Maine Rpath Ecosense
+#SJW
 
 #Required packages--------------------------------------------------------------
 library(here); library(data.table); library(Rpath)
 
 #Load and balance model
-load(here('data', 'GB_balanced_params.RData'))
+source(here('R/rpath_balance_attempt_3.R'))
 
 #load current biomass/landings
-load(here('data', 'GB_biomass_current.RData'))
-load(here('data', 'GB_landings_current.RData'))
+#load(here('data', 'GB_biomass_current.RData'))
+#load(here('data', 'GB_landings_current.RData'))
 
 #Run Rpath
-GB <- rpath(GB.params, 'Georges Bank')
+#GB <- rpath(GB.params, 'Georges Bank')
 
 #Need to fix GB pedigree file - bigger issue to fix eventually!
 GB.params$pedigree <- GB.params$pedigree[!Group %in% c('DredgeScallop', 'DredgeClam',

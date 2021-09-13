@@ -8,14 +8,14 @@ AtlScallop,0.037,Megabenthos- filterers,Invertebrate (Benthic),NA,1.2,6.66,0,NWA
 Bacteria,5.484,Bacteria,Zooplankton,NA,91.25,380.21,0,EMAX,,,
 BaleenWhales,0.602,Baleen Whales,Whale,NA,0.04,2.3,0,EMAX,,3.22,NWACS
 Barndoor,0,Demersals- omnivores,Demersal (Flat),Benth,0.45,0.83,0,GB model,,,
-BlackSeaBass,0.002,Demersals- omnivores,Demersal (round),Benth,0.15,0.83,0,GB model,,,
+BlackSeaBass,0.002,Demersals- omnivores,Demersal (Round),Benth,0.15,0.83,0,GB model,,,
 Butterfish,0.017,Small Pelagics- commercial,Pelagic (Small),Plank,1.312,4.23,0,NWACS,,,
-Cod,1.959,Demersals- piscivores,Demersal (round),Pisc,0.87,2.24,-0.047,NWACS,,,
-Cusk,0.199,Demersals- benthivores,Demersal (round),Benth,0.52,1.74,0,NWACS,,,
+Cod,1.959,Demersals- piscivores,Demersal (Round),Pisc,0.87,2.24,-0.047,NWACS,,,
+Cusk,0.199,Demersals- benthivores,Demersal (Round),Benth,0.52,1.74,0,NWACS,,,
 Fourspot,0.005,Demersals- benthivores,Demersal (Flat),Benth,0.45,0.92,0,GB model,,,
 GelZooplankton,1.283,Gelatinous Zooplankton,Zooplankton,NA,35,146,0,EMAX,40,,NWACS
 Goosefish,0.279,Demersal- piscivores,Demersal (Flat),Pisc,0.4,2.44,-0.005,GB model,,,
-Haddock,1.245,Demersals- benthivores,Demersal (round),Benth,0.7,3,0.047,NWACS,,,
+Haddock,1.245,Demersals- benthivores,Demersal (Round),Benth,0.7,3,0.047,NWACS,,,
 HMS,0.006,HMS,HMS,Pisc,0.5,2.36,0,EMAX,0.58,6.79,
 Illex,0.342,Small Pelagics- squid,Invertebrate (Pelagic),NA,5.72,19,0,NWACS,,,
 LgCopepods,11.955,Large Copepods,Zooplankton,NA,35,109.5,0,EMAX,,,
@@ -27,7 +27,7 @@ Mesopelagics,0.001,Small Pelagics- other,Pelagic (Small; Round),Plank,1.1,3.7,0,
 Micronekton,4.874,Micronekton,Zooplankton,NA,14.25,36.5,0,EMAX,,85.5,NWACS
 Microzooplankton,4.885,Microzooplankton,Zooplankton,NA,72,242.42,0,EMAX,85,283.4,NWACS
 NShrimp,0.072,Shrimp et al.,Invertebrate (Benthic),NA,1.45,9.67,0.005,Heymans 2001,,,
-OceanPout,0.038,Demersals- benthivores,Demersal (round),Benth,1.84,7,0,GB model,,,
+OceanPout,0.038,Demersals- benthivores,Demersal (Round),Benth,1.84,7,0,GB model,,,
 Odontocetes,0.034,Odontocetes,Whale,NA,0.04,8.5,0,EMAX,,14.3,NWACS
 OtherCephalopods,0,Small Pelagics- squid,Invertebrate (Pelagic),NA,5.72,19,0,NWACS,,,
 OtherDemersals,0.218,Demersals- benthivores,Demersal (Flat),Benth,0.52,1.74,0,NWACS,,0.9,EMAX
@@ -45,9 +45,9 @@ Sharks,0.003,Sharks- pelagics,Shark,Pisc,0.15,0.62,0,EMAX,0.14,0.88,NWACS
 SilverHake,1.015,Demersal- piscivores,Demersal (Round),Pisc,0.4,3.06,0.033,GB model,,3.85,Fishbase
 SmCopepods,10.403,Small copepods,Zooplankton,NA,30.92,127.75,0,EMAX,,,
 SmFlatfishes,0,Demersals- benthivores,Demersal (Flat),Benth,1.61,5.39,0,GB model,,,
-SmoothDogfish,0.003,Demersal- piscivores,Demersal (round),Pisc,0.45,2.44,0,GB model,,,
+SmoothDogfish,0.003,Demersal- piscivores,Demersal (Round),Pisc,0.45,2.44,0,GB model,,,
 SmPelagics,0.127,Small Pelagics- other,Pelagic (Small; Round),Plank,1.61,5.39,0,NWACS,2,GB model,
-SouthernDemersals,0,Demersal- piscivores,Demersal (round),Pisc,1.02,3.73,0,NWACS,,,
+SouthernDemersals,0,Demersal- piscivores,Demersal (Round),Pisc,1.02,3.73,0,NWACS,,,
 SpinyDogfish,1.484,Demersal- piscivores,Demersal (Round),Pisc,0.32,2.32,0.174,NWACS,0.7,1.6,GB model
 SummerFlounder,0.002,Demersals- benthivores,Demersal (Flat),Benth,1.12,3.34,0,NWACS,0.46,2.5,Heymans (for PB); GB model (for QB)
 WhiteHake,1.828,Demersal- piscivores,Demersal (Round),Pisc,0.38,3.1,-0.019,GB model,,,
