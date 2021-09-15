@@ -30,8 +30,8 @@ biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
 #Turn biomass into vector
 biomass<-as.vector(biomass$Biomass)
 
-#Change barndoor to 0 biomass
-biomass[35]<-0
+#Change barndoor to 10^-5 biomass
+biomass[35]<-10^-5
 
 #Multiply OtherCeph biomass by 30
 biomass[10]<-biomass[10]*30
@@ -195,6 +195,9 @@ pb[42]<-pb[42]*1.2
 #Based on PREBAL results
 pb[48]<-pb[48]*2
 
+#Increase barndoor production
+#pb[35]<-1.45
+
 REco.params$model[,PB:=pb]
 
 #Fill qb
@@ -256,6 +259,9 @@ ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
 ba[59:68]<-NA
+
+#Change barndoor ba
+ba[35]<-ba[35]/1000
 REco.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
@@ -819,6 +825,16 @@ REco.params$diet[56,21]<-REco.params$diet[56,21]+0.04
 REco.params$diet[20,41]<-REco.params$diet[20,41]-0.015
 REco.params$diet[8,41]<-REco.params$diet[8,41]+0.015
 
+#Shift predation onto Barndoor
+#Shift predation of OtherDemersals(31) from OtherSkates(33) to Barndoor(35)
+#Shift 0.00001%
+REco.params$diet[33,32]<-REco.params$diet[33,32]-0.0000001
+REco.params$diet[35,32]<-0.0000001
+
+#Shift predation of SpinyDogfish(42) from OtherSkates(33) to Barndoor(35)
+#Shift 0.000001%
+REco.params$diet[33,43]<-REco.params$diet[33,43]-0.00000001
+REco.params$diet[35,43]<-0.00000001
 
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
@@ -831,15 +847,15 @@ EE[order(EE)]
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
-#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_13.csv")
+#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_14.csv")
 
 #Print final modeal
 REco
 
 #Run EcoSim
 #Run model forward 50 years
-#REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
-#REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
+REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
+REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
 #rsim.plot(REco.run1, groups[1:7])
 #rsim.plot(REco.run1, groups[8:14])
 #rsim.plot(REco.run1, groups[15:21])

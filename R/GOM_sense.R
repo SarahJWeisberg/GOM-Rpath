@@ -4,6 +4,10 @@
 #Required packages--------------------------------------------------------------
 library(here); library(data.table); library(Rpath)
 
+#Source code from sense_beta branch of Rpath Repo
+library(devtools)
+source_url('https://raw.githubusercontent.com/NOAA-EDAB/Rpath/sense_beta/R/ecosense.R')
+
 #Load and balance model
 source(here('R/rpath_balance_attempt_3.R'))
 
@@ -15,11 +19,11 @@ source(here('R/rpath_balance_attempt_3.R'))
 #GB <- rpath(GB.params, 'Georges Bank')
 
 #Need to fix GB pedigree file - bigger issue to fix eventually!
-GB.params$pedigree <- GB.params$pedigree[!Group %in% c('DredgeScallop', 'DredgeClam',
-                                                       'Gillnet', 'Longline', 
-                                                       'PotTrap', 'OtterTrawlSm',
-                                                       'OtterTrawlLg', 'Midwater',
-                                                       'OtherFisheries'), ]
+#GB.params$pedigree <- GB.params$pedigree[!Group %in% c('DredgeScallop', 'DredgeClam',
+                                                       #'Gillnet', 'Longline', 
+                                                       #'PotTrap', 'OtterTrawlSm',
+                                                       #'OtterTrawlLg', 'Midwater',
+                                                       #'OtherFisheries'), ]
 
 
 #Test dynamic run
@@ -28,29 +32,31 @@ GB.params$pedigree <- GB.params$pedigree[!Group %in% c('DredgeScallop', 'DredgeC
 # GB.testrun <- rsim.run(GB.scene, method = 'AB', years = 2014:2113)
 # rsim.plot(GB.testrun, GB.params$model[Type < 3, Group])
 
+
+
 #Set up sense runs
-all_years <- 2014:2063
-scene <- rsim.scenario(GB, GB.params, years = all_years)
+all_years <- 1:20
+scene <- rsim.scenario(REco, REco.params, years = all_years)
 
 # ----- Set up ecosense generator ----- #######################################
-scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 1000
+scene$params$BURN_YEARS <- 20
+NUM_RUNS <- 100
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
-set.seed(123)
+set.seed(19)
 for (irun in 1:NUM_RUNS){
-  GBsense <- copy(scene) 
+  REcosense <- copy(scene) 
   # INSERT SENSE ROUTINE BELOW
-  parlist[[irun]] <- GBsense$params 		# Base ecosim params
-  parlist[[irun]] <- rsim.sense(GBsense, GB.params)	# Replace the base params with Ecosense params  
-  GBsense$start_state$Biomass <- parlist[[irun]]$B_BaseRef
-  parlist[[irun]]$BURN_YEARS <- 50			# Set Burn Years to 50
-  GBsense$params <- parlist[[irun]]
-  GBtest <- rsim.run(GBsense, method = "RK4", years = all_years)
-  failList <- which(is.na(GBtest$end_state$Biomass))
+  parlist[[irun]] <- REcosense$params 		# Base ecosim params
+  parlist[[irun]] <- rsim.sense(REcosense, REco.params)	# Replace the base params with Ecosense params  
+  REcosense$start_state$Biomass <- parlist[[irun]]$B_BaseRef
+  parlist[[irun]]$BURN_YEARS <- 20			# Set Burn Years to 20
+  REcosense$params <- parlist[[irun]]
+  REcotest <- rsim.run(REcosense, method = "RK4", years = all_years)
+  failList <- which(is.na(REcotest$end_state$Biomass))
   {if (length(failList)>0)
-  {cat(irun,": fail in year ",GBtest$crash_year,": ",failList,"\n"); kept[irun] <- F; flush.console()}
+  {cat(irun,": fail in year ",REcotest$crash_year,": ",failList,"\n"); kept[irun] <- F; flush.console()}
     else 
     {cat(irun,": success!\n"); kept[irun]<-T;  flush.console()}}
   parlist[[irun]]$BURN_YEARS <- 1
@@ -60,9 +66,28 @@ for (irun in 1:NUM_RUNS){
 KEPT <- which(kept==T)
 nkept <- length(KEPT)
 nkept
-# 1104 / 30000 = 3.6%
-GB.sense <- parlist[KEPT]
-save(GB.sense, file = file.path(data.dir, 'GB_ecosense_valid.RData'))
+# 62/1000 = 6.2%
+REco.sense <- parlist[KEPT]
+
+#try running one of these ecosystems forward - 10 years
+#no perturbations
+REco.sense1<-REco.sense[[1]]
+
+REco.sim.sense <- rsim.scenario(REco, REco.params, years = 1:10)
+REco.sim.sense$params<-REco.sense1
+REco.run.sense <- rsim.run(REco.sim.sense, method = 'RK4', years = 1:10)
+
+rsim.plot(REco.run.sense, groups[1:7])
+rsim.plot(REco.run.sense, groups[8:14])
+rsim.plot(REco.run.sense, groups[15:21])
+rsim.plot(REco.run.sense, groups[22:28])
+rsim.plot(REco.run.sense, groups[29:35])
+rsim.plot(REco.run.sense, groups[36:42])
+rsim.plot(REco.run.sense, groups[43:49])
+rsim.plot(REco.run.sense, groups[50:56])
+#save(GB.sense, file = file.path(data.dir, 'GB_ecosense_valid.RData'))
+
+#Examine 
 
 #Run scenario-----
 #Set 1----
