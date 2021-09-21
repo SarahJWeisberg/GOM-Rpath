@@ -40,7 +40,7 @@ scene <- rsim.scenario(REco, REco.params, years = all_years)
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 20
-NUM_RUNS <- 100
+NUM_RUNS <- 10
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 

@@ -836,6 +836,11 @@ REco.params$diet[35,32]<-0.0000001
 REco.params$diet[33,43]<-REco.params$diet[33,43]-0.00000001
 REco.params$diet[35,43]<-0.00000001
 
+#Shift predation of Macrobenthos(11) from OtherSkates(33) to Barndoor(35)
+#Shift 0.00000001%
+REco.params$diet[33,12]<-REco.params$diet[33,12]-0.000000001
+REco.params$diet[35,12]<-0.000000001
+
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
 
