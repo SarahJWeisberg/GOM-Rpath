@@ -62,7 +62,8 @@ for (i in 1:nliving){
 alt.diet[,2:(nliving+1)]<-as.data.table(diet)
 alt$diet<-alt.diet
 
-#Fill landings?
+#Fill landings
+
 
 AltEco1 <- rpath(alt, eco.name = 'GOM Ecosystem Alt1')
 AltEco1

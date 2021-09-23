@@ -9,7 +9,6 @@
 library(Rpath); library(data.table);library(dplyr);library(here)
 
 
-
 source(here("R/groups_fleets.R"))
 
 #Set up model with group names and types
@@ -840,6 +839,9 @@ REco.params$diet[35,43]<-0.00000001
 #Shift 0.00000001%
 REco.params$diet[33,12]<-REco.params$diet[33,12]-0.000000001
 REco.params$diet[35,12]<-0.000000001
+
+#Assign data pedigree
+source(here("R/data_pedigree.R"))
 
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
