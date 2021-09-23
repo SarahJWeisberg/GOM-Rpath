@@ -35,26 +35,27 @@ source(here('R/rpath_balance_attempt_3.R'))
 
 
 #Set up sense runs
-all_years <- 1:20
+all_years <- 1:50
 scene <- rsim.scenario(REco, REco.params, years = all_years)
+orig.biomass<-scene$start_state$Biomass
 
 # ----- Set up ecosense generator ----- #######################################
-scene$params$BURN_YEARS <- 20
-NUM_RUNS <- 10
+scene$params$BURN_YEARS <- 50
+NUM_RUNS <- 100
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
 set.seed(19)
 for (irun in 1:NUM_RUNS){
-  REcosense <- copy(scene) 
+  REcosense <- copy(scene)
   # INSERT SENSE ROUTINE BELOW
   parlist[[irun]] <- REcosense$params 		# Base ecosim params
   parlist[[irun]] <- rsim.sense(REcosense, REco.params)	# Replace the base params with Ecosense params  
   REcosense$start_state$Biomass <- parlist[[irun]]$B_BaseRef
-  parlist[[irun]]$BURN_YEARS <- 20			# Set Burn Years to 20
+  parlist[[irun]]$BURN_YEARS <- 50			# Set Burn Years to 50
   REcosense$params <- parlist[[irun]]
   REcotest <- rsim.run(REcosense, method = "RK4", years = all_years)
-  failList <- which(is.na(REcotest$end_state$Biomass))
+  failList <- which((is.na(REcotest$end_state$Biomass) | REcotest$end_state$Biomass/orig.biomass > 1000 | REcotest$end_state$Biomass/orig.biomass < 1/1000))
   {if (length(failList)>0)
   {cat(irun,": fail in year ",REcotest$crash_year,": ",failList,"\n"); kept[irun] <- F; flush.console()}
     else 
