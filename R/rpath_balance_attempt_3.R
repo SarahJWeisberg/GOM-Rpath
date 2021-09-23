@@ -829,8 +829,6 @@ EE[order(EE)]
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
-#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_13.csv")
-
 #Print final modeal
 REco
 
