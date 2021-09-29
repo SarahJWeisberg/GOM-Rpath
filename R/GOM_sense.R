@@ -41,7 +41,7 @@ orig.biomass<-scene$start_state$Biomass
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 100
+NUM_RUNS <- 1000
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
@@ -67,7 +67,8 @@ for (irun in 1:NUM_RUNS){
 KEPT <- which(kept==T)
 nkept <- length(KEPT)
 nkept
-# 62/1000 = 6.2%
+# 27/1000 = 2.7%
+#Seems reasonaable
 REco.sense <- parlist[KEPT]
 
 #try running one of these ecosystems forward - 10 years
