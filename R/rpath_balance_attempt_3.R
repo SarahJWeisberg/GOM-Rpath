@@ -872,7 +872,7 @@ REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
 #rsim.plot(REco.run1, groups[43:49])
 #rsim.plot(REco.run1, groups[50:56])
 
-webplot(REco,labels=TRUE,label.cex=0.7)
+webplot(REco,labels=T,labels.cex=0.6)
 
-webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "mesopelagics", highlight.col= c("blue", "red", "NA"), label.num=TRUE, label.cex=0.7, fleets=FALSE)
+webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "SilverHake", highlight.col= c("blue", "red", "NA"), label.num=TRUE, label.cex=0.7, fleets=FALSE)
 
