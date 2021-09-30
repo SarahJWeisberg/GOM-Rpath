@@ -111,3 +111,41 @@ A2<-enaAscendency(m)
 A2
 
 mti<-enaMTI(m)
+
+n<-unpack(m)
+
+#Playing with plotting
+#Copying code from vignette
+
+## Set colors to use
+my.col <- c('red','yellow',rgb(204,204,153,maxColorValue=255),'grey22')
+## Extract flow information for later use.
+F <- as.matrix(m,attrname='flow')
+## Get indices of positive flows
+f <- which(F!=0, arr.ind=T)
+opar <- par(las=1,bg=my.col[4],xpd=TRUE,mai=c(1.02, 0.62, 0.82, 0.42))
+
+set.seed(2)
+plot(m,
+     ## Scale nodes with storage
+     vertex.cex=log(biomass[1:58]),
+     ## Add node labels
+     label= groups[1:58],
+     boxed.labels=FALSE,
+     label.cex=0.65,
+     ## Make rounded nodes
+     vertex.sides=45,
+     ## Scale arrows to flow magnitude
+     edge.lwd=log10(abs(F[f])),
+     edge.col=my.col[3],
+     vertex.col=my.col[1],
+     label.col='white',
+     vertex.border = my.col[3],
+     vertex.lty = 1,
+     xlim=c(-4,1),ylim=c(-2,-2))
+## Lastly, remove changes to the plotting parameters
+rm(opar)
+
+set.seed(2)
+plot(m)
+p
