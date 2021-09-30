@@ -74,10 +74,11 @@ REco.sense <- parlist[KEPT]
 #try running one of these ecosystems forward - 10 years
 #no perturbations
 REco.sense1<-REco.sense[[1]]
+REco.sense2<-REco.sense[[2]]
 
-REco.sim.sense <- rsim.scenario(REco, REco.params, years = 1:10)
-REco.sim.sense$params<-REco.sense1
-REco.run.sense <- rsim.run(REco.sim.sense, method = 'RK4', years = 1:10)
+REco.sim.sense <- rsim.scenario(REco, REco.params, years = 1:50)
+REco.sim.sense$params<-REco.sense2
+REco.run.sense <- rsim.run(REco.sim.sense, method = 'RK4', years = 1:50)
 
 rsim.plot(REco.run.sense, groups[1:7])
 rsim.plot(REco.run.sense, groups[8:14])
@@ -88,8 +89,6 @@ rsim.plot(REco.run.sense, groups[36:42])
 rsim.plot(REco.run.sense, groups[43:49])
 rsim.plot(REco.run.sense, groups[50:56])
 #save(GB.sense, file = file.path(data.dir, 'GB_ecosense_valid.RData'))
-
-#Examine 
 
 #Run scenario-----
 #Set 1----

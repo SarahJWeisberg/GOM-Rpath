@@ -58,7 +58,7 @@ for (i in 1:length(REco.sense)) {
   alt$diet<-alt.diet
   #Fill landings
   #Save model
-  alt.params[[i]]<-alt
+  #Not sure how
 }
 
 AltEco1 <- rpath(alt)
