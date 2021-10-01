@@ -8,6 +8,8 @@
 library(devtools);library(xlsx)
 install_github('SEELab/enaR')
 library(enaR)
+install.packages("sna")
+library(sna)
 
 #Loading existing models
 #Specifically look at EMAX GoM model
@@ -126,26 +128,45 @@ f <- which(F!=0, arr.ind=T)
 opar <- par(las=1,bg=my.col[4],xpd=TRUE,mai=c(1.02, 0.62, 0.82, 0.42))
 
 set.seed(2)
+set.seed(2)
 plot(m,
      ## Scale nodes with storage
-     vertex.cex=log(biomass[1:58]),
+     vertex.cex=log(m%v%'storage'),
      ## Add node labels
-     label= groups[1:58],
-     boxed.labels=FALSE,
-     label.cex=0.65,
+     #label= m%v%'vertex.names',
+     #boxed.labels=FALSE,
+     #label.cex=0.65,
+     #label.col='white',
      ## Make rounded nodes
      vertex.sides=45,
      ## Scale arrows to flow magnitude
-     edge.lwd=log10(abs(F[f])),
+     edge.lwd=log(abs(F[f])),
      edge.col=my.col[3],
      vertex.col=my.col[1],
-     label.col='white',
      vertex.border = my.col[3],
      vertex.lty = 1,
-     xlim=c(-4,1),ylim=c(-2,-2))
+     xlim=c(-3,3),ylim=c(-4,4))
 ## Lastly, remove changes to the plotting parameters
 rm(opar)
 
 set.seed(2)
 plot(m)
 p
+
+#try other plotting approaches used in enaR vignette / paper
+b <- sna::betweenness(m)
+## Get vertex names
+nms <- m%v%'vertex.names'
+show(nms)
+nms[b<=(0.1*max(b))] <- NA
+set.seed(2)
+opar <- par(xpd=TRUE,mfrow=c(1,1))
+## Create target plot showing only
+## labels of most central nodes
+sna::gplot.target(m,b,
+                  edge.col="grey",
+                  label=nms,
+                  circ.lab = F)
+
+
+
