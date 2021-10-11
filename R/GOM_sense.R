@@ -67,7 +67,7 @@ for (irun in 1:NUM_RUNS){
 KEPT <- which(kept==T)
 nkept <- length(KEPT)
 nkept
-# 27/1000 = 2.7%
+# 367/10000 = 3.67
 #Seems reasonaable
 REco.sense <- parlist[KEPT]
 
