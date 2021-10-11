@@ -1,0 +1,172 @@
+#Trying to play with enaR
+
+#install.packages("enaR")
+
+#Install package
+#Note that I had to pull from github; CRAN version is depreciated
+#install.packages("xlsx")
+library(devtools);library(xlsx)
+install_github('SEELab/enaR')
+library(enaR)
+install.packages("sna")
+library(sna)
+
+#Loading existing models
+#Specifically look at EMAX GoM model
+#Hope that will help me understand how to map from EcoPath
+data("troModels")
+GOM<-troModels$"Gulf of Maine"
+summary(GOM)
+
+F<-enaFlow(GOM)
+attributes(F)
+
+A<-enaAscendency(GOM)
+A
+
+ssCheck(GOM)
+
+C<-enaControl(GOM)
+C$sc
+
+#going to try and build a network model from my rpath_balanced_3
+#Also use some outputs from
+#Sean don't make fun of me!
+#Simplest translation / understanding of flow, respiration
+#building on MDMAR02 example
+
+#Need to calculate respiration, exports, detritus input
+#To do so, need to have pull unassim, M0, and F (fishing mortality)
+
+#Count number of each group type
+#ngroups <- nrow(REco.params)
+nliving <- nrow(REco.params$model[Type <  2, ])
+ndead   <- nrow(REco.params$model[Type == 2, ])
+#ngear   <- nrow(REco.params$model[Type == 3, ])
+
+#Pull diet matrix
+diet<-REco$DC
+
+#Get consumption values by DC*QB*B
+QQ<-matrix(nrow = (nliving + ndead + 1),ncol=nliving)
+
+for (i in 1:nliving){
+  QQ[,i]<-diet[,i]*qb[i]*biomass[i]
+}
+#Ignore Imports
+QQ<-QQ[1:58,]
+
+colnames(QQ)<-groups[1:56]
+rownames(QQ)<-groups[1:58]
+
+
+#Sum discards
+Disc<-rowSums(REco$Discards)
+Disc<-Disc[1:58]
+
+#Calculate flow to detritus
+M0<-REco$PB*(1-REco$EE)
+DetIn<-M0*biomass+qb*biomass*REco$Unassim
+DetIn<-DetIn[1:58]
+
+#Deal with flow to detritus from discards
+#Should be equal to all flow to discards minus consumption by SeaBirds(45)
+DetInDisc<-sum(Disc)
+DetIn[58]<-DetInDisc-QQ[58,45]
+
+#Calculate exports
+Catch<-rowSums(REco$Landings)
+Catch<-Catch[1:58]
+
+#Calculate respiration
+Resp<-((1-REco$Unassim)*qb-pb)*biomass
+Resp<-Resp[1:58]
+#Change PP resp to 0
+Resp[1]<-0
+
+#Calculate imports
+#For now, only consider PP as import
+#Consider this more in the future..
+Import<-pb[1]*biomass[1]
+Import<-c(Import,rep(0,59))
+
+#Format biomass so can be added
+Biomass<-biomass[1:57]
+Biomass<-c(Biomass, rep(0,3))
+
+#Bind all outputs
+REco.enam<-cbind(QQ,DetIn,Disc,Catch,Resp)
+REco.enam<-rbind(REco.enam,Import,Biomass)
+
+#save output
+write.csv(REco.enam,"outputs/GOM_enaR_test.csv")
+
+#Fiddle with formatting -- get to match their example
+#save and reupload as XLSX
+m <- read.enam("GOM_enaR_test.xlsx")
+ssCheck(m)
+
+A1<-enaAscendency(GOM)
+A1
+
+A2<-enaAscendency(m)
+A2
+
+mti<-enaMTI(m)
+
+n<-unpack(m)
+
+#Playing with plotting
+#Copying code from vignette
+
+## Set colors to use
+my.col <- c('red','yellow',rgb(204,204,153,maxColorValue=255),'grey22')
+## Extract flow information for later use.
+F <- as.matrix(m,attrname='flow')
+## Get indices of positive flows
+f <- which(F!=0, arr.ind=T)
+opar <- par(las=1,bg=my.col[4],xpd=TRUE,mai=c(1.02, 0.62, 0.82, 0.42))
+
+set.seed(2)
+set.seed(2)
+plot(m,
+     ## Scale nodes with storage
+     vertex.cex=log(m%v%'storage'),
+     ## Add node labels
+     #label= m%v%'vertex.names',
+     #boxed.labels=FALSE,
+     #label.cex=0.65,
+     #label.col='white',
+     ## Make rounded nodes
+     vertex.sides=45,
+     ## Scale arrows to flow magnitude
+     edge.lwd=log(abs(F[f])),
+     edge.col=my.col[3],
+     vertex.col=my.col[1],
+     vertex.border = my.col[3],
+     vertex.lty = 1,
+     xlim=c(-3,3),ylim=c(-4,4))
+## Lastly, remove changes to the plotting parameters
+rm(opar)
+
+set.seed(2)
+plot(m)
+p
+
+#try other plotting approaches used in enaR vignette / paper
+b <- sna::betweenness(m)
+## Get vertex names
+nms <- m%v%'vertex.names'
+show(nms)
+nms[b<=(0.1*max(b))] <- NA
+set.seed(2)
+opar <- par(xpd=TRUE,mfrow=c(1,1))
+## Create target plot showing only
+## labels of most central nodes
+sna::gplot.target(m,b,
+                  edge.col="grey",
+                  label=nms,
+                  circ.lab = F)
+
+
+
