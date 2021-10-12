@@ -8,7 +8,7 @@
 source(here('R/GOM_sense.R'))
 
 #Copy initial Rpath parameters
-#Alternative scenarios will be the same except for Biomass, PB, QB, Diet, Landings
+#Alternative scenarios will be the same except for Biomass, PB, QB, Diet
 alt<-copy(REco.params)
 alt.diet<-copy(REco.params$diet)
 
@@ -23,18 +23,20 @@ ngear   <- nrow(alt$model[Type == 3, ])
 
 alt.params<-as.list(rep(NA,length(REco.sense)))
 
-for (i in 1:length(REco.sense)) {
+for (i in 1:3) {
+  #Copy initial Rpath parameters
+  Rpath.alt<-copy(REco.params)
   #Copy scenario
   REco.alt<-REco.sense[[i]]
   #Assign biomass
   alt.biomass<-REco.alt$B_BaseRef[-1]
-  alt$model[,Biomass:=alt.biomass]
+  Rpath.alt$model[,Biomass:=alt.biomass]
   #Assign PB
-  alt$model[,PB:=REco.alt$PBopt[-1]]
+  Rpath.alt$model[,PB:=REco.alt$PBopt[-1]]
   #Assign QB
   alt.QB<-REco.alt$FtimeQBOpt[-1]
   alt.QB[1]<-0 #How to make this generalizable to models with other PP groups?
-  alt$model[,QB:=alt.QB]
+  Rpath.alt$model[,QB:=alt.QB]
   #Assign diet
   #Remove first two columns which represent 'outside' and 'PP't
   PreyFrom<-REco.alt$PreyFrom[-c(1,2)]
@@ -42,26 +44,21 @@ for (i in 1:length(REco.sense)) {
   predpreyQ<-REco.alt$QQ[-c(1,2)]
   #Fill consumption matrix
   QQ<-matrix(nrow = (nliving + ndead + 1),ncol=nliving)
-  for (i in 1:length(PreyFrom)){
-    prey<-PreyFrom[i]
-    pred<-PreyTo[i]
-    QQ[prey,pred]<-predpreyQ[i]
+  for (j in 1:length(PreyFrom)){
+    prey<-PreyFrom[j]
+    pred<-PreyTo[j]
+    QQ[prey,pred]<-predpreyQ[j]
   }
   #Convert consumption matrix to diet matrix
   #Divide consumption by (QB*B)
   diet<-matrix(nrow = (nliving + ndead + 1),ncol=nliving)
-  for (i in 1:nliving){
-    diet[,i]<-QQ[,i]/(alt.QB[i]*alt.biomass[i])
+  for (k in 1:nliving){
+    diet[,k]<-QQ[,k]/(alt.QB[k]*alt.biomass[k])
   }
   #Convert to data table and fill in Rpath format
   alt.diet[,2:(nliving+1)]<-as.data.table(diet)
-  alt$diet<-alt.diet
+  Rpath.alt$diet<-alt.diet
   #Fill landings
   #Save model
-  #Not sure how
+  alt.params[[i]]<-Rpath.alt
 }
-
-AltEco1 <- rpath(alt)
-AltEco1
-
-check.rpath.params(alt)
