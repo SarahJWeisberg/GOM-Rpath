@@ -11,26 +11,8 @@ library(enaR)
 install.packages("sna")
 library(sna)
 
-#Loading existing models
-#Specifically look at EMAX GoM model
-#Hope that will help me understand how to map from EcoPath
-data("troModels")
-GOM<-troModels$"Gulf of Maine"
-summary(GOM)
-
-F<-enaFlow(GOM)
-attributes(F)
-
-A<-enaAscendency(GOM)
-A
-
-ssCheck(GOM)
-
-C<-enaControl(GOM)
-C$sc
 
 #going to try and build a network model from my rpath_balanced_3
-#Also use some outputs from
 #Sean don't make fun of me!
 #Simplest translation / understanding of flow, respiration
 #building on MDMAR02 example
@@ -61,50 +43,100 @@ rownames(QQ)<-groups[1:58]
 
 
 #Sum discards
-Disc<-rowSums(REco$Discards)
-Disc<-Disc[1:58]
+Discards<-rowSums(REco$Discards)
+Discards<-Discards[1:58]
 
 #Calculate flow to detritus
 M0<-REco$PB*(1-REco$EE)
-DetIn<-M0*biomass+qb*biomass*REco$Unassim
-DetIn<-DetIn[1:58]
+Detritus<-M0*biomass+qb*biomass*REco$Unassim
+Detritus<-Detritus[1:58]
 
 #Deal with flow to detritus from discards
 #Should be equal to all flow to discards minus consumption by SeaBirds(45)
-DetInDisc<-sum(Disc)
-DetIn[58]<-DetInDisc-QQ[58,45]
+DetInDisc<-sum(Discards)
+Detritus[58]<-DetInDisc-QQ[58,45]
 
+#Flow to detritus from detritus = 0
+Detritus[57]<-0
+
+#Bind diet matrix (QQ) with flow to detritus, discards
+QQ<-cbind(QQ,Detritus,Discards)
+ 
 #Calculate exports
 Catch<-rowSums(REco$Landings)
 Catch<-Catch[1:58]
 
 #Calculate respiration
+#Assume detritus, discards have 0 respiration
 Resp<-((1-REco$Unassim)*qb-pb)*biomass
 Resp<-Resp[1:58]
-#Change PP resp to 0
-Resp[1]<-0
+Resp[57:58]<-0
+
+#Deal with Primary Production
+#First, estimate GROSS production = Imports
+#P/B in Ecopath model gives NET production
+#Ratio of gross:net is going to be fixed based on EMAX
+gross_net<-4101.9/3281.5
+gross<-gross_net*pb[1]*biomass[1]
+Resp[1]<-gross-(pb[1]*biomass[1])
 
 #Calculate imports
 #For now, only consider PP as import
 #Consider this more in the future..
-Import<-pb[1]*biomass[1]
-Import<-c(Import,rep(0,59))
+Import<-c(gross,rep(0,59))
 
 #Format biomass so can be added
-Biomass<-biomass[1:57]
-Biomass<-c(Biomass, rep(0,3))
+Biomass<-biomass[1:58]
 
+#Now need to get this into enaR format
+#First method = dumb = put into csv
 #Bind all outputs
-REco.enam<-cbind(QQ,DetIn,Disc,Catch,Resp)
-REco.enam<-rbind(REco.enam,Import,Biomass)
-
+#REco.enam<-cbind(QQ,DetIn,Disc,Catch,Resp)
+#REco.enam<-rbind(REco.enam,Import,Biomass)
 #save output
-write.csv(REco.enam,"outputs/GOM_enaR_test.csv")
+#write.csv(REco.enam,"outputs/GOM_enaR_test.csv")
+
+#Second method = less dumb
+#Pack the model directly
+GOM.flow<-pack(flow = QQ,
+               input = Import,
+               export = Catch,
+               living = c(rep(TRUE,56),rep(FALSE,2)),
+               respiration = Resp,
+               storage = Biomass)
+
+#Look at model summary
+F.GOM<-enaFlow(GOM.flow,balance.override = T)
+F.GOM$ns
+
+A1<-enaAscendency(GOM.flow)
+A1
+
+#Loading existing models
+#Specifically look at EMAX GoM model
+#Hope that will help me understand how to map from EcoPath
+data("troModels")
+GOM<-troModels$"Gulf of Maine"
+summary(GOM)
+
+F<-enaFlow(GOM)
+attributes(F)
+
+A<-enaAscendency(GOM)
+A
+
+ssCheck(GOM)
+
+C<-enaControl(GOM)
+C$sc
 
 #Fiddle with formatting -- get to match their example
 #save and reupload as XLSX
 m <- read.enam("GOM_enaR_test.xlsx")
 ssCheck(m)
+
+F1<-enaFlow(m,balance.override = T)
+F1
 
 A1<-enaAscendency(GOM)
 A1
