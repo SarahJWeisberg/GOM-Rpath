@@ -63,8 +63,17 @@ Detritus[57]<-0
 QQ<-cbind(QQ,Detritus,Discards)
  
 #Calculate exports
+#First sum catch
 Catch<-rowSums(REco$Landings)
-Catch<-Catch[1:58]
+
+#Add positive biomass accumulation terms
+Export<-Catch+(ifelse(REco$BA>0,REco$BA,0))
+Export<-Export[1:58]
+
+#Other ideas for export - all BA terms, or none
+#Export<-Catch+REco$BA
+#Export<-Export[1:58]
+#Export<-Catch[1:58]
 
 #Calculate respiration
 #Assume detritus, discards have 0 respiration
@@ -81,11 +90,13 @@ gross<-gross_net*pb[1]*biomass[1]
 Resp[1]<-gross-(pb[1]*biomass[1])
 
 #Calculate imports
-#For now, only consider PP as import
-#Consider this more in the future..
-Import<-c(gross,rep(0,59))
+#Negative biomass accumulation terms
+#Gross primary production
+Import<-abs(ifelse(REco$BA<0,REco$BA,0))
+Import[1]<-gross
+Import<-Import[1:58]
 
-#Format biomass so can be added
+#Translate biomass
 Biomass<-biomass[1:58]
 
 #Now need to get this into enaR format
@@ -100,7 +111,7 @@ Biomass<-biomass[1:58]
 #Pack the model directly
 GOM.flow<-pack(flow = QQ,
                input = Import,
-               export = Catch,
+               export = Export,
                living = c(rep(TRUE,56),rep(FALSE,2)),
                respiration = Resp,
                storage = Biomass)
