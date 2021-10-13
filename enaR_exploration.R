@@ -1,4 +1,10 @@
-#Trying to play with enaR
+#Getting familiar with enaR
+#Looking at balanced GOM model, EMAX GOM model
+
+#Author: Sarah J. Weisberg
+
+# Tue Oct 12 15:40:06 2021 ------------------------------
+
 
 #install.packages("enaR")
 

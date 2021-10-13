@@ -21,9 +21,9 @@ ngear   <- nrow(alt$model[Type == 3, ])
 #Pull out individual Ecosense scenario
 #Loop over all successes
 
-alt.params<-as.list(rep(NA,length(REco.sense)))
+alt.models<-as.list(rep(NA,length(REco.sense)))
 
-for (i in 1:3) {
+for (i in 1:length(REco.sense)) {
   #Copy initial Rpath parameters
   Rpath.alt<-copy(REco.params)
   #Copy scenario
@@ -60,5 +60,8 @@ for (i in 1:3) {
   Rpath.alt$diet<-alt.diet
   #Fill landings
   #Save model
-  alt.params[[i]]<-Rpath.alt
+  alt.model<-rpath(Rpath.alt)
+  alt.models[[i]]<-alt.model
 }
+
+
