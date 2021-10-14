@@ -128,11 +128,8 @@ biomass[36]<-biomass[36]*1.05
 #Multiply BlackSeaBass biomass by 1.4
 biomass[49]<-biomass[49]*1.4
 
-#Multiply OtherDemersals biomass by 2
+#Multiply OtherDemersals biomass by 2.1
 biomass[31]<-biomass[31]*2.1
-
-#Multiply Phytoplankton biomass by 2
-#biomass[1]<-biomass[1]/2
 
 #Multiply RedHake biomass by 1.1
 biomass[34]<-biomass[34]*1.1
@@ -162,9 +159,9 @@ pb[34]<-1.3
 #Copying Sean
 pb[27]<-pb[27]*3
 
-#Increase pb of AtlHerring 1.5x
+#Increase pb of AtlHerring to 1.64
 #Copying Sean
-pb[21]<-pb[21]*1.5
+pb[21]<-1.64
 
 #Increase pb of SilverHake to 0.735
 #0.735 according to Yong; 0.4 according to Sean
@@ -193,9 +190,6 @@ pb[42]<-pb[42]*1.2
 #Increase pb of WitchFlounder 2x
 #Based on PREBAL results
 pb[48]<-pb[48]*2
-
-#Increase barndoor production
-#pb[35]<-1.45
 
 REco.params$model[,PB:=pb]
 
@@ -249,6 +243,14 @@ qb[47]<-qb[47]*2.2
 #Increase qb of WitchFlounder 2x
 #Based on PREBAL results
 qb[48]<-qb[48]*2
+
+#Increase qb of AtlMackerel 2.2x
+#Keep GE reasonable
+qb[27]<-qb[27]*2.2
+
+#Increase qb of OtherDemersals 1.2x
+#Keep GE reasonable
+qb[31]<-qb[31]*1.1/1.2
 
 REco.params$model[,QB:=qb]
 
