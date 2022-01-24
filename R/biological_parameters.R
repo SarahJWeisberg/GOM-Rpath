@@ -14,6 +14,7 @@ xfun::session_info()
 # Tue Jun 15 14:54:44 2021 ------------------------------
 
 #Load required packages
+install.packages("tidyverse")
 library(here);library(data.table);library(dplyr);library(tidyverse)
 
 #Load all found parameter values

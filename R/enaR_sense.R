@@ -8,6 +8,7 @@
 #Install package
 #Note that I had to pull from github; CRAN version is depreciated
 #install.packages("xlsx")
+install.packages("sna")
 library(devtools)
 install_github('SEELab/enaR')
 library(enaR)
@@ -26,7 +27,8 @@ nliving <- nrow(REco.params$model[Type <  2, ])
 ndead   <- nrow(REco.params$model[Type == 2, ])
 
 alt.networks<-as.list(rep(NA,length(alt.models)))
-#alt.networks<-as.list(rep(NA,3))
+prod.comm<-c()
+prod.comm.sub<-c()
 
 for (i in 1:length(alt.models)) {
   #Copy params
@@ -48,7 +50,6 @@ for (i in 1:length(alt.models)) {
   #Calculate flow to detritus
   #If EE >1, assume 0 M0
   M0<-ifelse(model$EE<1,model$PB*(1-model$EE),0)
-  #M0<-model$PB*(1-model$EE)
   Detritus<-M0*model$Biomass+model$QB*model$Biomass*model$Unassim
   Detritus<-Detritus[1:58]
   #Deal with flow to detritus from discards
@@ -93,71 +94,110 @@ for (i in 1:length(alt.models)) {
              living = c(rep(TRUE,56),rep(FALSE,2)),
              respiration = Resp,
              storage = Biomass)
+  #Calculate total production of comm. relevant species
+  prod.comm[i]<-model$PB[21]*model$Biomass[21]+model$PB[20]*model$Biomass[20]+
+    model$PB[24]*model$Biomass[24]+model$PB[38]*model$Biomass[38]+
+    model$PB[26]*model$Biomass[26]+model$PB[12]*model$Biomass[12]+
+    model$PB[40]*model$Biomass[40]+model$PB[25]*model$Biomass[25]
+  #Again with a smaller subset
+  prod.comm.sub[i]<-model$PB[21]*model$Biomass[21]+model$PB[20]*model$Biomass[20]+
+    model$PB[24]*model$Biomass[24]+model$PB[38]*model$Biomass[38]
 }
-
-#Analyze suite of models
-info<-lapply(alt.networks,enaAscendency)
-
-enaAscendency(alt.networks[[1]])
-
-AMI<-c()
-for (i in 1:length(alt.models)){
-  AMI[i]<-info[[i]][[2]]
-}
-
-#Make a boxplot of AMI and identify outliers
-out <- boxplot.stats(AMI)$out
-out_ind <- which(AMI %in% c(out))
-out_ind
 
 ASC<-c()
 for (i in 1:length(alt.models)){
   ASC[i]<-info[[i]][[5]]
 }
 
-#Make a boxplot of Ascendancy and identify outliers
-out <- boxplot.stats(ASC)$out
-out_ind <- which(ASC %in% c(out))
-out_ind
-
-R<-c()
+prod.herring<-c()
 for (i in 1:length(alt.models)){
-  R[i]<-info[[i]][[9]]
+  model<-alt.models[[i]]
+  prod.herring[i]<-model$PB[21]*model$Biomass[21]
 }
 
-out <- boxplot.stats(R)$out
-out_ind <- which(R %in% c(out))
-out_ind
-
-
-TL.lgcopes<-c()
+prod.silver<-c()
 for (i in 1:length(alt.models)){
-  TL.lgcopes[i]<-alt.models[[i]]$TL[5]
-}
-TL.smcopes<-c()
-for (i in 1:length(alt.models)){
-  TL.smcopes[i]<-alt.models[[i]]$TL[6]
-}
-TL.cod<-c()
-for (i in 1:length(alt.models)){
-  TL.cod[i]<-alt.models[[i]]$TL[24]
-}
-TL.cusk<-c()
-for (i in 1:length(alt.models)){
-  TL.cusk[i]<-alt.models[[i]]$TL[30]
+  model<-alt.models[[i]]
+  prod.silver[i]<-model$PB[40]*model$Biomass[40]
 }
 
-#Look at individual outlier models in an exploratory fashion
-outlier.model<-alt.models[126]
-webplot(outlier.model[[1]],labels=T,fleets=F,label.cex=0.7)
 
-TLs<-matrix(ncol=length(alt.networks),nrow=length(groups))
+#Calculate network analysis outputs for original model (balanced)
+#Copy params
+orig.model<-REco
+#Pull diet matrix
+diet<-REco$DC
+#Get consumption values by DC*QB*
+QQ<-matrix(nrow = (nliving + ndead + 1),ncol=nliving)
+for (j in 1:nliving){
+  QQ[,j]<-diet[,j]*model$QB[j]*model$Biomass[j]
+  }
+#Ignore Imports
+QQ<-QQ[1:58,]
+colnames(QQ)<-groups[1:56]
+rownames(QQ)<-groups[1:58]
+#Sum discards
+Discards<-rowSums(REco$Discards)
+Discards<-Discards[1:58]
+#Calculate flow to detritus
+M0<-REco$PB*(1-REco$EE)
+Detritus<-M0*REco$Biomass+REco$QB*REco$Biomass*REco$Unassim
+Detritus<-Detritus[1:58]
+#Deal with flow to detritus from discards
+#Should be equal to all flow to discards minus consumption by SeaBirds(45)
+DetInDisc<-sum(Discards)
+Detritus[58]<-DetInDisc-QQ[58,45]
+#Flow to detritus from detritus = 0
+Detritus[57]<-0
+#Bind diet matrix (QQ) with flow to detritus, discards
+QQ<-cbind(QQ,Detritus,Discards)
+#Calculate exports
+#First sum catch
+Catch<-rowSums(REco$Landings)
+#Add positive biomass accumulation terms
+Export<-Catch+(ifelse(REco$BA>0,REco$BA,0))
+Export<-Export[1:58]
+#Calculate respiration
+#Assume detritus, discards have 0 respiration
+Resp<-((1-REco$Unassim)*REco$QB-REco$PB)*REco$Biomass
+Resp<-ifelse(Resp>0,Resp,0)
+Resp<-Resp[1:58]
+Resp[57:58]<-0
+#Deal with Primary Production
+#First, estimate GROSS production = Imports
+#P/B in Ecopath model gives NET production
+#Ratio of gross:net is going to be fixed based on EMAX
+gross_net<-4101.9/3281.5
+gross<-gross_net*REco$PB[1]*REco$Biomass[1]
+Resp[1]<-gross-(model$PB[1]*model$Biomass[1])
+#Calculate imports
+#Negative biomass accumulation terms
+#Gross primary production
+Import<-abs(ifelse(REco$BA<0,REco$BA,0))
+Import[1]<-gross
+Import<-Import[1:58]
+#Trim biomass
+Biomass<-REco$Biomass[1:58]
+#Pack the model directly and store
+orig.network<-pack(flow = QQ,
+                        input = Import,
+                        export = Export,
+                        living = c(rep(TRUE,56),rep(FALSE,2)),
+                        respiration = Resp,
+                        storage = Biomass)
+#Calculate total production of comm. relevant species
+prod.comm.orig<-pb[21]*biomass[21]+pb[20]*biomass[20]+
+    pb[24]*biomass[24]+pb[38]*biomass[38]+
+    pb[26]*biomass[26]+pb[12]*biomass[12]+
+    pb[40]*biomass[40]+pb[25]*biomass[25]
+
+#Analyze suite of models
+info<-lapply(alt.networks,enaAscendency)
+info.orig<-enaAscendency(orig.network)
+
+ASC.CAP<-c()
 for (i in 1:length(alt.models)){
-  TLs[,i]<-alt.models[[i]]$TL
+  ASC.CAP[i]<-info[[i]][[7]]
 }
-TLs<-as.data.frame(TLs)
-rownames(TLs)<-groups
-
-#Greatest R
-outlier.model<-alt.models[129]
-webplot(outlier.model[[1]],labels=T,fleets=F,label.cex=0.7)
+#Analyze original model
+ASC.orig<-info.orig[7]

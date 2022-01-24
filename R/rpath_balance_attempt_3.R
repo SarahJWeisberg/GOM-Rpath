@@ -6,8 +6,11 @@
 
 
 #Load packages
-library(Rpath); library(data.table);library(dplyr);library(here)
-
+library(devtools)
+install_github('NOAA-EDAB/Rpath')
+#install.packages("Rpath")
+install.packages("tinytex") #why?
+library(Rpath); library(data.table);library(dplyr);library(here);library(tinytex)
 
 source(here("R/groups_fleets.R"))
 
@@ -879,3 +882,12 @@ webplot(REco,labels=T,fleets=T,label.cex=0.7)
 webplot(REco,labels=F,fleets=T)
 webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "Bacteria", highlight.col= c("green", "magenta", "NA"), label.num=TRUE, label.cex=0.7, fleets=TRUE)
 
+#Try running forcing
+REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
+REco.sim.test<-adjust.forcing(REco.sim,'ForcedMort',group='Cod',sim.year = 1:50,value=1.5)
+REco.run.test<-rsim.run(REco.sim.test,method='RK4',years=1:50)
+rsim.plot(REco.run.test, groups[29:35])
+rsim.plot(REco.run.test, groups[36:42])
+rsim.plot(REco.run.test, groups[8:14])
+rsim.plot(REco.run.test, groups[15:21])
+rsim.plot(REco.run.test, groups[22:28])
