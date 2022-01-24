@@ -146,7 +146,7 @@ nkept
 #Seems reasonaable
 REco.sense <- parlist[KEPT]
 
-#ave(REco.sense, file = "REco.sense.RData")
+#save(REco.sense, file = "REco.sense.RData")
 
 #try running one of these ecosystems forward - 10 years
 #no perturbations
