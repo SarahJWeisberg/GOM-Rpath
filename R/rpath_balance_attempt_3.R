@@ -1,5 +1,8 @@
-#RPath model run - balancing attempt 3
-#Tweaking the balanced model from attempt 2
+#RPath model balancing
+#Purpose: This script generates a mass-balanced model of the 
+#         Gulf of Maine (GoM) food web. Initial parameter estimates are pulled
+#         from relevant data sources and then modified.
+
 
 # Thu Sep  2 14:21:54 2021 ------------------------------
 
@@ -8,6 +11,7 @@
 #Load packages
 library(Rpath); library(data.table);library(dplyr);library(here)
 
+#
 source(here("R/groups_fleets.R"))
 
 #Set up model with group names and types
@@ -18,12 +22,11 @@ REco.params<-create.rpath.params(group = groups,type=types)
 #Fill in biomass estimates
 source(here("R/EMAX_biomass_estimates.R"))
 
+flush.console()
+
 #biomass_80s<-na.omit(biomass_80s)
 
 biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
-
-#Remove barndoor
-#biomass<-biomass[-35,]
 
 #Turn biomass into vector
 biomass<-as.vector(biomass$Biomass)
