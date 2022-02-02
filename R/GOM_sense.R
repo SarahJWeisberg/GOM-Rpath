@@ -108,6 +108,9 @@ REco.params$pedigree[56,QB :=0.4]
 REco.params$pedigree[56,PB :=0.7]
 
 
+#Adjust SmCopepod biomass pedigree
+#For OSM / WARMEM goals
+REco.params$pedigree[6,Biomass :=0.8]
 
 #Set up sense runs
 all_years <- 1:50
@@ -116,7 +119,7 @@ orig.biomass<-scene$start_state$Biomass
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 10000
+NUM_RUNS <- 50000
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
@@ -142,11 +145,13 @@ for (irun in 1:NUM_RUNS){
 KEPT <- which(kept==T)
 nkept <- length(KEPT)
 nkept
-# 396/10000 = 3.67
+# 396/10000 = 3.67%
 #Seems reasonaable
+#1763/50,000 = 3.53%
+#Also seems reasonable
 REco.sense <- parlist[KEPT]
 
-#save(REco.sense, file = "REco.sense.RData")
+#save(REco.sense, file = "REco.sense_50k.RData")
 
 #try running one of these ecosystems forward - 10 years
 #no perturbations
