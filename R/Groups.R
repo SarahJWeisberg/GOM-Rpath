@@ -16,7 +16,7 @@
 #Load needed packages
 library(here);library(data.table)
 
-#Functional groups for GOM RPath model
+#Living functional groups for GOM RPath model
 GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton', 
                              'GelZooplankton','LgCopepods', 'SmCopepods', 
                              'Micronekton', 'Illex','Loligo', 'OtherCephalopods',

@@ -6,7 +6,11 @@
 
 
 #Load packages
-library(Rpath); library(data.table);library(dplyr);library(here)
+library(devtools)
+install_github('NOAA-EDAB/Rpath')
+#install.packages("Rpath")
+install.packages("tinytex") #why?
+library(Rpath); library(data.table);library(dplyr);library(here);library(tinytex)
 
 source(here("R/groups_fleets.R"))
 
@@ -28,8 +32,8 @@ biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
 #Turn biomass into vector
 biomass<-as.vector(biomass$Biomass)
 
-#Change barndoor to 0 biomass
-biomass[35]<-0
+#Change barndoor to 10^-5 biomass
+biomass[35]<-10^-5
 
 #Multiply OtherCeph biomass by 30
 biomass[10]<-biomass[10]*30
@@ -127,11 +131,8 @@ biomass[36]<-biomass[36]*1.05
 #Multiply BlackSeaBass biomass by 1.4
 biomass[49]<-biomass[49]*1.4
 
-#Multiply OtherDemersals biomass by 2
+#Multiply OtherDemersals biomass by 2.1
 biomass[31]<-biomass[31]*2.1
-
-#Multiply Phytoplankton biomass by 2
-#biomass[1]<-biomass[1]/2
 
 #Multiply RedHake biomass by 1.1
 biomass[34]<-biomass[34]*1.1
@@ -161,9 +162,9 @@ pb[34]<-1.3
 #Copying Sean
 pb[27]<-pb[27]*3
 
-#Increase pb of AtlHerring 1.5x
+#Increase pb of AtlHerring to 1.64
 #Copying Sean
-pb[21]<-pb[21]*1.5
+pb[21]<-1.64
 
 #Increase pb of SilverHake to 0.735
 #0.735 according to Yong; 0.4 according to Sean
@@ -246,6 +247,14 @@ qb[47]<-qb[47]*2.2
 #Based on PREBAL results
 qb[48]<-qb[48]*2
 
+#Increase qb of AtlMackerel 2.2x
+#Keep GE reasonable
+qb[27]<-qb[27]*2.2
+
+#Increase qb of OtherDemersals 1.2x
+#Keep GE reasonable
+qb[31]<-qb[31]*1.1/1.2
+
 REco.params$model[,QB:=qb]
 
 #Fill biomass accumulation
@@ -254,6 +263,9 @@ ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
 ba[59:68]<-NA
+
+#Change barndoor ba
+ba[35]<-ba[35]/1000
 REco.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
@@ -477,7 +489,7 @@ REco.params$diet[12,48]<-REco.params$diet[12,48]+0.016
 
 #Shift predation on SmFlatfishes
 
-#Shift predation of Goosefish(39) from SmFlat(15) to SWitchFlounder(48)
+#Shift predation of Goosefish(39) from SmFlat(15) to WitchFlounder(48)
 #Shift 0.25%
 REco.params$diet[15,40]<-REco.params$diet[15,40]-0.0025
 REco.params$diet[48,40]<-REco.params$diet[48,40]+0.0025
@@ -817,6 +829,24 @@ REco.params$diet[56,21]<-REco.params$diet[56,21]+0.04
 REco.params$diet[20,41]<-REco.params$diet[20,41]-0.015
 REco.params$diet[8,41]<-REco.params$diet[8,41]+0.015
 
+#Shift predation onto Barndoor
+#Shift predation of OtherDemersals(31) from OtherSkates(33) to Barndoor(35)
+#Shift 0.00001%
+REco.params$diet[33,32]<-REco.params$diet[33,32]-0.0000001
+REco.params$diet[35,32]<-0.0000001
+
+#Shift predation of SpinyDogfish(42) from OtherSkates(33) to Barndoor(35)
+#Shift 0.000001%
+REco.params$diet[33,43]<-REco.params$diet[33,43]-0.00000001
+REco.params$diet[35,43]<-0.00000001
+
+#Shift predation of Macrobenthos(11) from OtherSkates(33) to Barndoor(35)
+#Shift 0.00000001%
+REco.params$diet[33,12]<-REco.params$diet[33,12]-0.000000001
+REco.params$diet[35,12]<-0.000000001
+
+#Assign data pedigree
+source(here("R/data_pedigree.R"))
 
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
@@ -829,7 +859,7 @@ EE[order(EE)]
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
-#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_13.csv")
+#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_14.csv")
 
 #Print final modeal
 REco
@@ -838,12 +868,26 @@ REco
 #Run model forward 50 years
 REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
 REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
-rsim.plot(REco.run1, groups[1:7])
-rsim.plot(REco.run1, groups[8:14])
-rsim.plot(REco.run1, groups[15:21])
-rsim.plot(REco.run1, groups[22:28])
-rsim.plot(REco.run1, groups[29:35])
-rsim.plot(REco.run1, groups[36:42])
-rsim.plot(REco.run1, groups[43:49])
-rsim.plot(REco.run1, groups[50:56])
+#rsim.plot(REco.run1, groups[1:7])
+#rsim.plot(REco.run1, groups[8:14])
+#rsim.plot(REco.run1, groups[15:21])
+#rsim.plot(REco.run1, groups[22:28])
+#rsim.plot(REco.run1, groups[29:35])
+#rsim.plot(REco.run1, groups[36:42])
+#rsim.plot(REco.run1, groups[43:49])
+#rsim.plot(REco.run1, groups[50:56])
 
+webplot(REco,labels=T,fleets=T,label.cex=0.7)
+
+webplot(REco,labels=F,fleets=T)
+webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "Bacteria", highlight.col= c("green", "magenta", "NA"), label.num=TRUE, label.cex=0.7, fleets=TRUE)
+
+#Try running forcing
+REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
+REco.sim.test<-adjust.forcing(REco.sim,'ForcedMort',group='Cod',sim.year = 1:50,value=1.5)
+REco.run.test<-rsim.run(REco.sim.test,method='RK4',years=1:50)
+rsim.plot(REco.run.test, groups[29:35])
+rsim.plot(REco.run.test, groups[36:42])
+rsim.plot(REco.run.test, groups[8:14])
+rsim.plot(REco.run.test, groups[15:21])
+rsim.plot(REco.run.test, groups[22:28])

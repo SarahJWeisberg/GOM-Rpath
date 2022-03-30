@@ -195,6 +195,9 @@ source(here("R/diet.R"))
 #Run diet filling
 source(here("R/diet_filling.R"))
 
+#Complete data pedigree
+source(here('R/data_pedigree.R'))
+
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
 REco
