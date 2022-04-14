@@ -864,6 +864,11 @@ EE[order(EE)]
 #Print final modeal
 REco
 
+#Save model
+save(REco.params,file = "REco_params_balance3.Rdata")
+save(REco,file="REco_balance3.Rdata")
+
+
 #Run EcoSim
 #Run model forward 50 years
 REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
@@ -879,8 +884,8 @@ REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
 
 webplot(REco,labels=T,fleets=T,label.cex=0.7)
 
-webplot(REco,labels=F,fleets=T)
-webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "Bacteria", highlight.col= c("green", "magenta", "NA"), label.num=TRUE, label.cex=0.7, fleets=TRUE)
+webplot(REco,labels=T,fleets=F,label.cex=0.7)
+webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "LgCopepods", highlight.col= c("green", "magenta", "NA"), label.cex=0.7, fleets=TRUE)
 
 #Try running forcing
 REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
@@ -891,3 +896,9 @@ rsim.plot(REco.run.test, groups[36:42])
 rsim.plot(REco.run.test, groups[8:14])
 rsim.plot(REco.run.test, groups[15:21])
 rsim.plot(REco.run.test, groups[22:28])
+
+#Try forcing copepod biomass
+REco.sim.test<-adjust.forcing(REco.sim,'ForcedBio',group='SmCopepods',sim.year = 20:50,value=2)
+REco.run.test<-rsim.run(REco.sim.test,method='AB',years=1:50)
+rsim.plot(REco.run.test, groups[1:10])
+

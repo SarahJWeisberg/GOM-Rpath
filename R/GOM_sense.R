@@ -110,8 +110,16 @@ REco.params$pedigree[56,PB :=0.7]
 
 #Adjust SmCopepod biomass pedigree
 #For OSM / WARMEM goals
+#Keep phyto contant
 REco.params$pedigree[6,Biomass :=0.8]
+REco.params$pedigree[1,Biomass := 0.0]
+REco.params$pedigree[1,PB := 0.0]
 
+#Also try keeping EVERYTHING CONSTANT but copepod groups
+REco.params$pedigree[c(1:4,7:58),Biomass :=0.0]
+REco.params$pedigree[c(1:4,7:58),PB :=0.0]
+REco.params$pedigree[c(1:4,7:58),QB :=0.0]
+REco.params$pedigree[c(1:4,7:58),Diet :=0.0]
 #Set up sense runs
 all_years <- 1:50
 scene <- rsim.scenario(REco, REco.params, years = all_years)
@@ -119,7 +127,7 @@ orig.biomass<-scene$start_state$Biomass
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 50000
+NUM_RUNS <- 100
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
@@ -151,7 +159,7 @@ nkept
 #Also seems reasonable
 REco.sense <- parlist[KEPT]
 
-#save(REco.sense, file = "REco.sense_50k.RData")
+save(REco.sense, file = "REco.sense_All_But_Cope_Constant.RData")
 
 #try running one of these ecosystems forward - 10 years
 #no perturbations
