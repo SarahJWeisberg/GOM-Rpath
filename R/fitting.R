@@ -31,6 +31,7 @@ fit.years <- 1986:2019
 
 catch.datafile<- paste("landings_fit.csv",sep = "")
 #could also accomplish this by running catch_time.R script
+biomass.datafile  <- paste("biomass_fit.csv",sep='')
 
 # Setup Base Ecopath and Base Rsim scenario
 basescene85 <- rsim.scenario(REco, REco.params, years = fit.years) # Ecosim params
@@ -39,7 +40,7 @@ scene0 <- basescene85
 
 # Read in fitting data
 # Biomass data (e.g. surveys)
-#scene0 <- read.fitting.biomass(scene0, biomass.datafile)
+scene0 <- read.fitting.biomass(scene0, biomass.datafile)
 
 # Read time series of catch data and re-arrange catch forcing
 scene0 <- read.fitting.catch(scene0, catch.datafile) 
@@ -65,7 +66,11 @@ for (sp in Equil_species){
 
 # Run model
 run0 <- rsim.run(scene0, method='AB', years=fit.years)
-par(mfrow=c(1,2))
-rsim.plot.biomass(scene0, run0)
+#par(mfrow=c(1,2))
+rsim.plot.biomass(scene0, run0) #still doesn't work...
 rsim.plot.catch(scene0, run0, "AtlHerring")
 rsim.plot(run0, groups[50:56])
+
+# Some Diagnostics 
+rsim.fit.table(scene0,run0)
+rsim.fit.obj.species(scene0,run0,"Cod")

@@ -62,6 +62,7 @@ spp.land<-com.land %>%
   summarise(landings=sum(landings))
 
 #remove groups not in final model
+#WAIT actually these should probably be aggregated -- revisit
 spp.land<-as.data.table(spp.land)
 spp.land<-spp.land[RPATH %in% GOM.groups$RPATH]
 
