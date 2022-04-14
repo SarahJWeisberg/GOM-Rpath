@@ -68,10 +68,17 @@ spp.land<-spp.land[RPATH %in% GOM.groups$RPATH]
 #drop units for plotting purposes
 spp.land$landings <- drop_units(spp.land$landings)
 
+#rename columns to comply with fitting code
+colnames(spp.land)<-c("Group", "Year", "Value")
+
+#add sd, scale columns
+spp.land[,Stdev := Value * 0.1]
+spp.land[,Scale := rep(1,length(spp.land$Value))]
+
 #visualize landings trends over time
-ggplot(spp.land,aes(x=YEAR,y=landings)) +
+ggplot(spp.land,aes(x=Year, y = Value)) +
   geom_point() +
-  facet_wrap(vars(RPATH),ncol = 4)
+  facet_wrap(vars(Group),ncol = 4)
 
 #save file
 write.csv(spp.land,"landings_fit.csv")

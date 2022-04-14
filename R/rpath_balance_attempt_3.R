@@ -839,7 +839,7 @@ REco
 #Run model forward 50 years
 REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
 REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
-#rsim.plot(REco.run1, groups[1:7])
+rsim.plot(REco.run1, groups[1:7])
 #rsim.plot(REco.run1, groups[8:14])
 #rsim.plot(REco.run1, groups[15:21])
 #rsim.plot(REco.run1, groups[22:28])

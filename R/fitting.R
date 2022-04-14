@@ -19,14 +19,17 @@
 library(Rpath); library(data.table);library(dplyr);library(here)
 
 #Pull in code from GitHub
+library(devtools)
+source_url('https://github.com/NOAA-EDAB/Rpath/blob/fit_alpha/R/ecofitting.R')
+#this didn't work...
 
 #Fill in balanced model
 source(here("R/rpath_balance_attempt_3.R"))
 
 #define fit years
-fit.years <- 1985:2019
+fit.years <- 1986:2019
 
-catch.datafile<- read.csv("landings_fit.csv")
+catch.datafile<- paste("landings_fit.csv",sep = "")
 #could also accomplish this by running catch_time.R script
 
 # Setup Base Ecopath and Base Rsim scenario
@@ -43,6 +46,26 @@ scene0 <- read.fitting.catch(scene0, catch.datafile)
 # Apply the fit catch as a forcing catch
 scene0 <- fitcatch.to.forcecatch(scene0)
 # Turn off fishing effort, freeze discards/offal using forced biomass
-scene0 <- adjust.fishing(scene0, "ForcedEffort", rpath.gears(bal), fit.years, value=0.0)
-scene0$forcing$ForcedBio[,"Discards.offal"] <- bal$Biomass["Discards.offal"]
+scene0 <- adjust.fishing(scene0, "ForcedEffort", rpath.gears(REco), fit.years, value=0.0)
+scene0$forcing$ForcedBio[,"Discards"] <- REco$Biomass["Discards"]
 
+# For species without catch, reapply Ecopath F (originally through gears) to ForcedFRate
+F_equil <- (rowSums(REco$Landings) + rowSums(REco$Discards))/(REco$Biomass) 
+Equil_species <- GOM.groups[!RPATH %in% spp.land$Group]
+Equil_species <- rbind(Equil_species,d.d)
+for (sp in Equil_species){
+  scene0 <- adjust.fishing(scene0, 'ForcedFRate', sp, fit.years, value=F_equil[sp])
+}
+#doing it this way is causing issues - getting NAs for some groups in the middle
+#of the time series
+#putting in all 0s --> not sure where this is coming from
+for (sp in Equil_species){
+  scene0 <- adjust.fishing(scene0, 'ForcedFRate', sp, fit.years, value=0)
+}
+
+# Run model
+run0 <- rsim.run(scene0, method='AB', years=fit.years)
+par(mfrow=c(1,2))
+rsim.plot.biomass(scene0, run0)
+rsim.plot.catch(scene0, run0, "AtlHerring")
+rsim.plot(run0, groups[50:56])
