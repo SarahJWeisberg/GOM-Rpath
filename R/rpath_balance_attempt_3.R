@@ -22,7 +22,7 @@ REco.params<-create.rpath.params(group = groups,type=types)
 #Fill in biomass estimates
 source(here("R/EMAX_biomass_estimates.R"))
 
-flush.console()
+flush.console() #not using this right
 
 #biomass_80s<-na.omit(biomass_80s)
 
