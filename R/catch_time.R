@@ -10,7 +10,8 @@
 # Thu Apr 14 11:29:00 2022 ------------------------------
 
 #load required packages
-library(ggplot2); library(here); library(units); library(data.table)
+library(ggplot2); library(here); library(units); library(data.table); 
+library(dplyr); library(survdat)
 
 load(here('data/commercial_landings_gom_80_19.Rdata'))
 
@@ -20,10 +21,6 @@ source('R/Groups.R')
 #code below modified from landings_conversion.R
 com.land[FLEET =="HMS",FLEET:="HMS Fleet"]
 
-#Load species codes
-#Use these codes to translate landings species codes ('SVSPP') to RPATH species codes ('spp')
-load('data/speciescodesandstrata/Species_codes.Rdata')
-
 #Calculate total GOM area
 area<-sf::st_read(dsn=system.file("extdata","strata.shp",package="survdat"))
 area<-get_area(areaPolygon = area, areaDescription="STRATA")
@@ -32,6 +29,28 @@ GOM.area<-sum(GOM.area$Area)
 
 #Load species codes for matching & filter for just NESPP3 and RPath codes
 load("data/speciescodesandstrata/Species_codes.RData")
+
+#RPATH names are the same as in Georges Bank model
+#Aggregate groups below 0.05 t/km^2 threshold
+spp <- spp[!duplicated(spp$SVSPP),] #SVSPPs are NEFSC species-specific codes
+spp <- spp[RPATH == 'RedCrab', RPATH := 'Macrobenthos']
+#spp <- spp[RPATH == 'AtlScallop', RPATH := 'Megabenthos'] #Need to come back to this!
+spp <- spp[RPATH == 'Clams', RPATH := 'Megabenthos']
+spp <- spp[RPATH == 'Scup', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'OffHake', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'Bluefish', RPATH := 'OtherPelagics']
+spp <- spp[RPATH == 'AmShad', RPATH := 'SmPelagics']
+spp <- spp[RPATH == 'SmallPelagics', RPATH := 'SmPelagics']
+spp <- spp[RPATH == 'AtlCroaker', RPATH := 'SouthernDemersals']
+spp <- spp[RPATH == 'LargePelagics', RPATH := 'OtherPelagics']
+spp <- spp[RPATH == 'OtherFlatfish', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'StripedBass', RPATH := 'OtherPelagics']
+spp <- spp[RPATH == 'Sturgeon', RPATH := 'OtherDemersals']
+spp <- spp[RPATH == 'Weakfish', RPATH := 'OtherDemersals']
+
+#Cusk not included in Georges Bank model -- need to create RPATH name
+spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
+#Merge NESPP3 and RPath codes
 spp<-select(spp,one_of(c("NESPP3","RPATH")))
 spp<-unique(na.exclude(spp)) 
 
@@ -79,7 +98,9 @@ spp.land[,Scale := rep(1,length(spp.land$Value))]
 #visualize landings trends over time
 ggplot(spp.land,aes(x=Year, y = Value)) +
   geom_point() +
-  facet_wrap(vars(Group),ncol = 4)
+  facet_wrap(vars(Group),ncol = 4, scales = "free")
+
+#add a column called 'catch?'
 
 #save file
 write.csv(spp.land,"landings_fit.csv")

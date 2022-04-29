@@ -22,8 +22,6 @@ REco.params<-create.rpath.params(group = groups,type=types)
 #Fill in biomass estimates
 source(here("R/EMAX_biomass_estimates.R"))
 
-flush.console() #not using this right
-
 #biomass_80s<-na.omit(biomass_80s)
 
 biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
@@ -76,7 +74,7 @@ biomass[27]<-biomass[27]*5.05
 #In accordance with Yong's estimates
 biomass[12]<-biomass[12]*3
 
-#Multiply WinterFlounder biomass by 2.7x
+#Multiply WinterFlounder biomass by 2.7
 biomass[47]<-biomass[47]*2.7
 
 #Multiply Windowpane by 2
