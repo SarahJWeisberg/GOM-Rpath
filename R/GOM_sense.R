@@ -137,7 +137,7 @@ for (irun in 1:NUM_RUNS){
   # INSERT SENSE ROUTINE BELOW
   parlist[[irun]] <- REcosense$params 		# Base ecosim params
   parlist[[irun]] <- rsim.sense(REcosense, REco.params)	# Replace the base params with Ecosense params  
-  REcosense$start_state$Biomass <- parlist[[irun]]$B_BaseRef
+  #REcosense$start_state$Biomass <- parlist[[irun]]$B_BaseRef #took out this line on May 2, 2022
   parlist[[irun]]$BURN_YEARS <- 50			# Set Burn Years to 50
   REcosense$params <- parlist[[irun]]
   REcotest <- rsim.run(REcosense, method = "RK4", years = all_years)
