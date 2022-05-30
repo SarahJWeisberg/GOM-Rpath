@@ -108,8 +108,8 @@ biomass[16]<-biomass[16]*5
 #Multiply Pollock biomass by 0.75
 biomass[38]<-biomass[38]*0.75
 
-#Multiply Butterfish biomass by 4
-biomass[50]<-biomass[50]*4
+#Multiply Butterfish biomass by 3
+biomass[50]<-biomass[50]*3
 
 #Multiply OceanPout biomass by 1.5
 biomass[13]<-biomass[13]*1.5
@@ -609,15 +609,10 @@ REco.params$diet[8,41]<-REco.params$diet[8,41]+0.008
 REco.params$diet[50,55]<-REco.params$diet[50,55]-0.007
 REco.params$diet[8,55]<-REco.params$diet[8,55]+0.007
 
-#Shift predation of SummerFlounder(29) from Butterfish(50) to OtherPelagics(20) 
-#Shift 8%
-REco.params$diet[50,30]<-REco.params$diet[50,30]-0.08
-REco.params$diet[20,30]<-REco.params$diet[20,30]+0.08
-
 #Shift predation of SummerFlounder(29) from Butterfish(50) to Megabenthos(56) 
-#Shift 8%
-REco.params$diet[50,30]<-REco.params$diet[50,30]-0.08
-REco.params$diet[56,30]<-REco.params$diet[56,30]+0.08
+#Shift 12%
+REco.params$diet[50,30]<-REco.params$diet[50,30]-0.12
+REco.params$diet[56,30]<-REco.params$diet[56,30]+0.12
 
 #Shift predation of SpinyDogfish(42) from Butterfish(50) to Illex(8)
 #Shift 0.9%
@@ -818,7 +813,6 @@ REco.params$diet[52,12]<-REco.params$diet[52,12]-0.00002
 REco.params$diet[19,12]<-REco.params$diet[19,12]+0.00002
 
 #Shift predation of OtherPelagics
-
 #Shift predation of OtherPelagics(20) from OtherPelagics(20) to Megabenthos(56)
 #Shift 4%
 REco.params$diet[20,21]<-REco.params$diet[20,21]-0.04
@@ -845,6 +839,50 @@ REco.params$diet[35,43]<-0.00000001
 REco.params$diet[33,12]<-REco.params$diet[33,12]-0.000000001
 REco.params$diet[35,12]<-0.000000001
 
+#Shifting diet of Micronekton
+#trying to get TLs to make more sense
+
+#Shift predation of Micronekton(7) from LgCopepods(5) to Phytoplankton(1)
+#Shift 10%
+REco.params$diet[5,8]<-REco.params$diet[5,8]-0.1
+REco.params$diet[1,8]<-REco.params$diet[1,8]+0.1
+
+#Shift predation of Illex(8) from Micronekton(7) to LgCopepods(5)
+#Shift 10%
+REco.params$diet[7,9]<-REco.params$diet[7,9]-0.1
+REco.params$diet[5,9]<-REco.params$diet[5,9]+0.1
+
+#Shift predation of Illex(8) from Micronekton(7) to SmCopepods(6)
+#Shift 10%
+REco.params$diet[7,9]<-REco.params$diet[7,9]-0.1
+REco.params$diet[6,9]<-REco.params$diet[6,9]+0.1
+
+#Shift predation of Loligo(9) from Micronekton(7) to LgCopepods(5)
+#Shift 10%
+REco.params$diet[7,10]<-REco.params$diet[7,10]-0.1
+REco.params$diet[5,10]<-REco.params$diet[5,10]+0.1
+
+#Shift predation of Loligo(9) from Micronekton(7) to SmCopepods(6)
+#Shift 10%
+REco.params$diet[7,10]<-REco.params$diet[7,10]-0.1
+REco.params$diet[6,10]<-REco.params$diet[6,10]+0.1
+
+#Shifting Sharks diet
+#Move predation of Sharks(51) from Detritus(57) to Odontocetes(55)
+#Shift 2.5%
+REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
+REco.params$diet[55,52]<-REco.params$diet[55,52]+0.025
+
+#Move predation of Sharks(51) from Detritus(57) to Pinnipeds(53)
+#Shift 2.5%
+REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
+REco.params$diet[53,52]<-REco.params$diet[53,52]+0.025
+
+#Move predation of Sharks(51) from LgCopepods(5) to Goosefish(39)
+#Shift 2.5%
+REco.params$diet[5,52]<-REco.params$diet[5,52]-0.025
+REco.params$diet[39,52]<-0.025
+
 #Assign data pedigree
 source(here("R/data_pedigree.R"))
 
@@ -864,6 +902,10 @@ EE[order(EE)]
 #Print final modeal
 REco
 
+#Examine TLs
+TL<-REco$TL
+TL[order(TL)]
+
 #Save model
 save(REco.params,file = "REco_params_balance3.Rdata")
 save(REco,file="REco_balance3.Rdata")
@@ -882,7 +924,7 @@ REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
 #rsim.plot(REco.run1, groups[43:49])
 #rsim.plot(REco.run1, groups[50:56])
 
-webplot(REco,labels=T,fleets=T,label.cex=0.7)
+webplot(REco,labels=T,fleets=F,label.cex=0.7, highlight = "SmCopepods")
 
 webplot(REco,labels=T,fleets=F,label.cex=0.7)
 webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "LgCopepods", highlight.col= c("green", "magenta", "NA"), label.cex=0.7, fleets=TRUE)
