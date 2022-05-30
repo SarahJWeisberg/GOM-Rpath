@@ -166,6 +166,8 @@ save(info, file = "REco.sense_PP_Constant_info.RData")
 
 #Information analysis of original model
 info.orig<-enaAscendency(orig.network)
+control.orig<-enaControl(orig.network, balance.override = T)
+mti.orig<-enaMTI(orig.network)
 
 #Generate flow models for all alternates
 alt.flows<-lapply(alt.networks,enaFlow,balance.override=T)
