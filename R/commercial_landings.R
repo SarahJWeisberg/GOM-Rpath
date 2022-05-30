@@ -6,30 +6,23 @@ library(here); library(data.table); library(comlandr)
 #Connect to NEFSC server
 channel <- dbutils::connect_to_database(server = "sole", uid = "slucey")
 
-path.yrs <- 1980:1985
+#Years
+path.yrs <- 1980:2019
 
-comland <- comlandr::get_comland_data(channel, filterByYear = path.yrs, useForeign = F)
-
+#Stat areas
 #Assigned area to GOM
 #Will be using NAFO Stat Areas - 500, 510, 512, 513, 514, 515, 521, 522, 561
 #Several stat areas are completely within the GOM EPU
 full.areas <- c(500, 510, 512, 513, 514, 515)
+gom <- c(500, 510:515, 521, 522, 561)
 
-landings <- comland$comland[AREA %in% full.areas, ]
+comland <- comlandr::get_comland_data(channel, filterByYear = path.yrs, 
+                                      filterByArea = gom, useForeign = F,
+                                      aggArea = T, userAreas = mskeyAreas)
 
-#Areas 521, 522, and 561 straddle Georges Bank.  The proprotion of catch inside
-#and outside was calulated from the MS Keyrun project for Georges Bank.  We will use
-#the proportion outside of Georges Bank for those Stat Areas.  The rest will be 
-#100% GOM
-proportions <- readRDS(here('data/All_Species_Proportions.rds')) 
-proportions <- proportions[AREA %in% c(521, 522, 561) & InOut == 'out', ]  
-
-gom.split.land <- assign_area(comland, proportions, areaDescription = 'InOut', 
-                              propDescription = 'MeanProp')
-gom.split.land$comland[, InOut := NULL]
-
-#Merge split landings with other landings
-landings <- rbindlist(list(landings, gom.split.land$comlands))
+#Filter out non-GOM landings
+landings <- comland$comland[is.na(EPU), EPU := 'GOM']
+landings <- landings[EPU == 'GOM', ]
 
 #Assign gears to fleets
 #Generate NEGEAR2 codes from NEGEAR
@@ -49,9 +42,8 @@ landings[NEGEAR2 %in% c(3, 4, 6, 11), FLEET := 'HMS']
 landings[is.na(FLEET), FLEET := 'Other']
 landings[, FLEET := as.factor(FLEET)]
 
-#Calculate mean for Rpath
-sum.land <- landings[, sum(SPPLIVMT), by = c('YEAR', 'NESPP3', 'FLEET')]
-mean.land <- sum.land[, mean(V1), by = c('NESPP3', 'FLEET')]
-setnames(mean.land, 'V1', 'SPPLIVMT')
+#Calculate time series for Rpath
+com.land <- landings[, sum(SPPLIVMT), by = c('YEAR', 'NESPP3', 'FLEET')]
+setnames(com.land, 'V1', 'SPPLIVMT')
 
-save(mean.land, file = here('data/mean_landings_gom_80_85.RData'))
+save(com.land, file = here('data', 'commercial_landings_gom_80_19.RData'))
