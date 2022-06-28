@@ -4,8 +4,7 @@
 #         from relevant data sources and then modified.
 
 
-# Thu Sep  2 14:21:54 2021 ------------------------------
-
+# Mon Jun 27 14:50:31 2022 ------------------------------
 
 
 #Load packages
@@ -29,8 +28,8 @@ biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
 #Turn biomass into vector
 biomass<-as.vector(biomass$Biomass)
 
-#Change barndoor to 0 biomass
-biomass[35]<-0
+#Change barndoor to non-zero
+biomass[35]<-2.5*10^-5
 
 #Multiply OtherCeph biomass by 30
 biomass[10]<-biomass[10]*30
@@ -108,8 +107,8 @@ biomass[38]<-biomass[38]*0.75
 #Multiply Butterfish biomass by 4
 biomass[50]<-biomass[50]*4
 
-#Multiply OceanPout biomass by 1.5
-biomass[13]<-biomass[13]*1.5
+#Multiply OceanPout biomass by 2
+biomass[13]<-biomass[13]*2
 
 #Multiply Macrobenthos biomass by 0.5
 #This makes much more sense with EMAX, Sean & Yong
@@ -194,6 +193,21 @@ pb[42]<-pb[42]*1.2
 #Based on PREBAL results
 pb[48]<-pb[48]*2
 
+#Decrease pb of OceanPout to 0.5
+#Based on conversation with Mike/Sean
+pb[13]<-0.86
+
+#Decrease pb of Barndoor to 0.2
+#Based on conversation with Mike/Sean
+pb[35]<-0.2
+
+#Decrease pb of Sharks to 0.13
+#Based on conversation with Mike/Sean
+pb[51]<-0.13
+
+#Increase pb of BlackSeaBass to 0.65
+pb[49]<-0.65
+
 REco.params$model[,PB:=pb]
 
 #Fill qb
@@ -247,6 +261,10 @@ qb[47]<-qb[47]*2.2
 #Based on PREBAL results
 qb[48]<-qb[48]*2
 
+#Decrease qb of OceanPout to 3.85
+#Lowering pb, keeping ge the same
+qb[13]<-3.85
+
 REco.params$model[,QB:=qb]
 
 #Fill biomass accumulation
@@ -255,6 +273,13 @@ ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
 ba[59:68]<-NA
+
+#Change barndoor ba
+ba[35]<-ba[35]/1000
+
+#Change OceanPout ba
+ba[13]<- -0.004
+
 REco.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
@@ -780,6 +805,16 @@ REco.params$diet[14,22]<-REco.params$diet[14,22]+0.015
 REco.params$diet[13,21]<-REco.params$diet[13,21]-0.029
 REco.params$diet[8,21]<-REco.params$diet[8,21]+0.029
 
+#Shift predation of Cod(42) from OceanPout(13) to Goosefish(39)
+#Shift 0.05%
+REco.params$diet[13,25]<-REco.params$diet[13,25]-0.005
+REco.params$diet[39,25]<-REco.params$diet[39,25]+0.005
+
+#Shift predation of SpinyDogfish(42) from OceanPout(13) to Illex(8)
+#Shift 0.05%
+REco.params$diet[13,43]<-REco.params$diet[13,43]-0.005
+REco.params$diet[39,43]<-REco.params$diet[39,43]+0.005
+
 #Shifting some predation to AtlScallop (EE too low)
 #Shift predation of Macrobenthos(11) from AtlHalibut(28) to AtlScallop(19)
 #Shift 0.0004%
@@ -818,6 +853,22 @@ REco.params$diet[56,21]<-REco.params$diet[56,21]+0.04
 REco.params$diet[20,41]<-REco.params$diet[20,41]-0.015
 REco.params$diet[8,41]<-REco.params$diet[8,41]+0.015
 
+#Shifting Sharks diet
+#Move predation of Sharks(51) from Detritus(57) to Odontocetes(55)
+#Shift 2.5%
+REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
+REco.params$diet[55,52]<-REco.params$diet[55,52]+0.025
+
+#Move predation of Sharks(51) from Detritus(57) to Pinnipeds(53)
+#Shift 2.5%
+REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
+REco.params$diet[53,52]<-REco.params$diet[53,52]+0.025
+
+#Move predation of Sharks(51) from LgCopepods(5) to Goosefish(39)
+#Shift 2.5%
+REco.params$diet[5,52]<-REco.params$diet[5,52]-0.025
+REco.params$diet[39,52]<-0.025
+
 
 #Run model
 REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
@@ -826,12 +877,14 @@ check.rpath.params(REco.params)
 
 #Examine EEs
 EE<-REco$EE
-EE[order(EE)]
+EE[order(EE)]s
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
 #Print final modeal
 REco
+
+write.Rpath(REco,morts=T,"outputs/GOM_Rpath_15.csv")
 
 #Run EcoSim
 #Run model forward 50 years
