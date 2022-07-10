@@ -886,6 +886,9 @@ REco
 
 write.Rpath(REco,morts=T,"outputs/GOM_Rpath_15.csv")
 
+webplot(REco, labels = T)
+
+
 #Run EcoSim
 #Run model forward 50 years
 REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
