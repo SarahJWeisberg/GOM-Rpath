@@ -884,9 +884,9 @@ EE[order(EE)]s
 #Print final modeal
 REco
 
-write.Rpath(REco,morts=T,"outputs/GOM_Rpath_15.csv")
+write.Rpath(REco,morts=F,"outputs/GOM_Rpath_16.csv")
 
-webplot(REco, labels = T)
+webplot(REco, labels = F)
 
 
 #Run EcoSim
