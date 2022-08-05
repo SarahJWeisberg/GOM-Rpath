@@ -51,7 +51,7 @@ scene0$forcing$ForcedBio[,"Discards"] <- REco$Biomass["Discards"]
 
 # For species without catch, reapply Ecopath F (originally through gears) to ForcedFRate
 F_equil <- (rowSums(REco$Landings) + rowSums(REco$Discards))/(REco$Biomass) 
-Equil_species <- GOM.groups[!RPATH %in% spp.land$Group] #need to fix this line
+Equil_species <- GOM.groups[!RPATH %in% spp.land$Group] #need to fix this line, or run catch.time script first
 Equil_species <- rbind(Equil_species,d.d)
 for (sp in Equil_species){
   scene0 <- adjust.fishing(scene0, 'ForcedFRate', sp, fit.years, value=F_equil[sp])
@@ -66,7 +66,7 @@ for (sp in Equil_species){
 # Run model
 run0 <- rsim.run(scene0, method='RK4', years=fit.years)
 #par(mfrow=c(1,2))
-rsim.plot.biomass(scene0, run0, "AmLobster") #still doesn't work...
+rsim.plot.biomass(scene0, run0, "AmLobster")
 rsim.plot.catch(scene0, run0, "AtlHerring")
 rsim.plot(run0, groups[51:56])
 
@@ -75,7 +75,7 @@ rsim.fit.table(scene0,run0)
 rsim.fit.obj.species(scene0,run0,"Cod")
 
 # Species to test 
-test_sp <- c("RedHake")
+test_sp <- c("Cod","Haddock")
 data_type <- "absolute"  #"index"
 # Set data weightings for all data input low (zeros not allowed)
 scene0$fitting$Biomass$wt[] <- 1e-36
@@ -86,7 +86,8 @@ scene0$fitting$Biomass$Type[scene0$fitting$Biomass$Group %in% test_sp] <- data_t
 scene0$fitting$Biomass$wt[scene0$fitting$Biomass$Group %in% test_sp]   <- 1
 
 # all combined
-fit_values   <- c(rep(0.2,length(test_sp)),rep(0.02,length(test_sp)),rep(0.02,length(test_sp))) 
+fit_values   <- c(rep(0,length(test_sp)),rep(0,length(test_sp)),rep(0,length(test_sp))) 
+#fit_values   <- c(rep(0.2,length(test_sp)),rep(0.02,length(test_sp)),rep(0.02,length(test_sp))) 
 fit_species  <- c(test_sp,test_sp,test_sp)
 fit_vartype  <- c(rep("mzero",length(test_sp)),
                   rep("predvul",length(test_sp)),
@@ -103,19 +104,19 @@ rsim.plot.biomass(scene0, fit.initial, test_sp[1])
 rsim.plot.biomass(scene0, fit.initial, test_sp[2])
 
 # Run optimization
-fit.optim    <- optim(fit_values, rsim.fit.run, #lower=-3, upper=3, 
+fit.optim    <- optim(fit_values, rsim.fit.run, #lower=0, #upper=3, 
                       species=fit_species, vartype=fit_vartype, scene=scene0,   
                       run_method='RK4', years=fit.years) 
 out_values <- fit.optim$par
 
 data.frame(fit_vartype,fit_species,fit_values,out_values)
 fit.final  <- rsim.fit.run(out_values, fit_species, fit_vartype, scene0, verbose=T,
-                           run_method='AB', years=fit.years) 
+                           run_method='RK4', years=fit.years) 
 rsim.plot.biomass(scene0, fit.final, test_sp[1])
 rsim.plot.biomass(scene0, fit.final, test_sp[2])
 
 
 scene1 <- rsim.fit.update(out_values, fit_species, fit_vartype, scene0)
-run1 <- rsim.run(scene1, method='AB', years=fit.years)
+run1 <- rsim.run(scene1, method='RK4', years=fit.years)
 rsim.plot.biomass(scene1, run1, test_sp[1])
 rsim.plot.biomass(scene1, run1, test_sp[2])
