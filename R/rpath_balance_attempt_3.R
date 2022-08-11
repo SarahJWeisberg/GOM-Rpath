@@ -877,14 +877,14 @@ check.rpath.params(REco.params)
 
 #Examine EEs
 EE<-REco$EE
-EE[order(EE)]s
+EE[order(EE)]
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
 #Print final modeal
 REco
 
-write.Rpath(REco,morts=F,"outputs/GOM_Rpath_16.csv")
+write.Rpath(REco,morts=T,"outputs/GOM_Rpath_16.csv")
 
 webplot(REco, labels = F)
 
