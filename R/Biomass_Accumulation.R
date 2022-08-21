@@ -39,8 +39,9 @@ for (i in 1:length(survey.groups$RPATH)){
   ba[i] <-as.numeric(lm[[1]][2])
 }
 
+#Subset groups with significant slope values that are at least 0.001 
 biomass.accum<-cbind(survey.groups,ba,p)
 biomass.accum<-subset(biomass.accum, p<=0.05 & abs(ba) >= 0.001)
 biomass.accum<-biomass.accum[,-3]
 
-
+rm(ba,p,i,spF,lm)

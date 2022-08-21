@@ -2,16 +2,16 @@
 
 # Purpose: This script generates biomass estimates for 
 #       the multi-species functional groups used in the GOM-Rpath model.
+#       Biomass estimates are merged with single-species estimates.
 #       Data are sourced from the EMAX modeling exercise. Model is built
 #       to be analogous to Georges Bank Rpath model
 #       https://github.com/NOAA-EDAB/GBRpath
 
-# DataFile:'NEFSC_BTS_2021_all_seasons.RData'
+# DataFiles:'NEFSC_BTS_2021_all_seasons.RData'; 'GOM_EMAX_params.csv'
 
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-xfun::session_info()
 #Last modified: # Tue Jun 15 17:31:55 2021 ------------------------------
 
 #Load needed packages
@@ -21,7 +21,7 @@ library(here); library(data.table)
 GOM.EMAX<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 
 #load GOM groups
-source('R/Groups.R')
+#source('R/Groups.R')
 
 #load biomass estimates from survey (single species)
 source('R/survey_biomass_estimates.R')
@@ -54,10 +54,12 @@ GOM.EMAX<-GOM.EMAX[RPATH %like% 'Sharks', RPATH :='Sharks']
 #Aggregate EMAX macrobenthos groups into one 
 MacrobenthosBiomass<-GOM.EMAX[RPATH == 'Macrobenthos', sum(Biomass),]
 GOM.EMAX<-GOM.EMAX[RPATH == 'Macrobenthos', Biomass:=MacrobenthosBiomass,]
+rm(MacrobenthosBiomass)
 
 #Aggregate EMAX megabenthos groups into one, subtracting lobster and scallops
 MegabenthosBiomass<-GOM.EMAX[RPATH == 'Megabenthos', sum(Biomass)] - GOM.groups[RPATH == 'AmLobster', Biomass] - GOM.groups[RPATH == 'AtlScallop', Biomass]
 GOM.EMAX<-GOM.EMAX[RPATH == 'Megabenthos', Biomass:=MegabenthosBiomass,]
+rm(MegabenthosBiomass)
 
 #Remove groups not included in Rpath model
 GOM.EMAX<- GOM.EMAX[!RPATH %in% c('Larval-juv fish- all','Shrimp et al.','Pelagics','Demersals','Discard','Detritus-POC','Fishery'),]
@@ -68,3 +70,4 @@ biomass_80s<-merge(GOM.groups,GOM.EMAX,by='RPATH', all=TRUE)
 biomass_80s<-biomass_80s[is.na(Biomass.y) , Biomass.y := Biomass.x]
 biomass_80s<-biomass_80s[,Biomass.x :=NULL]
 setnames(biomass_80s,"Biomass.y","Biomass")
+rm(GOM.EMAX)

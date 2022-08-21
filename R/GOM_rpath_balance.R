@@ -3,34 +3,39 @@
 #         Gulf of Maine (GoM) food web. Initial parameter estimates are pulled
 #         from relevant data sources and then modified.
 
+# Author: S. Weisberg
+# Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Mon Jun 27 14:50:31 2022 ------------------------------
+
+# Sun Aug 21 11:10:21 2022 ------------------------------
 
 
 #Load packages
 library(Rpath); library(data.table);library(dplyr);library(here)
 
-#
+#Load groups and fleets
 source(here("R/groups_fleets.R"))
 
 #Set up model with group names and types
+#1 = primary producer, 0 = consumer, 2 = detritus, 3 = fleet
 groups<-as.vector(groups_fleets$RPATH)
 types<-c(1,rep(0,55),rep(2,2),rep(3,10))
-REco.params<-create.rpath.params(group = groups,type=types)
+GOM.params<-create.rpath.params(group = groups,type=types)
+rm(types)
 
 #Fill in biomass estimates
 source(here("R/EMAX_biomass_estimates.R"))
-
-#biomass_80s<-na.omit(biomass_80s)
 
 biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
 
 #Turn biomass into vector
 biomass<-as.vector(biomass$Biomass)
 
-#Change barndoor to non-zero
+#Change barndoor biomass to non-zero
+#If set to 0, Ecosense does not work properly
 biomass[35]<-2.5*10^-5
 
+#Changes to biomass for balancing
 #Multiply OtherCeph biomass by 30
 biomass[10]<-biomass[10]*30
 
@@ -98,7 +103,7 @@ biomass[43]<-biomass[43]*3
 biomass[17]<-biomass[17]*6
 
 #Multiply NShrimp biomass by 5
-#Getting closer to Yong's shrimp group
+#Similar estimate to Zheng & Chen
 biomass[16]<-biomass[16]*5
 
 #Multiply Pollock biomass by 0.75
@@ -111,8 +116,6 @@ biomass[50]<-biomass[50]*4
 biomass[13]<-biomass[13]*2
 
 #Multiply Macrobenthos biomass by 0.5
-#This makes much more sense with EMAX, Sean & Yong
-#How did initial estimate get to be so high?
 biomass[11]<-biomass[11]*0.5
 
 #Multiply AmPlaice biomass by 1.2
@@ -130,9 +133,6 @@ biomass[49]<-biomass[49]*1.4
 #Multiply OtherDemersals biomass by 2
 biomass[31]<-biomass[31]*2.1
 
-#Multiply Phytoplankton biomass by 2
-#biomass[1]<-biomass[1]/2
-
 #Multiply RedHake biomass by 1.1
 biomass[34]<-biomass[34]*1.1
 
@@ -140,7 +140,7 @@ biomass[34]<-biomass[34]*1.1
 biomass[9]<-biomass[9]*1.03
 
 #Fill model
-REco.params$model[,Biomass:=biomass]
+GOM.params$model[,Biomass:=biomass]
 
 
 #Fill pb
@@ -208,7 +208,7 @@ pb[51]<-0.13
 #Increase pb of BlackSeaBass to 0.65
 pb[49]<-0.65
 
-REco.params$model[,PB:=pb]
+GOM.params$model[,PB:=pb]
 
 #Fill qb
 qb<-cbind(GOM.groups,QB)
@@ -265,10 +265,10 @@ qb[48]<-qb[48]*2
 #Lowering pb, keeping ge the same
 qb[13]<-3.85
 
-REco.params$model[,QB:=qb]
+GOM.params$model[,QB:=qb]
 
 #Fill biomass accumulation
-source(here("R/Biomass_Accumulation.R"))
+source(here("R/biomass_accumulation.R"))
 ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
@@ -280,15 +280,15 @@ ba[35]<-ba[35]/1000
 #Change OceanPout ba
 ba[13]<- -0.004
 
-REco.params$model[,BioAcc:=ba]
+GOM.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
-REco.params$model[, Unassim := c(0,rep(0.4,5),rep(0.2, 50),rep(0,2), rep(NA, 10))]
+GOM.params$model[, Unassim := c(0,rep(0.4,5),rep(0.2, 50),rep(0,2), rep(NA, 10))]
 #COME BACK TO THIS
 
 #Detrital Fate
-REco.params$model[, Detritus := c(rep(1, 56), rep(0, 12))]
-REco.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 10))]
+GOM.params$model[, Detritus := c(rep(1, 56), rep(0, 12))]
+GOM.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 10))]
 
 #Fisheries
 #Landings
@@ -298,43 +298,43 @@ source(here("R/discards.R"))
 fixed<-left_join(groups_fleets,fixed,by="RPATH")
 fixed<-as.vector(fixed$landings)
 fixed[57:58]<-0
-REco.params$model[, "Fixed Gear" := fixed]
+GOM.params$model[, "Fixed Gear" := fixed]
 
 #Large Mesh
 lg_mesh<-left_join(groups_fleets,lg_mesh,by="RPATH")
 lg_mesh<-as.vector(lg_mesh$landings)
 lg_mesh[57:58]<-0
-REco.params$model[, "LG Mesh" := lg_mesh]
+GOM.params$model[, "LG Mesh" := lg_mesh]
 
 #Other
 other<-left_join(groups_fleets,other,by="RPATH")
 other<-as.vector(other$landings)
 other[57:58]<-0
-REco.params$model[, "Other" := other]
+GOM.params$model[, "Other" := other]
 
 #Small Mesh
 sm_mesh<-left_join(groups_fleets,sm_mesh,by="RPATH")
 sm_mesh<-as.vector(sm_mesh$landings)
 sm_mesh[57:58]<-0
-REco.params$model[, "SM Mesh" := sm_mesh]
+GOM.params$model[, "SM Mesh" := sm_mesh]
 
 #Scallop Dredge
 scallop<-left_join(groups_fleets,scallop,by="RPATH")
 scallop<-as.vector(scallop$landings)
 scallop[57:58]<-0
-REco.params$model[, "Scallop Dredge" := scallop]
+GOM.params$model[, "Scallop Dredge" := scallop]
 
 #Trap
 trap<-left_join(groups_fleets,trap,by="RPATH")
 trap<-as.vector(trap$landings)
 trap[57:58]<-0
-REco.params$model[, "Trap" := trap]
+GOM.params$model[, "Trap" := trap]
 
 #HMS.fleet
 hms<-left_join(groups_fleets,hms,by="RPATH")
 hms<-as.vector(hms$landings)
 hms[57:58]<-0
-REco.params$model[, "HMS Fleet" := hms]
+GOM.params$model[, "HMS Fleet" := hms]
 
 #Pelagic
 pelagic<-left_join(groups_fleets,pelagic,by="RPATH")
@@ -344,78 +344,78 @@ pelagic[57:58]<-0
 #Reduce fishing on OtherPelagics, multiply by 0.9
 pelagic[20]<-pelagic[20]*0.9
 
-REco.params$model[, "Pelagic" := pelagic]
+GOM.params$model[, "Pelagic" := pelagic]
 
 #Other Dredge
 other_dredge<-left_join(groups_fleets,other_dredge,by="RPATH")
 other_dredge<-as.vector(other_dredge$landings)
 other_dredge[57:58]<-0
-REco.params$model[, "Other Dredge" := other_dredge]
+GOM.params$model[, "Other Dredge" := other_dredge]
 
 #Clam
 clam<-left_join(groups_fleets,clam,by="RPATH")
 clam<-as.vector(clam$landings)
 clam[57:58]<-0
-REco.params$model[, "Clam Dredge" := clam]
+GOM.params$model[, "Clam Dredge" := clam]
 
 #Fill in discards
 #Fixed Gear
 fixed.d<-left_join(groups_fleets,fixed.d,by="RPATH")
 fixed.d<-as.vector(fixed.d$discards)
 fixed.d[57:58]<-0
-REco.params$model[, "Fixed Gear.disc" := fixed.d]
+GOM.params$model[, "Fixed Gear.disc" := fixed.d]
 
 #Lg Mesh
 lg_mesh.d<-left_join(groups_fleets,lg_mesh.d,by="RPATH")
 lg_mesh.d<-as.vector(lg_mesh.d$discards)
 lg_mesh.d[57:58]<-0
-REco.params$model[, "LG Mesh.disc" := lg_mesh.d]
+GOM.params$model[, "LG Mesh.disc" := lg_mesh.d]
 
 #Other
 other.d<-left_join(groups_fleets,other.d,by="RPATH")
 other.d<-as.vector(other.d$discards)
 other.d[57:58]<-0
-REco.params$model[, "Other.disc" := other.d]
+GOM.params$model[, "Other.disc" := other.d]
 
 #SM Mesh
 sm_mesh.d<-left_join(groups_fleets,sm_mesh.d,by="RPATH")
 sm_mesh.d<-as.vector(sm_mesh.d$discards)
 sm_mesh.d[57:58]<-0
-REco.params$model[, "SM Mesh.disc" := sm_mesh.d]
+GOM.params$model[, "SM Mesh.disc" := sm_mesh.d]
 
 #Scallop Dredge
 scallop.d<-left_join(groups_fleets,scallop.d,by="RPATH")
 scallop.d<-as.vector(scallop.d$discards)
 scallop.d[57:58]<-0
-REco.params$model[, "Scallop Dredge" := scallop.d]
+GOM.params$model[, "Scallop Dredge" := scallop.d]
 
 #Trap
 trap.d<-left_join(groups_fleets,trap.d,by="RPATH")
 trap.d<-as.vector(trap.d$discards)
 trap.d[57:58]<-0
-REco.params$model[, "Trap.disc" := trap.d]
+GOM.params$model[, "Trap.disc" := trap.d]
 
 #HMS
 hms.d<-left_join(groups_fleets,hms.d,by="RPATH")
 hms.d<-as.vector(hms.d$discards)
 hms.d[57:58]<-0
-REco.params$model[, "HMS Fleet.disc" := hms.d]
+GOM.params$model[, "HMS Fleet.disc" := hms.d]
 
 #Pelagic
 pelagic.d<-left_join(groups_fleets,pelagic.d,by="RPATH")
 pelagic.d<-as.vector(pelagic.d$discards)
 pelagic.d[57:58]<-0
-REco.params$model[, "Pelagic.disc" := pelagic.d]
+GOM.params$model[, "Pelagic.disc" := pelagic.d]
 
 #Other Dredge
 other_dredge.d<-left_join(groups_fleets,other_dredge.d,by="RPATH")
 other_dredge.d<-as.vector(other_dredge.d$discards)
 other_dredge.d[57:58]<-0
-REco.params$model[, "Other Dredge.disc" := other_dredge.d]
+GOM.params$model[, "Other Dredge.disc" := other_dredge.d]
 
 #Clam Dredge
 clam.d<-c(rep(0,56),rep(0,2),rep(NA,10))
-REco.params$model[, "Clam Dredge.disc" := clam.d]
+GOM.params$model[, "Clam Dredge.disc" := clam.d]
 
 
 #Complete diet table
@@ -428,477 +428,477 @@ source(here("R/diet_filling.R"))
 
 #Shift predation of Cod (24) from OtherCeph(10) to Illex(8)
 #Shift 1.1%
-REco.params$diet[10,25]<-REco.params$diet[10,25]-.011
-REco.params$diet[8,25]<-REco.params$diet[8,25]+0.011
+GOM.params$diet[10,25]<-GOM.params$diet[10,25]-.011
+GOM.params$diet[8,25]<-GOM.params$diet[8,25]+0.011
 
 #Shift predation of OtherSkates(33) from OtherCeph(10) to Illex(8)
 #Shift 4.15%
-REco.params$diet[10,34]<-REco.params$diet[10,34]-0.0415
-REco.params$diet[8,34]<-REco.params$diet[8,34]+0.0415
+GOM.params$diet[10,34]<-GOM.params$diet[10,34]-0.0415
+GOM.params$diet[8,34]<-GOM.params$diet[8,34]+0.0415
 
 #Shift predation of WhiteHake(41) from OtherCeph(10) to Illex(8)
 #Shift 1.75%
-REco.params$diet[10,42]<-REco.params$diet[10,42]-0.0175
-REco.params$diet[8,42]<-REco.params$diet[8,42]+0.0175
+GOM.params$diet[10,42]<-GOM.params$diet[10,42]-0.0175
+GOM.params$diet[8,42]<-GOM.params$diet[8,42]+0.0175
 
 #Shift predation of SpinyDogfish(42) from OtherCeph(10) to Illex(8)
 #Shift 1.7%
-REco.params$diet[10,43]<-REco.params$diet[10,43]-0.017
-REco.params$diet[8,43]<-REco.params$diet[8,43]+0.017
+GOM.params$diet[10,43]<-GOM.params$diet[10,43]-0.017
+GOM.params$diet[8,43]<-GOM.params$diet[8,43]+0.017
 
 #Shift predation of Cusk(30) from OtherCeph(10) to Illex(8)
 #Shift 11%
-REco.params$diet[10,31]<-REco.params$diet[10,31]-0.11
-REco.params$diet[8,31]<-0.11
+GOM.params$diet[10,31]<-GOM.params$diet[10,31]-0.11
+GOM.params$diet[8,31]<-0.11
 
 #Shift predation of Pollock(38) from OtherCeph(10) to Illex(8)
 #Shift 0.58%
-REco.params$diet[10,39]<-REco.params$diet[10,39]-0.0058
-REco.params$diet[8,39]<-REco.params$diet[8,39]+0.0058
+GOM.params$diet[10,39]<-GOM.params$diet[10,39]-0.0058
+GOM.params$diet[8,39]<-GOM.params$diet[8,39]+0.0058
 
 #Shift predation of Haddock(25) from OtherCeph(10) to Illex(8)
 #Shift 0.83%
-REco.params$diet[10,26]<-REco.params$diet[10,26]-0.0083
-REco.params$diet[8,26]<-0.0083
+GOM.params$diet[10,26]<-GOM.params$diet[10,26]-0.0083
+GOM.params$diet[8,26]<-0.0083
 
 #Shift predation of OtherPelagics(20) from OtherCeph(10) to Illex(8)
 #Shift 0.4%
-REco.params$diet[10,21]<-REco.params$diet[10,21]-0.004
-REco.params$diet[8,21]<-0.004
+GOM.params$diet[10,21]<-GOM.params$diet[10,21]-0.004
+GOM.params$diet[8,21]<-0.004
 
 #Shift predation of Goosefish(39) from OtherCeph(10) to Illex(8)
 #Shift 1.8%
-REco.params$diet[10,40]<-REco.params$diet[10,40]-0.018
-REco.params$diet[8,40]<-REco.params$diet[8,40]+0.018
+GOM.params$diet[10,40]<-GOM.params$diet[10,40]-0.018
+GOM.params$diet[8,40]<-GOM.params$diet[8,40]+0.018
 
 #Shift predation of SilverHake(40) from OtherCeph(10) to Illex(8)
 #Shift 0.4%
-REco.params$diet[10,41]<-REco.params$diet[10,41]-0.004
-REco.params$diet[8,41]<-REco.params$diet[8,41]+0.004
+GOM.params$diet[10,41]<-GOM.params$diet[10,41]-0.004
+GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.004
 
 #Shift predation of RedHake(34) from OtherCeph(10) to Illex(8)
 #Shift 1.1%
-REco.params$diet[10,35]<-REco.params$diet[10,35]-0.011
-REco.params$diet[8,35]<-REco.params$diet[8,35]+0.011
+GOM.params$diet[10,35]<-GOM.params$diet[10,35]-0.011
+GOM.params$diet[8,35]<-GOM.params$diet[8,35]+0.011
 
 #Shift predation of Redfish(43) from OtherCeph(10) to Illex(8)
 #Shift 0.21%
-REco.params$diet[10,44]<-REco.params$diet[10,44]-0.0021
-REco.params$diet[8,44]<-0.0021
+GOM.params$diet[10,44]<-GOM.params$diet[10,44]-0.0021
+GOM.params$diet[8,44]<-0.0021
 
 #Shift predation of AtlHerring(27) from OtherCeph(10) to Illex(8)
 #Shift 1.1%
-REco.params$diet[10,28]<-REco.params$diet[10,28]-0.011
-REco.params$diet[8,28]<-0.011
+GOM.params$diet[10,28]<-GOM.params$diet[10,28]-0.011
+GOM.params$diet[8,28]<-0.011
 
 #Shift predation of AtlMackerel(21) from OtherCeph(10) to Illex(8)
 #Shift 0.029%
-REco.params$diet[10,22]<-REco.params$diet[10,22]-0.00029
-REco.params$diet[8,22]<-REco.params$diet[8,22]+0.00029
+GOM.params$diet[10,22]<-GOM.params$diet[10,22]-0.00029
+GOM.params$diet[8,22]<-GOM.params$diet[8,22]+0.00029
 
 #Shift predation of WinterFlounder(47) from OtherCeph(10) to AmLobster(12)
 #Shift 1.6%
-REco.params$diet[10,48]<-REco.params$diet[10,48]-0.016
-REco.params$diet[12,48]<-REco.params$diet[12,48]+0.016
+GOM.params$diet[10,48]<-GOM.params$diet[10,48]-0.016
+GOM.params$diet[12,48]<-GOM.params$diet[12,48]+0.016
 
 #Shift predation on SmFlatfishes
 
 #Shift predation of Goosefish(39) from SmFlat(15) to SWitchFlounder(48)
 #Shift 0.25%
-REco.params$diet[15,40]<-REco.params$diet[15,40]-0.0025
-REco.params$diet[48,40]<-REco.params$diet[48,40]+0.0025
+GOM.params$diet[15,40]<-GOM.params$diet[15,40]-0.0025
+GOM.params$diet[48,40]<-GOM.params$diet[48,40]+0.0025
 
 #Shift predation of WhiteHake(41) from SmFlat(15) to Illex(8)
 #Shift 0.005%
-REco.params$diet[15,42]<-REco.params$diet[15,42]-0.00005
-REco.params$diet[8,42]<-REco.params$diet[8,42]+0.00005
+GOM.params$diet[15,42]<-GOM.params$diet[15,42]-0.00005
+GOM.params$diet[8,42]<-GOM.params$diet[8,42]+0.00005
 
 #Shift predation of RedHake(34) from SmFlatfishes(15) to Illex(8)
 #Shift 0.025%
-REco.params$diet[15,35]<-REco.params$diet[15,35]-0.00025
-REco.params$diet[8,35]<-REco.params$diet[8,35]+0.00025
+GOM.params$diet[15,35]<-GOM.params$diet[15,35]-0.00025
+GOM.params$diet[8,35]<-GOM.params$diet[8,35]+0.00025
 
 #Shift predation of Cod (24) from SmFlatfishes(15) to Illex(8)
 #Shift 0.11%
-REco.params$diet[15,25]<-REco.params$diet[15,25]-.0011
-REco.params$diet[8,25]<-REco.params$diet[8,25]+0.0011
+GOM.params$diet[15,25]<-GOM.params$diet[15,25]-.0011
+GOM.params$diet[8,25]<-GOM.params$diet[8,25]+0.0011
 
 #Shifting predation on OtherDemersals
 #Shift predation of WhiteHake(41) from OtherDem(31) to Megabenthos(56)
 #Shift 2%
-REco.params$diet[31,42]<-REco.params$diet[31,42]-0.02
-REco.params$diet[56,42]<-REco.params$diet[56,42]+0.02
+GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.02
+GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.02
 
 #Shift predation of WhiteHake(41) from OtherDem(31) to WhiteHake(41)
 #Shift 3%
-REco.params$diet[31,42]<-REco.params$diet[31,42]-0.03
-REco.params$diet[41,42]<-REco.params$diet[41,42]+0.03
+GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.03
+GOM.params$diet[41,42]<-GOM.params$diet[41,42]+0.03
 
 #Shift predation of WhiteHake(41) from OtherDem(31) to Micronekton(7)
 #Shift 0.5%
-REco.params$diet[31,42]<-REco.params$diet[31,42]-0.005
-REco.params$diet[7,42]<-REco.params$diet[7,42]+0.005
+GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.005
+GOM.params$diet[7,42]<-GOM.params$diet[7,42]+0.005
 
 #Shift predation of OtherSkates(33) from OtherDem(31) to Megabenthos(56)
 #Shift 13%
-REco.params$diet[31,34]<-REco.params$diet[31,34]-0.13
-REco.params$diet[56,34]<-REco.params$diet[56,34]+0.13
+GOM.params$diet[31,34]<-GOM.params$diet[31,34]-0.13
+GOM.params$diet[56,34]<-GOM.params$diet[56,34]+0.13
 
 #Shift predation of OtherSkates(33) from OtherDem(31) to RedHake(34)
 #Shift 1%
-REco.params$diet[31,34]<-REco.params$diet[31,34]-0.01
-REco.params$diet[34,34]<-REco.params$diet[34,34]+0.01
+GOM.params$diet[31,34]<-GOM.params$diet[31,34]-0.01
+GOM.params$diet[34,34]<-GOM.params$diet[34,34]+0.01
 
 #Shift predation of OtherPelagics(20) from OtherDem(31) to OtherPelagics(20)
 #Shift 9%
-REco.params$diet[31,21]<-REco.params$diet[31,21]-0.09
-REco.params$diet[20,21]<-REco.params$diet[20,21]+0.09
+GOM.params$diet[31,21]<-GOM.params$diet[31,21]-0.09
+GOM.params$diet[20,21]<-GOM.params$diet[20,21]+0.09
 
 #Shift predation of SpinyDogfish(42) from OtherDem(31) to WhiteHake(41)
 #Shift 0.5%
-REco.params$diet[31,43]<-REco.params$diet[31,43]-0.005
-REco.params$diet[41,43]<-REco.params$diet[41,43]+0.005
+GOM.params$diet[31,43]<-GOM.params$diet[31,43]-0.005
+GOM.params$diet[41,43]<-GOM.params$diet[41,43]+0.005
 
 #Shift predation of Goosefish(39) from OtherDem(31) to WhiteHake(41)
 #Shift 5%
-REco.params$diet[31,40]<-REco.params$diet[31,40]-0.05
-REco.params$diet[41,40]<-REco.params$diet[41,40]+0.05
+GOM.params$diet[31,40]<-GOM.params$diet[31,40]-0.05
+GOM.params$diet[41,40]<-GOM.params$diet[41,40]+0.05
 
 #Shift predation of Cod(24) from OtherDem(31) to RedHake(34)
 #Shift 3%
-REco.params$diet[31,25]<-REco.params$diet[31,25]-0.03
-REco.params$diet[34,25]<-REco.params$diet[34,25]+0.03
+GOM.params$diet[31,25]<-GOM.params$diet[31,25]-0.03
+GOM.params$diet[34,25]<-GOM.params$diet[34,25]+0.03
 
 #Shift predation of Cusk(30) from OtherDem(31) to AmLobster(12)
 #Can cite Boudreau & Worm (2010)
 #Shift 7%
-REco.params$diet[31,31]<-REco.params$diet[31,31]-0.07
-REco.params$diet[12,31]<-0.07
+GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.07
+GOM.params$diet[12,31]<-0.07
 
 #Shift predation of Cusk(30) from OtherDem(31) to Micronekton(7)
 #Shift 9%
-REco.params$diet[31,31]<-REco.params$diet[31,31]-0.09
-REco.params$diet[7,31]<-REco.params$diet[7,31]+0.09
+GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.09
+GOM.params$diet[7,31]<-GOM.params$diet[7,31]+0.09
 
 #Shift predation of Cusk(30) from OtherDem(31) to OtherShrimps(17)
 #Shift 3%
-REco.params$diet[31,31]<-REco.params$diet[31,31]-0.03
-REco.params$diet[17,31]<-REco.params$diet[17,31]+0.03
+GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.03
+GOM.params$diet[17,31]<-GOM.params$diet[17,31]+0.03
 
 #Shift predation of Cusk(30) from OtherDem(31) to Megabenthos(56)
 #Shift 12%
-REco.params$diet[31,31]<-REco.params$diet[31,31]-0.12
-REco.params$diet[56,31]<-REco.params$diet[56,31]+0.12
+GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.12
+GOM.params$diet[56,31]<-GOM.params$diet[56,31]+0.12
 
 
 #Shift predation of Goosefish(39) from OtherDem(31) to RedHake(34)
 #Shift 4%
-REco.params$diet[31,40]<-REco.params$diet[31,40]-0.04
-REco.params$diet[34,40]<-REco.params$diet[34,40]+0.04
+GOM.params$diet[31,40]<-GOM.params$diet[31,40]-0.04
+GOM.params$diet[34,40]<-GOM.params$diet[34,40]+0.04
 
 #Shift predation of Goosefish(39) from OtherDem(31) to Goosefish(39)
 #Shift 5%
-REco.params$diet[31,40]<-REco.params$diet[31,40]-0.05
-REco.params$diet[39,40]<-REco.params$diet[39,40]+0.05
+GOM.params$diet[31,40]<-GOM.params$diet[31,40]-0.05
+GOM.params$diet[39,40]<-GOM.params$diet[39,40]+0.05
 
 #Shift predation of Haddock(25) from OtherDem(31) to Megabenthos(56)
 #Shift 0.9%
-REco.params$diet[31,26]<-REco.params$diet[31,26]-0.009
-REco.params$diet[8,26]<-REco.params$diet[8,26]+0.009
+GOM.params$diet[31,26]<-GOM.params$diet[31,26]-0.009
+GOM.params$diet[8,26]<-GOM.params$diet[8,26]+0.009
 
 #Shifting some predation of Butterfish 
 
 #Shift predation of OtherPelagics(20) from Butterfish(50) to Illex(8)
 #Shift 7.6%
-REco.params$diet[50,21]<-REco.params$diet[50,21]-0.076
-REco.params$diet[8,21]<-REco.params$diet[8,21]+0.076
+GOM.params$diet[50,21]<-GOM.params$diet[50,21]-0.076
+GOM.params$diet[8,21]<-GOM.params$diet[8,21]+0.076
 
 #Shift predation of SilverHake(40) from Butterfish(50) to Illex(8)
 #Shift 0.8%
-REco.params$diet[50,41]<-REco.params$diet[50,41]-0.008
-REco.params$diet[8,41]<-REco.params$diet[8,41]+0.008
+GOM.params$diet[50,41]<-GOM.params$diet[50,41]-0.008
+GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.008
 
 #Shift predation of BaleenWhales(54) from Butterfish(50) to Illex(8)
 #Shift 0.7%
-REco.params$diet[50,55]<-REco.params$diet[50,55]-0.007
-REco.params$diet[8,55]<-REco.params$diet[8,55]+0.007
+GOM.params$diet[50,55]<-GOM.params$diet[50,55]-0.007
+GOM.params$diet[8,55]<-GOM.params$diet[8,55]+0.007
 
 #Shift predation of SummerFlounder(29) from Butterfish(50) to OtherPelagics(20) 
 #Shift 8%
-REco.params$diet[50,30]<-REco.params$diet[50,30]-0.08
-REco.params$diet[20,30]<-REco.params$diet[20,30]+0.08
+GOM.params$diet[50,30]<-GOM.params$diet[50,30]-0.08
+GOM.params$diet[20,30]<-GOM.params$diet[20,30]+0.08
 
 #Shift predation of SummerFlounder(29) from Butterfish(50) to Megabenthos(56) 
 #Shift 8%
-REco.params$diet[50,30]<-REco.params$diet[50,30]-0.08
-REco.params$diet[56,30]<-REco.params$diet[56,30]+0.08
+GOM.params$diet[50,30]<-GOM.params$diet[50,30]-0.08
+GOM.params$diet[56,30]<-GOM.params$diet[56,30]+0.08
 
 #Shift predation of SpinyDogfish(42) from Butterfish(50) to Illex(8)
 #Shift 0.9%
-REco.params$diet[50,43]<-REco.params$diet[50,43]-0.009
-REco.params$diet[8,43]<-REco.params$diet[8,43]+0.009
+GOM.params$diet[50,43]<-GOM.params$diet[50,43]-0.009
+GOM.params$diet[8,43]<-GOM.params$diet[8,43]+0.009
 
 
 #Shifting some predation of WinterFlounder
 
 #Shift predation of OtherPelagics(20) from WinterFlounder(47) to Illex(8)
 #Shift 2%
-REco.params$diet[47,21]<-REco.params$diet[47,21]-0.02
-REco.params$diet[8,21]<-REco.params$diet[8,21]+.02
+GOM.params$diet[47,21]<-GOM.params$diet[47,21]-0.02
+GOM.params$diet[8,21]<-GOM.params$diet[8,21]+.02
 
 #Shift predation of Macrobenthos(11) from WinterFlounder(47) to OtherSkates(33)
 #Shift 0.002%
-REco.params$diet[47,12]<-REco.params$diet[47,12]-0.00002
-REco.params$diet[33,12]<-REco.params$diet[33,12]+0.00002
+GOM.params$diet[47,12]<-GOM.params$diet[47,12]-0.00002
+GOM.params$diet[33,12]<-GOM.params$diet[33,12]+0.00002
 
 #Shifting some predation of BSB
 
 #Shift predation of SpinyDogfish(42) from BlackSeaBass(49) to Megabenthos(56)
 #Shift 0.04%
-REco.params$diet[49,43]<-REco.params$diet[49,43]-0.0004
-REco.params$diet[56,43]<-REco.params$diet[56,43]+0.0004
+GOM.params$diet[49,43]<-GOM.params$diet[49,43]-0.0004
+GOM.params$diet[56,43]<-GOM.params$diet[56,43]+0.0004
 
 #Shift predation of SilverHake(40) from BlackSeaBass(49) to Megabenthos(56)
 #Shift 0.009%
-REco.params$diet[49,41]<-REco.params$diet[49,41]-0.00009
-REco.params$diet[56,41]<-REco.params$diet[56,41]+0.00009
+GOM.params$diet[49,41]<-GOM.params$diet[49,41]-0.00009
+GOM.params$diet[56,41]<-GOM.params$diet[56,41]+0.00009
 
 #Shift predation of Cod(24) from BlackSeaBass(49) to Illex(8)
 #Shift 0.01%
-REco.params$diet[49,25]<-REco.params$diet[49,25]-0.0001
-REco.params$diet[8,25]<-REco.params$diet[8,25]+0.0001
+GOM.params$diet[49,25]<-GOM.params$diet[49,25]-0.0001
+GOM.params$diet[8,25]<-GOM.params$diet[8,25]+0.0001
 
 #Shift some predation of Macrobenthos(11) from BlackSeaBass(49) to AtlScallop(19)
 #Shift 0.00001%
-REco.params$diet[49,12]<-REco.params$diet[49,12]-0.0000001
-REco.params$diet[19,12]<-REco.params$diet[19,12]+0.0000001
+GOM.params$diet[49,12]<-GOM.params$diet[49,12]-0.0000001
+GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.0000001
 
 #Shift some predation of Goosefish(39) from BlackSeaBass(49) to Illex(8)
 #Shift 0.015%
-REco.params$diet[49,40]<-REco.params$diet[49,40]-0.00015
-REco.params$diet[8,40]<-REco.params$diet[8,40]+0.00015
+GOM.params$diet[49,40]<-GOM.params$diet[49,40]-0.00015
+GOM.params$diet[8,40]<-GOM.params$diet[8,40]+0.00015
 
 #Shifting some predation of Windowpane
 
 #Shift predation of OtherSkates(33) from Windowpane(46) to Megabenthos(56)
 #Shift 0.15%
-REco.params$diet[46,34]<-REco.params$diet[46,34]-0.0015
-REco.params$diet[56,34]<-REco.params$diet[56,34]+0.0015
+GOM.params$diet[46,34]<-GOM.params$diet[46,34]-0.0015
+GOM.params$diet[56,34]<-GOM.params$diet[56,34]+0.0015
 
 #Shifting some predation of Mesopelagics
 #Shift predation of Pollock(38) from Mesopelagics(22) to Illex(8)
 #Shift 0.7%
-REco.params$diet[22,39]<-REco.params$diet[22,39]-0.007
-REco.params$diet[8,39]<-REco.params$diet[8,39]+0.007
+GOM.params$diet[22,39]<-GOM.params$diet[22,39]-0.007
+GOM.params$diet[8,39]<-GOM.params$diet[8,39]+0.007
 
 #Shifting some predation of Sharks
 #Shift predation of Cod(24) from Sharks(51) to Pollock(38)
 #Shift 0.17%
-REco.params$diet[51,25]<-REco.params$diet[51,25]-0.0017
-REco.params$diet[38,25]<-REco.params$diet[38,25]+0.0017
+GOM.params$diet[51,25]<-GOM.params$diet[51,25]-0.0017
+GOM.params$diet[38,25]<-GOM.params$diet[38,25]+0.0017
 
 #Shifting some predation of Redfish
 #Shift predation of Macrobenthos(11) from Redfish(43) to Megabenthos(56)
 #Shift 0.011%
-REco.params$diet[43,12]<-REco.params$diet[43,12]-0.00011
-REco.params$diet[56,12]<-REco.params$diet[56,12]+0.00011
+GOM.params$diet[43,12]<-GOM.params$diet[43,12]-0.00011
+GOM.params$diet[56,12]<-GOM.params$diet[56,12]+0.00011
 
 #Shifting some predation of SilverHake
 #Shift predation of SilverHake(40) from SilverHake(40) to Megabenthos(56)
 #Shift 2.5%
-REco.params$diet[40,41]<-REco.params$diet[40,41]-0.025
-REco.params$diet[56,41]<-REco.params$diet[56,41]+0.025
+GOM.params$diet[40,41]<-GOM.params$diet[40,41]-0.025
+GOM.params$diet[56,41]<-GOM.params$diet[56,41]+0.025
 
 #Shift predation of SilverHake(40) from SilverHake(40) to OtherShrimps(17)
 #Shift 2.5%
-REco.params$diet[40,41]<-REco.params$diet[40,41]-0.025
-REco.params$diet[17,41]<-REco.params$diet[17,41]+0.025
+GOM.params$diet[40,41]<-GOM.params$diet[40,41]-0.025
+GOM.params$diet[17,41]<-GOM.params$diet[17,41]+0.025
 
 #Shift predation of SilverHake(40) from SilverHake(40) to SmPelagics(14)
 #Shift 9%
-REco.params$diet[40,41]<-REco.params$diet[40,41]-0.09
-REco.params$diet[14,41]<-REco.params$diet[14,41]+0.09
+GOM.params$diet[40,41]<-GOM.params$diet[40,41]-0.09
+GOM.params$diet[14,41]<-GOM.params$diet[14,41]+0.09
 
 #Shift predation of Pollock(38) from SilverHake(40) to Micronekton(7)
 #Shift 3%
-REco.params$diet[40,39]<-REco.params$diet[40,39]-0.03
-REco.params$diet[7,39]<-REco.params$diet[7,39]+0.03
+GOM.params$diet[40,39]<-GOM.params$diet[40,39]-0.03
+GOM.params$diet[7,39]<-GOM.params$diet[7,39]+0.03
 
 #Shift predation of Pollock(38) from SilverHake(40) to SmPelagics(14)
 #Shift 10%
-REco.params$diet[40,39]<-REco.params$diet[40,39]-0.1
-REco.params$diet[14,39]<-REco.params$diet[14,39]+0.1
+GOM.params$diet[40,39]<-GOM.params$diet[40,39]-0.1
+GOM.params$diet[14,39]<-GOM.params$diet[14,39]+0.1
 
 #Shift predation of Pollock(38) from SilverHake(40) to Pollock(38)
 #Shift 3%
-REco.params$diet[40,39]<-REco.params$diet[40,39]-0.03
-REco.params$diet[38,39]<-REco.params$diet[38,39]+0.03
+GOM.params$diet[40,39]<-GOM.params$diet[40,39]-0.03
+GOM.params$diet[38,39]<-GOM.params$diet[38,39]+0.03
 
 #Shift predation of WhiteHake(41) from SilverHake(40) to Megabenthos(56)
 #Shift 2%
-REco.params$diet[40,42]<-REco.params$diet[40,42]-0.02
-REco.params$diet[56,42]<-REco.params$diet[56,42]+0.02
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
+GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.02
 
 #Shift predation of WhiteHake(41) from SilverHake(40) to Illex(8)
 #Shift 2%
-REco.params$diet[40,42]<-REco.params$diet[40,42]-0.02
-REco.params$diet[8,42]<-REco.params$diet[8,42]+0.02
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
+GOM.params$diet[8,42]<-GOM.params$diet[8,42]+0.02
 
 #Shift predation of WhiteHake(41) from SilverHake(40) to RedHake(34)
 #Shift 2%
-REco.params$diet[40,42]<-REco.params$diet[40,42]-0.02
-REco.params$diet[34,42]<-REco.params$diet[34,42]+0.02
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
+GOM.params$diet[34,42]<-GOM.params$diet[34,42]+0.02
 
 #Shift predation of WhiteHake(41) from SilverHake(40) to WhiteHake(41)
 #Shift 2%
-REco.params$diet[40,42]<-REco.params$diet[40,42]-0.02
-REco.params$diet[41,42]<-REco.params$diet[41,42]+0.02
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
+GOM.params$diet[41,42]<-GOM.params$diet[41,42]+0.02
 
 #Shift predation of WhiteHake(41) from SilverHake(40) to Micronekton(7)
 #Shift 2%
-REco.params$diet[40,42]<-REco.params$diet[40,42]-0.02
-REco.params$diet[7,42]<-REco.params$diet[7,42]+0.02
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
+GOM.params$diet[7,42]<-GOM.params$diet[7,42]+0.02
 
 #Shift predation of WhiteHake(41) from SilverHake(40) to SmPelagics(14)
 #Shift 8%
-REco.params$diet[40,42]<-REco.params$diet[40,42]-0.08
-REco.params$diet[14,42]<-REco.params$diet[14,42]+0.08
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.08
+GOM.params$diet[14,42]<-GOM.params$diet[14,42]+0.08
 
 #Shift predation of WhiteHake(41) from SilverHake(40) to AtlHerring(21)
 #Shift 5%
-REco.params$diet[40,42]<-REco.params$diet[40,42]-0.05
-REco.params$diet[21,42]<-REco.params$diet[21,42]+0.05
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.05
+GOM.params$diet[21,42]<-GOM.params$diet[21,42]+0.05
 
 #Shift predation of Cod(24) from SilverHake(40) to Megabenthos(56)
 #Shift 5%
-REco.params$diet[40,25]<-REco.params$diet[40,25]-0.05
-REco.params$diet[56,25]<-REco.params$diet[56,25]+0.05
+GOM.params$diet[40,25]<-GOM.params$diet[40,25]-0.05
+GOM.params$diet[56,25]<-GOM.params$diet[56,25]+0.05
 
 #Shift predation of Cod(24) from SilverHake(40) to AmPlaice(26)
 #Shift 3%
-REco.params$diet[40,25]<-REco.params$diet[40,25]-0.03
-REco.params$diet[26,25]<-REco.params$diet[26,25]+0.03
+GOM.params$diet[40,25]<-GOM.params$diet[40,25]-0.03
+GOM.params$diet[26,25]<-GOM.params$diet[26,25]+0.03
 
 #Shift predation of Cod(24) from SilverHake(40) to SmPelagics(14)
 #Shift 3%
-REco.params$diet[40,25]<-REco.params$diet[40,25]-0.03
-REco.params$diet[14,25]<-REco.params$diet[14,25]+0.03
+GOM.params$diet[40,25]<-GOM.params$diet[40,25]-0.03
+GOM.params$diet[14,25]<-GOM.params$diet[14,25]+0.03
 
 #Shift predation of RedHake(34) from SilverHake(40) to SmPelagics(14)
 #Shift 3%
-REco.params$diet[40,35]<-REco.params$diet[40,35]-0.03
-REco.params$diet[14,35]<-REco.params$diet[14,35]+0.03
+GOM.params$diet[40,35]<-GOM.params$diet[40,35]-0.03
+GOM.params$diet[14,35]<-GOM.params$diet[14,35]+0.03
 
 #Shift predation of OtherPelagics(20) from SilverHake(40) to SmPelagics(14)
 #Shift 10%
-REco.params$diet[40,21]<-REco.params$diet[40,21]-0.1
-REco.params$diet[14,21]<-REco.params$diet[14,21]+0.1
+GOM.params$diet[40,21]<-GOM.params$diet[40,21]-0.1
+GOM.params$diet[14,21]<-GOM.params$diet[14,21]+0.1
 
 #Shift predation of AtlHerring(21) from SilverHake(40) to SmPelagics(14)
 #Shift 1.5%
-REco.params$diet[40,22]<-REco.params$diet[40,22]-0.015
-REco.params$diet[14,22]<-REco.params$diet[14,22]+0.015
+GOM.params$diet[40,22]<-GOM.params$diet[40,22]-0.015
+GOM.params$diet[14,22]<-GOM.params$diet[14,22]+0.015
 
 #Shifting some predation of OceanPout
 #Shift predation of OtherPelagics(20) from OceanPout(13) to Illex(8)
 #Shift 0.29%
-REco.params$diet[13,21]<-REco.params$diet[13,21]-0.029
-REco.params$diet[8,21]<-REco.params$diet[8,21]+0.029
+GOM.params$diet[13,21]<-GOM.params$diet[13,21]-0.029
+GOM.params$diet[8,21]<-GOM.params$diet[8,21]+0.029
 
 #Shift predation of Cod(42) from OceanPout(13) to Goosefish(39)
 #Shift 0.05%
-REco.params$diet[13,25]<-REco.params$diet[13,25]-0.005
-REco.params$diet[39,25]<-REco.params$diet[39,25]+0.005
+GOM.params$diet[13,25]<-GOM.params$diet[13,25]-0.005
+GOM.params$diet[39,25]<-GOM.params$diet[39,25]+0.005
 
 #Shift predation of SpinyDogfish(42) from OceanPout(13) to Illex(8)
 #Shift 0.05%
-REco.params$diet[13,43]<-REco.params$diet[13,43]-0.005
-REco.params$diet[39,43]<-REco.params$diet[39,43]+0.005
+GOM.params$diet[13,43]<-GOM.params$diet[13,43]-0.005
+GOM.params$diet[39,43]<-GOM.params$diet[39,43]+0.005
 
 #Shifting some predation to AtlScallop (EE too low)
 #Shift predation of Macrobenthos(11) from AtlHalibut(28) to AtlScallop(19)
 #Shift 0.0004%
-REco.params$diet[28,12]<-REco.params$diet[28,12]-0.000004
-REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000004
+GOM.params$diet[28,12]<-GOM.params$diet[28,12]-0.000004
+GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000004
 
 #Shift predation of Macrobenthos(11) from Fourspot(36) to AtlScallop(19)
 #Shift 0.0001%
-REco.params$diet[36,12]<-REco.params$diet[36,12]-0.000001
-REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000001
+GOM.params$diet[36,12]<-GOM.params$diet[36,12]-0.000001
+GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000001
 
 #Shift predation of Macrobenthos(11) from Windowpane(46) to AtlScallop(19)
 #Shift #Shift 0.0002%
-REco.params$diet[46,12]<-REco.params$diet[46,12]-0.000002
-REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000002
+GOM.params$diet[46,12]<-GOM.params$diet[46,12]-0.000002
+GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000002
 
 #Shift predation of Macrobenthos(11) from WinterFlounder(47) to AtlScallop(19)
 #Shift 0.0004%
-REco.params$diet[47,12]<-REco.params$diet[47,12]-0.000004
-REco.params$diet[19,12]<-REco.params$diet[19,12]+0.000004
+GOM.params$diet[47,12]<-GOM.params$diet[47,12]-0.000004
+GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000004
 
 #Shift predation of Macrobenthos(11) from WinterSkate(52) to AtlScallop(19)
 #Shift 0.002%
-REco.params$diet[52,12]<-REco.params$diet[52,12]-0.00002
-REco.params$diet[19,12]<-REco.params$diet[19,12]+0.00002
+GOM.params$diet[52,12]<-GOM.params$diet[52,12]-0.00002
+GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.00002
 
 #Shift predation of OtherPelagics
 
 #Shift predation of OtherPelagics(20) from OtherPelagics(20) to Megabenthos(56)
 #Shift 4%
-REco.params$diet[20,21]<-REco.params$diet[20,21]-0.04
-REco.params$diet[56,21]<-REco.params$diet[56,21]+0.04
+GOM.params$diet[20,21]<-GOM.params$diet[20,21]-0.04
+GOM.params$diet[56,21]<-GOM.params$diet[56,21]+0.04
 
 #Shift predation of SilverHake (40) from OtherPelagics(20) to Illex(8)
 #Shift 1.5%
-REco.params$diet[20,41]<-REco.params$diet[20,41]-0.015
-REco.params$diet[8,41]<-REco.params$diet[8,41]+0.015
+GOM.params$diet[20,41]<-GOM.params$diet[20,41]-0.015
+GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.015
 
 #Shifting Sharks diet
 #Move predation of Sharks(51) from Detritus(57) to Odontocetes(55)
 #Shift 2.5%
-REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
-REco.params$diet[55,52]<-REco.params$diet[55,52]+0.025
+GOM.params$diet[57,52]<-GOM.params$diet[57,52]-0.025
+GOM.params$diet[55,52]<-GOM.params$diet[55,52]+0.025
 
 #Move predation of Sharks(51) from Detritus(57) to Pinnipeds(53)
 #Shift 2.5%
-REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
-REco.params$diet[53,52]<-REco.params$diet[53,52]+0.025
+GOM.params$diet[57,52]<-GOM.params$diet[57,52]-0.025
+GOM.params$diet[53,52]<-GOM.params$diet[53,52]+0.025
 
 #Move predation of Sharks(51) from LgCopepods(5) to Goosefish(39)
 #Shift 2.5%
-REco.params$diet[5,52]<-REco.params$diet[5,52]-0.025
-REco.params$diet[39,52]<-0.025
+GOM.params$diet[5,52]<-GOM.params$diet[5,52]-0.025
+GOM.params$diet[39,52]<-0.025
 
 
 #Run model
-REco <- rpath(REco.params, eco.name = 'GOM Ecosystem')
+GOM <- rpath(GOM.params, eco.name = 'GOM Ecosystem')
 
-check.rpath.params(REco.params)
+check.rpath.params(GOM.params)
 
 #Examine EEs
-EE<-REco$EE
+EE<-GOM$EE
 EE[order(EE)]
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
 #Print final modeal
-REco
+GOM
 
-write.Rpath(REco,morts=T,"outputs/GOM_Rpath_16.csv")
+write.Rpath(GOM,morts=T,"outputs/GOM_Rpath_16.csv")
 
-webplot(REco, labels = F)
+webplot(GOM, labels = F)
 
 
 #Run EcoSim
 #Run model forward 50 years
-REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
-REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
-rsim.plot(REco.run1, groups[1:7])
-#rsim.plot(REco.run1, groups[8:14])
-#rsim.plot(REco.run1, groups[15:21])
-#rsim.plot(REco.run1, groups[22:28])
-rsim.plot(REco.run1, groups[29:35])
-#rsim.plot(REco.run1, groups[36:42])
-#rsim.plot(REco.run1, groups[43:49])
-#rsim.plot(REco.run1, groups[50:56])
+GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:50)
+GOM.run1 <- rsim.run(GOM.sim, method = 'RK4', years = 1:50)
+rsim.plot(GOM.run1, groups[1:7])
+#rsim.plot(GOM.run1, groups[8:14])
+#rsim.plot(GOM.run1, groups[15:21])
+#rsim.plot(GOM.run1, groups[22:28])
+rsim.plot(GOM.run1, groups[29:35])
+#rsim.plot(GOM.run1, groups[36:42])
+#rsim.plot(GOM.run1, groups[43:49])
+#rsim.plot(GOM.run1, groups[50:56])
 

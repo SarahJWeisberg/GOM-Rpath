@@ -2,8 +2,8 @@
 
 # Purpose: This script pulls biological parameters from a database of
 #       starting values. These values are based on previously published models
-#       including EMAX, Georges Bank Rpath, NWACS, Heymans (2001), Dias et al. (2019)
-#       Bundy (?) and Fishbase
+#       including EMAX (Link et al., 2006), Georges Bank Rpath, NWACS, Heymans (2001), 
+#       Dias et al. (2019), Bundy (?) and Fishbase
 
 # DataFile:'GOM_Starting_Parameters.csv'
 
@@ -11,7 +11,8 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 xfun::session_info()
-# Tue Jun 15 14:54:44 2021 ------------------------------
+# Sun Aug 21 15:05:25 2022 ------------------------------
+
 
 #Load required packages
 library(here);library(data.table);library(dplyr);library(tidyverse)
@@ -21,10 +22,6 @@ params_start<-read.csv('data/GOM_Starting_Parameters.csv')
 
 #Trim to select needed columns only
 params<-params_start[,c("RPATH","PB","QB")]
-
-#Load groups from Groups.R script
-#Should be the same as in params except for Southern Demersals, Detritus, Discards
-source('R/Groups.R')
 
 #Remove mismatched rows
 #Merge
@@ -36,3 +33,5 @@ PB<-params[,"PB"]
 
 #Make vector of all QB values
 QB<-params[,"QB"]
+
+rm(params, params_start)

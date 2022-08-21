@@ -5,7 +5,7 @@
 
 # Note: Data availability is mixed. To deal with this, I first calculate which group/gear combinations
 #       have discards < 10^-5 t/km^2, and round these down to 0. For group/gear 
-#       combinations > 10^-5 t/km^2, I average discard:kept (DK_) ratios over the first
+#       combinations > 10^-5 t/km^2, I average discard:kept (DK) ratios over the first
 #       five years of available data and apply this ratio to landings biomass to estimate
 #       discards. For groups where reported DK is highly variable (sd>mean), I average
 #       over first 10 years of available data rather than first 5 years.
@@ -31,7 +31,7 @@ ob.all[FLEET =="HMS",FLEET:="HMS Fleet"]
 source("R/landings_conversion.R")
 
 #Filter observer data for GOM only
-#remove EPU columd
+#remove EPU column
 ob_gom<-filter(ob.all, EPU == "GOM")
 ob_gom<-ob_gom[,-2]
 
@@ -184,8 +184,7 @@ other_dredge.d<-left_join(GOM.groups,other_dredge.d,by="RPATH")
 other_dredge.d$FLEET<-"Other Dredge"
 other_dredge.d[is.na(other_dredge.d)]<-0
 
-
-
+rm(high_var,low_var,temp,top_discards,ob.all,ob_gom)
 
 
 

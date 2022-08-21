@@ -3,7 +3,7 @@
 # Purpose: To convert commercial landings data to proper units (t/km^2) for use in
 #   GOM Rpath model. Also to align landings data with model functional groups
 
-# DataFile:'mean_landings_gom_80_85.RData'
+# DataFiles:'mean_landings_gom_80_85.RData'; 'speciescodesandstrata/Species_codes.Rdata'
 
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
@@ -19,18 +19,14 @@ load("data/mean_landings_gom_80_85.RData")
 #Change "HMS" to "HMS Fleet" to avoid confusion
 mean.land[FLEET =="HMS",FLEET:="HMS Fleet"]
 
-#Load species codes
-#Use these codes to translate landings species codes ('SVSPP') to RPATH species codes ('spp')
-load('data/speciescodesandstrata/Species_codes.Rdata')
-
 #Calculate total GOM area
-area<-sf::st_read(dsn=system.file("extdata","strata.shp",package="survdat"))
-area<-get_area(areaPolygon = area, areaDescription="STRATA")
-GOM.area<-subset(area, area$STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830))
-GOM.area<-sum(GOM.area$Area)
+#area<-sf::st_read(dsn=system.file("extdata","strata.shp",package="survdat"))
+#area<-get_area(areaPolygon = area, areaDescription="STRATA")
+#GOM.area<-subset(area, area$STRATUM %in% c(1220, 1240, 1260:1290, 1360:1400, 3560:3830))
+#GOM.area<-sum(GOM.area$Area)
 
 #Load species codes for matching & filter for just NESPP3 and RPath codes
-load("data/speciescodesandstrata/Species_codes.RData")
+#load("data/speciescodesandstrata/Species_codes.RData")
 spp<-select(spp,one_of(c("NESPP3","RPATH")))
 spp<-unique(na.exclude(spp)) 
 
@@ -39,7 +35,7 @@ spp<-unique(na.exclude(spp))
 spp<-distinct(spp,NESPP3,.keep_all=TRUE)
 
 #Load GOM groups
-source('R/Groups.R')
+#source('R/Groups.R')
 
 #Merge landings data with species codes & remove NESPP3 column
 mean.land<-left_join(mean.land,spp,by="NESPP3")
