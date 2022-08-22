@@ -83,7 +83,7 @@ top_discards<-merge(firsts,ob_gom,by=c("RPATH","FLEET"))
 
 #Average DK for first five years for each of the gear/group combos
 temp<-c()
-for (i in 1:42){
+for (i in 1:length(firsts$discards)){
   temp<-subset(top_discards,firsts$RPATH[i] == top_discards$RPATH & firsts$FLEET[i] == top_discards$FLEET)
   temp<-subset(temp,YEAR<=first_YEAR+4)
   firsts$five_means[i]<-mean(temp$DK)
@@ -101,7 +101,7 @@ high_var<-subset(firsts,cv>1)
 
 #For high variability group, average DK over first 10 years
 temp<-c()
-for (i in 1:29){
+for (i in 1:length(high_var$discards)){
   temp<-subset(top_discards,high_var$RPATH[i] == top_discards$RPATH & high_var$FLEET[i] == top_discards$FLEET)
   temp<-subset(temp,YEAR<=first_YEAR+9)
   high_var$ten_mean[i]<-mean(temp$DK)
@@ -184,7 +184,7 @@ other_dredge.d<-left_join(GOM.groups,other_dredge.d,by="RPATH")
 other_dredge.d$FLEET<-"Other Dredge"
 other_dredge.d[is.na(other_dredge.d)]<-0
 
-rm(high_var,low_var,temp,top_discards,ob.all,ob_gom)
+rm(high_var,low_var,temp,top_discards,ob.all,ob_gom,firsts)
 
 
 

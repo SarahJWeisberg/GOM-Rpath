@@ -341,8 +341,8 @@ pelagic<-left_join(groups_fleets,pelagic,by="RPATH")
 pelagic<-as.vector(pelagic$landings)
 pelagic[57:58]<-0
 
-#Reduce fishing on OtherPelagics, multiply by 0.9
-pelagic[20]<-pelagic[20]*0.9
+#Reduce fishing on OtherPelagics, multiply by 0.89
+pelagic[20]<-pelagic[20]*0.89
 
 GOM.params$model[, "Pelagic" := pelagic]
 

@@ -24,7 +24,7 @@ GOM.EMAX<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 #source('R/Groups.R')
 
 #load biomass estimates from survey (single species)
-source('R/survey_biomass_estimates.R')
+source(here('R/survey_biomass_estimates.R'))
 
 #Merge group list with survey biomass estimates
 GOM.groups<-merge(biomass_80s, GOM.groups, by = 'RPATH',all.y = TRUE)

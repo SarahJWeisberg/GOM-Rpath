@@ -27,18 +27,18 @@ mean.land[FLEET =="HMS",FLEET:="HMS Fleet"]
 
 #Load species codes for matching & filter for just NESPP3 and RPath codes
 #load("data/speciescodesandstrata/Species_codes.RData")
-spp<-select(spp,one_of(c("NESPP3","RPATH")))
-spp<-unique(na.exclude(spp)) 
+spp_filter<-select(spp,one_of(c("NESPP3","RPATH")))
+spp_filter<-unique(na.exclude(spp_filter)) 
 
 #5 NESPP3 codes are matched with 2 RPATH codes
 #remove duplicate NESPP3 codes
-spp<-distinct(spp,NESPP3,.keep_all=TRUE)
+spp_filter<-distinct(spp_filter,NESPP3,.keep_all=TRUE)
 
 #Load GOM groups
 #source('R/Groups.R')
 
 #Merge landings data with species codes & remove NESPP3 column
-mean.land<-left_join(mean.land,spp,by="NESPP3")
+mean.land<-left_join(mean.land,spp_filter,by="NESPP3")
 mean.land<-na.exclude(mean.land[,-1])
 
 #Sum landings for multispecies groups
