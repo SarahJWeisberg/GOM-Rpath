@@ -22,9 +22,9 @@ library(devtools)
 source_url('https://github.com/NOAA-EDAB/Rpath/blob/fit_alpha/R/ecofitting.R')
 
 #Load balanced model
-load(here("fitting/GOM_Rpath.Rdata"))
-load(here("fitting/GOM_params_Rpath.Rdata"))
-source(here("fitting/catch_time.R"))
+load(here("outputs/GOM_Rpath.Rdata"))
+load(here("outputs/GOM_params_Rpath.Rdata"))
+source(here("R/catch_time.R"))
 
 #define fit years
 fit.years <- 1985:2019
