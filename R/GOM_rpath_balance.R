@@ -884,20 +884,27 @@ EE[order(EE)]
 #Print final modeal
 GOM
 
-write.Rpath(GOM,morts=T,"outputs/GOM_Rpath_16.csv")
+#Save files
+save(GOM, file = "outputs/GOM_Rpath.RData")
+save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
 
-webplot(GOM, labels = F)
+#write.Rpath(GOM,morts=T,"outputs/GOM_Rpath_16.csv")
+
+#webplot(GOM, labels = F)
 
 
 #Run EcoSim
 #Run model forward 50 years
 GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:50)
-GOM.run1 <- rsim.run(GOM.sim, method = 'RK4', years = 1:50)
-rsim.plot(GOM.run1, groups[1:7])
+#For AB method, need to set NoIntegrate flag for 
+GOM.sim$params$NoIntegrate[4:5]<-0
+#Run simulation
+GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:50)
+#rsim.plot(GOM.run1, groups[1:7])
 #rsim.plot(GOM.run1, groups[8:14])
 #rsim.plot(GOM.run1, groups[15:21])
 #rsim.plot(GOM.run1, groups[22:28])
-rsim.plot(GOM.run1, groups[29:35])
+#rsim.plot(GOM.run1, groups[29:35])
 #rsim.plot(GOM.run1, groups[36:42])
 #rsim.plot(GOM.run1, groups[43:49])
 #rsim.plot(GOM.run1, groups[50:56])
