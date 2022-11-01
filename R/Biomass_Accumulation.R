@@ -16,7 +16,7 @@ xfun::session_info()
 # Last modified Tue Jun 15 17:26:44 2021 -----------------------------
 
 #Load needed packages
-library(here);library(data.table)
+#library(here);library(data.table)
 
 #Run survey biomass estimate code
 #source('R/survey_biomass_estimates.R')
@@ -39,8 +39,9 @@ for (i in 1:length(survey.groups$RPATH)){
   ba[i] <-as.numeric(lm[[1]][2])
 }
 
+#Subset groups with significant slope values that are at least 0.001 
 biomass.accum<-cbind(survey.groups,ba,p)
 biomass.accum<-subset(biomass.accum, p<=0.05 & abs(ba) >= 0.001)
 biomass.accum<-biomass.accum[,-3]
 
-
+rm(ba,p,i,spF,lm)

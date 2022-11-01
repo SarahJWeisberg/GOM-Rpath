@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #Getting familiar with enaR
 #Looking at balanced GOM model, EMAX GOM model
 
@@ -5,6 +6,9 @@
 
 # Tue Oct 12 15:40:06 2021 ------------------------------
 
+=======
+#Trying to play with enaR
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 
 #install.packages("enaR")
 
@@ -17,8 +21,31 @@ library(enaR)
 install.packages("sna")
 library(sna)
 
+<<<<<<< HEAD
 
 #going to try and build a network model from my rpath_balanced_3
+=======
+#Loading existing models
+#Specifically look at EMAX GoM model
+#Hope that will help me understand how to map from EcoPath
+data("troModels")
+GOM<-troModels$"Gulf of Maine"
+summary(GOM)
+
+F<-enaFlow(GOM)
+attributes(F)
+
+A<-enaAscendency(GOM)
+A
+
+ssCheck(GOM)
+
+C<-enaControl(GOM)
+C$sc
+
+#going to try and build a network model from my rpath_balanced_3
+#Also use some outputs from
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 #Sean don't make fun of me!
 #Simplest translation / understanding of flow, respiration
 #building on MDMAR02 example
@@ -49,6 +76,7 @@ rownames(QQ)<-groups[1:58]
 
 
 #Sum discards
+<<<<<<< HEAD
 Discards<-rowSums(REco$Discards)
 Discards<-Discards[1:58]
 
@@ -146,15 +174,59 @@ ssCheck(GOM)
 
 C<-enaControl(GOM)
 C$sc
+=======
+Disc<-rowSums(REco$Discards)
+Disc<-Disc[1:58]
+
+#Calculate flow to detritus
+M0<-REco$PB*(1-REco$EE)
+DetIn<-M0*biomass+qb*biomass*REco$Unassim
+DetIn<-DetIn[1:58]
+
+#Deal with flow to detritus from discards
+#Should be equal to all flow to discards minus consumption by SeaBirds(45)
+DetInDisc<-sum(Disc)
+DetIn[58]<-DetInDisc-QQ[58,45]
+
+#Calculate exports
+Catch<-rowSums(REco$Landings)
+Catch<-Catch[1:58]
+
+#Calculate respiration
+Resp<-((1-REco$Unassim)*qb-pb)*biomass
+Resp<-Resp[1:58]
+#Change PP resp to 0
+Resp[1]<-0
+
+#Calculate imports
+#For now, only consider PP as import
+#Consider this more in the future..
+Import<-pb[1]*biomass[1]
+Import<-c(Import,rep(0,59))
+
+#Format biomass so can be added
+Biomass<-biomass[1:57]
+Biomass<-c(Biomass, rep(0,3))
+
+#Bind all outputs
+REco.enam<-cbind(QQ,DetIn,Disc,Catch,Resp)
+REco.enam<-rbind(REco.enam,Import,Biomass)
+
+#save output
+write.csv(REco.enam,"outputs/GOM_enaR_test.csv")
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 
 #Fiddle with formatting -- get to match their example
 #save and reupload as XLSX
 m <- read.enam("GOM_enaR_test.xlsx")
 ssCheck(m)
 
+<<<<<<< HEAD
 F1<-enaFlow(m,balance.override = T)
 F1
 
+=======
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 A1<-enaAscendency(GOM)
 A1
 

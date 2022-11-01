@@ -5,7 +5,7 @@
 
 # Note: Data availability is mixed. To deal with this, I first calculate which group/gear combinations
 #       have discards < 10^-5 t/km^2, and round these down to 0. For group/gear 
-#       combinations > 10^-5 t/km^2, I average discard:kept (DK_) ratios over the first
+#       combinations > 10^-5 t/km^2, I average discard:kept (DK) ratios over the first
 #       five years of available data and apply this ratio to landings biomass to estimate
 #       discards. For groups where reported DK is highly variable (sd>mean), I average
 #       over first 10 years of available data rather than first 5 years.
@@ -31,7 +31,11 @@ ob.all[FLEET =="HMS",FLEET:="HMS Fleet"]
 source("R/landings_conversion.R")
 
 #Filter observer data for GOM only
+<<<<<<< HEAD
 #remove EPU columm
+=======
+#remove EPU column
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 ob_gom<-filter(ob.all, EPU == "GOM")
 ob_gom<-ob_gom[,-2]
 
@@ -83,7 +87,7 @@ top_discards<-merge(firsts,ob_gom,by=c("RPATH","FLEET"))
 
 #Average DK for first five years for each of the gear/group combos
 temp<-c()
-for (i in 1:42){
+for (i in 1:length(firsts$discards)){
   temp<-subset(top_discards,firsts$RPATH[i] == top_discards$RPATH & firsts$FLEET[i] == top_discards$FLEET)
   temp<-subset(temp,YEAR<=first_YEAR+4)
   firsts$five_means[i]<-mean(temp$DK)
@@ -101,7 +105,7 @@ high_var<-subset(firsts,cv>1)
 
 #For high variability group, average DK over first 10 years
 temp<-c()
-for (i in 1:29){
+for (i in 1:length(high_var$discards)){
   temp<-subset(top_discards,high_var$RPATH[i] == top_discards$RPATH & high_var$FLEET[i] == top_discards$FLEET)
   temp<-subset(temp,YEAR<=first_YEAR+9)
   high_var$ten_mean[i]<-mean(temp$DK)
@@ -184,8 +188,7 @@ other_dredge.d<-left_join(GOM.groups,other_dredge.d,by="RPATH")
 other_dredge.d$FLEET<-"Other Dredge"
 other_dredge.d[is.na(other_dredge.d)]<-0
 
-
-
+rm(high_var,low_var,temp,top_discards,ob.all,ob_gom,firsts)
 
 
 

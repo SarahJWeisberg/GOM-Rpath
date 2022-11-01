@@ -21,7 +21,7 @@ xfun::session_info()
 library(readr);library (data.table);library(here)
 
 #load stomach data
-load("data/GOM_foodhabits.RData")
+load(here("data/GOM_foodhabits.RData"))
 
 # Import prey naming table
 prey <- as.data.table(read_csv("data/SASPREY12B.csv"))
@@ -29,15 +29,8 @@ prey <- as.data.table(read_csv("data/SASPREY12B.csv"))
 #load EMAX model
 EMAX.params<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 
-
-#load GOM groups
-#source('R/Groups.R')
-
-#load biomass estimates from survey (single species)
-#source('R/survey_biomass_estimates.R')
-
 #load biomass estimates from EMAX
-source('R/EMAX_biomass_estimates.R')
+#source('R/EMAX_biomass_estimates.R')
 
 #Match prey codes with RPath group names
 #Start with 1:1
@@ -238,7 +231,6 @@ all.groups <- as.data.table(all.groups[,c(1,2,3)])
 all.groups <- all.groups[!RPATH %in% c('Megabenthos','Macrobenthos'),]
 
 #Calculate proportionality for EMAX:RPATH many:1s
-#EMAX.params <- as.data.table(read_csv("GOM_EMAX_params.csv"))
 
 #Megabenthos groups
 #Calculate biomass remaining in Megabenthos- filterers after removing scallops
@@ -298,6 +290,8 @@ setnames(tooth, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(balwhale,tooth))
 
+rm(balwhale,tooth)
+
 #SeaBirds
 birds <- EMAX.params[, list(diet.Sea.Birds,diet.Group)]
 setnames(birds,'diet.Group','EMAX')
@@ -309,6 +303,8 @@ birds[, Rpred := 'SeaBirds']
 setnames(birds, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,birds))
+
+rm(birds)
 
 #Pinnipeds
 seals <- EMAX.params[, list(diet.Pinnipeds,diet.Group)]
@@ -322,6 +318,8 @@ setnames(seals, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,seals))
 
+rm(seals)
+
 #HMS
 hms <- EMAX.params[, list(diet.HMS,diet.Group)]
 setnames(hms,'diet.Group','EMAX')
@@ -333,6 +331,8 @@ hms[, Rpred := 'HMS']
 setnames(hms, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,hms))
+
+rm(hms)
 
 #Sharks
 sharks <- EMAX.params[, list(diet.Sharks..pelagics,diet.Group)]
@@ -346,13 +346,13 @@ setnames(sharks, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,sharks))
 
+rm(sharks)
+
 #OtherShrimp
 shrimp <- EMAX.params[, list(diet.Shrimp.et.al.,diet.Group)]
 setnames(shrimp,'diet.Group','EMAX')
 shrimp <- merge(shrimp, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
-#shrimp <- shrimp[,RPATH.sum := sum(diet.Shrimp.et.al.), by = RPATH]
 shrimp[, preyper := diet.Shrimp.et.al. * Rpath.prop]
-#shrimp <- unique(shrimp[,c('RPATH','preyper')])
 #Need to sum many:1 EMAX:Rpath
 shrimp <- shrimp[, sum(preyper), by = RPATH]
 others <- copy(shrimp[, Rpred := 'OtherShrimps'])
@@ -362,6 +362,8 @@ setnames(nshrimp, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,others))
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,nshrimp))
+
+rm(others,nshrimp,shrimp)
 
 #GelZooplankton
 jelly <- EMAX.params[, list(diet.Gelatinous.Zooplankton,diet.Group)]
@@ -375,6 +377,8 @@ setnames(jelly, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,jelly))
 
+rm(jelly)
+
 #Microzooplankton
 micro <- EMAX.params[, list(diet.Microzooplankton,diet.Group)]
 setnames(micro,'diet.Group','EMAX')
@@ -386,6 +390,8 @@ micro[, Rpred := 'Microzooplankton']
 setnames(micro, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,micro))
+
+rm(micro)
 
 #Micronekton
 micronekton <- EMAX.params[, list(diet.Micronekton,diet.Group)]
@@ -399,6 +405,7 @@ setnames(micronekton, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,micronekton))
 
+<<<<<<< HEAD
 #OtherPelagics-- going to try to use diet from food habits database for initial balancing, rather than EMAX
 #otherpel <- EMAX.params[, list(diet.Medium.Pelagics...piscivores...other.,diet.Group)]
 #setnames(otherpel,'diet.Group','EMAX')
@@ -408,8 +415,11 @@ GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,micronekton))
 #otherpel <- otherpel[, sum(preyper), by = RPATH]
 #otherpel[, Rpred := 'OtherPelagics']
 #setnames(otherpel, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+=======
+rm(micronekton)
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 
-#GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,otherpel))
+#OtherPelagics-- going to try to use diet fromfood habits database for initial balancing, rather than EMAX
 
 #OtherDemersals
 otherdem <- EMAX.params[, list(diet.Demersals..benthivores,diet.Group)]
@@ -423,6 +433,8 @@ setnames(otherdem, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,otherdem))
 
+rm(otherdem)
+
 #Lobster - use Megabenthos- other diet
 lobster <- EMAX.params[, list(diet.Megabenthos..other,diet.Group)]
 setnames(lobster,'diet.Group','EMAX')
@@ -434,6 +446,8 @@ lobster[, Rpred := 'AmLobster']
 setnames(lobster, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,lobster))
+
+rm(lobster)
 
 #AtlScallop - use Megabenthos- filterers diet
 scallop <- EMAX.params[, list(diet.Megabenthos..filterers,diet.Group)]
@@ -447,6 +461,8 @@ setnames(scallop, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,scallop))
 
+rm(scallop)
+
 #OtherCephalopods - use EMAX squid diet
 ceph <- EMAX.params[, list(diet.Small.Pelagics..squid,diet.Group)]
 setnames(ceph,'diet.Group','EMAX')
@@ -458,6 +474,8 @@ ceph[,Rpred := 'OtherCephalopods']
 setnames(ceph, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,ceph))
+
+rm(ceph)
 
 #Illex - use EMAX squid diet
 illex <- EMAX.params[, list(diet.Small.Pelagics..squid,diet.Group)]
@@ -471,6 +489,8 @@ setnames(illex, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,illex))
 
+rm(illex)
+
 #Loligo - use EMAX squid diet
 loligo <- EMAX.params[, list(diet.Small.Pelagics..squid,diet.Group)]
 setnames(loligo,'diet.Group','EMAX')
@@ -482,6 +502,8 @@ loligo[,Rpred := 'Loligo']
 setnames(loligo, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,loligo))
+
+rm(loligo)
 
 #SmCopepods
 smcope <- EMAX.params[, list(diet.Small.copepods,diet.Group)]
@@ -495,6 +517,8 @@ setnames(smcope, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,smcope))
 
+rm(smcope)
+
 #LgCopepods
 lgcope <- EMAX.params[, list(diet.Large.Copepods,diet.Group)]
 setnames(lgcope,'diet.Group','EMAX')
@@ -506,6 +530,8 @@ lgcope[,Rpred := 'LgCopepods']
 setnames(lgcope, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,lgcope))
+
+rm(lgcope)
 
 #SmPelagics - use diet from Small Pelagics- other
 smpel <- EMAX.params[, list(diet.Small.Pelagics..other,diet.Group)]
@@ -519,6 +545,8 @@ setnames(smpel, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,smpel))
 
+rm(smpel)
+
 #Bacteria
 bacteria <- EMAX.params[, list(diet.Bacteria,diet.Group)]
 setnames(bacteria,'diet.Group','EMAX')
@@ -529,6 +557,8 @@ bacteria[,Rpred := 'Bacteria']
 setnames(bacteria, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,bacteria))
+
+rm(bacteria)
 
 #Macrobenthos - need to merge multiple EMAX groups
 Macrobenthos<-Macrobenthos[,macro.prop := Biomass/sum(Biomass)]
@@ -560,6 +590,8 @@ combo[, Rpred := 'Macrobenthos']
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combo))
 
+rm(poly,crus,moll,combo,oth)
+
 #Megabenthos - need to merge multiple EMAX groups
 Megabenthos<-all.groups[RPATH == 'Megabenthos',]
 Megabenthos<-Megabenthos[,mega.prop := Biomass/sum(Biomass)]
@@ -586,7 +618,12 @@ combomega[, Rpred := 'Megabenthos']
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,combomega))
 
+rm(filter,othermega,combomega)
+
+rm(all.groups,EMAX.params,GOM.cluster,GOM.fh,GOM.fh2,GOM.groups,GOM.pred,Macrobenthos,Megabenthos,Megabenthos.filterers,
+   Megabenthos.other,Micronekton,prey,SmPelagics)
+
 #Merge diet.survey with diet.EMAX
 GOM.diet <- rbindlist(list(GOM.diet.survey, GOM.diet.EMAX), use.names = T)
 
-#write.csv(GOM.diet,"outputs/GOM_Diet_Matrix.csv")
+rm(GOM.diet.EMAX,GOM.diet.survey)

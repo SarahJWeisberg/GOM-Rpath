@@ -14,7 +14,7 @@
 #Load needed packages
 library(here);library(data.table)
 
-#Load landings dataload
+#Load landings data
 load(here("data/mean_landings_gom_80_85.RData"))
 
 #Change "HMS" to "HMS Fleet" to avoid confusion
@@ -34,6 +34,9 @@ colnames(fleets)<-"RPATH"
 
 #Bind fleets and functional groups
 groups_fleets<-rbind(groups_fleets,fleets)
+
+#Remove unneeded items from environment
+rm(d.d,fleets)
 
 
 
