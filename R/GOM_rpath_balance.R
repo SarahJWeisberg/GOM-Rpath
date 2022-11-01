@@ -1,5 +1,5 @@
-#RPath model balancing
-#Purpose: This script generates a mass-balanced model of the 
+# Title: RPath model balancing
+# Purpose: This script generates a mass-balanced model of the 
 #         Gulf of Maine (GoM) food web. Initial parameter estimates are pulled
 #         from relevant data sources and then modified.
 
@@ -8,8 +8,6 @@
 
 
 # Tue Nov  1 14:41:09 2022 ------------------------------
-
-
 
 #Load packages
 #install.packages(c('devtools','tinytex','lwgeom'))
