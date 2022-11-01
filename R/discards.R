@@ -31,11 +31,7 @@ ob.all[FLEET =="HMS",FLEET:="HMS Fleet"]
 source("R/landings_conversion.R")
 
 #Filter observer data for GOM only
-<<<<<<< HEAD
-#remove EPU columm
-=======
 #remove EPU column
->>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 ob_gom<-filter(ob.all, EPU == "GOM")
 ob_gom<-ob_gom[,-2]
 

@@ -16,21 +16,21 @@ pedigree<-pedigree[,-c(2:7)]
 #pedigree<-left_join(groups_fleets,pedigree,by='RPATH')
 
 #Remove pedigree for fleets
-REco.params$pedigree<-REco.params$pedigree[1:58]
+GOM.params$pedigree<-GOM.params$pedigree[1:58]
 
 #Biomass
-REco.params$pedigree[, Biomass := pedigree$Biomass]
+GOM.params$pedigree[, Biomass := pedigree$Biomass]
 
 #PB
-REco.params$pedigree[, PB := pedigree$PB]
+GOM.params$pedigree[, PB := pedigree$PB]
 
 #QB
-REco.params$pedigree[, QB := pedigree$QB]
+GOM.params$pedigree[, QB := pedigree$QB]
 
 #Diet
-REco.params$pedigree[, Diet := pedigree$Diet]
+GOM.params$pedigree[, Diet := pedigree$Diet]
 
 #Fleets
-REco.params$pedigree[, c('Fixed Gear','HMS Fleet','LG Mesh','Scallop Dredge','Trap','Other Dredge','Other','Pelagic','SM Mesh','Clam Dredge') := pedigree$Fleets]
+GOM.params$pedigree[, c('Fixed Gear','HMS Fleet','LG Mesh','Scallop Dredge','Trap','Other Dredge','Other','Pelagic','SM Mesh','Clam Dredge') := pedigree$Fleets]
 
 
