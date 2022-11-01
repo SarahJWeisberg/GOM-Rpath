@@ -15,6 +15,7 @@ xfun::session_info()
 
 
 #Load required packages
+install.packages("tidyverse")
 library(here);library(data.table);library(dplyr);library(tidyverse)
 
 #Load all found parameter values

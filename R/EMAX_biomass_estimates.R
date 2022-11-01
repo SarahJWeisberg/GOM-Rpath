@@ -61,8 +61,13 @@ MegabenthosBiomass<-GOM.EMAX[RPATH == 'Megabenthos', sum(Biomass)] - GOM.groups[
 GOM.EMAX<-GOM.EMAX[RPATH == 'Megabenthos', Biomass:=MegabenthosBiomass,]
 rm(MegabenthosBiomass)
 
+#Change name of Detritus & Discard groups
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Detritus', RPATH :='Detritus']
+GOM.EMAX<-GOM.EMAX[RPATH %like% 'Discard', RPATH :='Discards']
+
+
 #Remove groups not included in Rpath model
-GOM.EMAX<- GOM.EMAX[!RPATH %in% c('Larval-juv fish- all','Shrimp et al.','Pelagics','Demersals','Discard','Detritus-POC','Fishery'),]
+GOM.EMAX<- GOM.EMAX[!RPATH %in% c('Larval-juv fish- all','Shrimp et al.','Pelagics','Demersals','Fishery'),]
 GOM.EMAX<-unique(GOM.EMAX)
 
 #Merge survey and EMAX biomass estimates

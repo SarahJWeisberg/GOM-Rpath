@@ -18,6 +18,7 @@ xfun::session_info()
 
 #Load needed packages
 #Load required packages
+#install_github('NOAA-EDAB/survdat')
 library(here);library(data.table);library(survdat)
 
 #Load survey data

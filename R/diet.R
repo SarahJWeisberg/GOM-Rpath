@@ -405,7 +405,19 @@ setnames(micronekton, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,micronekton))
 
+<<<<<<< HEAD
+#OtherPelagics-- going to try to use diet from food habits database for initial balancing, rather than EMAX
+#otherpel <- EMAX.params[, list(diet.Medium.Pelagics...piscivores...other.,diet.Group)]
+#setnames(otherpel,'diet.Group','EMAX')
+#otherpel <- merge(otherpel, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+#otherpel[, preyper := diet.Medium.Pelagics...piscivores...other. * Rpath.prop]
+#Need to sum many:1 EMAX:Rpath
+#otherpel <- otherpel[, sum(preyper), by = RPATH]
+#otherpel[, Rpred := 'OtherPelagics']
+#setnames(otherpel, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+=======
 rm(micronekton)
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa
 
 #OtherPelagics-- going to try to use diet fromfood habits database for initial balancing, rather than EMAX
 

@@ -11,7 +11,11 @@
 
 
 #Load packages
-library(Rpath); library(data.table);library(dplyr);library(here)
+library(devtools)
+install_github('NOAA-EDAB/Rpath')
+#install.packages("Rpath")
+install.packages("tinytex") #why?
+library(Rpath); library(data.table);library(dplyr);library(here);library(tinytex)
 
 #Load groups and fleets
 source(here("R/groups_fleets.R"))
@@ -31,9 +35,14 @@ biomass<-left_join(groups_fleets,biomass_80s,by="RPATH")
 #Turn biomass into vector
 biomass<-as.vector(biomass$Biomass)
 
+<<<<<<< HEAD:R/rpath_balance_attempt_3.R
+#Change barndoor to 10^-5 biomass
+biomass[35]<-10^-5
+=======
 #Change barndoor biomass to non-zero
 #If set to 0, Ecosense does not work properly
 biomass[35]<-2.5*10^-5
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa:R/GOM_rpath_balance.R
 
 #Changes to biomass for balancing
 #Multiply OtherCeph biomass by 30
@@ -109,8 +118,8 @@ biomass[16]<-biomass[16]*5
 #Multiply Pollock biomass by 0.75
 biomass[38]<-biomass[38]*0.75
 
-#Multiply Butterfish biomass by 4
-biomass[50]<-biomass[50]*4
+#Multiply Butterfish biomass by 3
+biomass[50]<-biomass[50]*3
 
 #Multiply OceanPout biomass by 2
 biomass[13]<-biomass[13]*2
@@ -130,7 +139,7 @@ biomass[36]<-biomass[36]*1.05
 #Multiply BlackSeaBass biomass by 1.4
 biomass[49]<-biomass[49]*1.4
 
-#Multiply OtherDemersals biomass by 2
+#Multiply OtherDemersals biomass by 2.1
 biomass[31]<-biomass[31]*2.1
 
 #Multiply RedHake biomass by 1.1
@@ -161,9 +170,9 @@ pb[34]<-1.3
 #Copying Sean
 pb[27]<-pb[27]*3
 
-#Increase pb of AtlHerring 1.5x
+#Increase pb of AtlHerring to 1.64
 #Copying Sean
-pb[21]<-pb[21]*1.5
+pb[21]<-1.64
 
 #Increase pb of SilverHake to 0.735
 #0.735 according to Yong; 0.4 according to Sean
@@ -261,11 +270,23 @@ qb[47]<-qb[47]*2.2
 #Based on PREBAL results
 qb[48]<-qb[48]*2
 
+<<<<<<< HEAD:R/rpath_balance_attempt_3.R
+#Increase qb of AtlMackerel 2.2x
+#Keep GE reasonable
+qb[27]<-qb[27]*2.2
+
+#Increase qb of OtherDemersals 1.2x
+#Keep GE reasonable
+qb[31]<-qb[31]*1.1/1.2
+
+REco.params$model[,QB:=qb]
+=======
 #Decrease qb of OceanPout to 3.85
 #Lowering pb, keeping ge the same
 qb[13]<-3.85
 
 GOM.params$model[,QB:=qb]
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa:R/GOM_rpath_balance.R
 
 #Fill biomass accumulation
 source(here("R/biomass_accumulation.R"))
@@ -276,11 +297,15 @@ ba[59:68]<-NA
 
 #Change barndoor ba
 ba[35]<-ba[35]/1000
+<<<<<<< HEAD:R/rpath_balance_attempt_3.R
+REco.params$model[,BioAcc:=ba]
+=======
 
 #Change OceanPout ba
 ba[13]<- -0.004
 
 GOM.params$model[,BioAcc:=ba]
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa:R/GOM_rpath_balance.R
 
 #Fill unassimilated consumption
 GOM.params$model[, Unassim := c(0,rep(0.4,5),rep(0.2, 50),rep(0,2), rep(NA, 10))]
@@ -503,7 +528,7 @@ GOM.params$diet[12,48]<-GOM.params$diet[12,48]+0.016
 
 #Shift predation on SmFlatfishes
 
-#Shift predation of Goosefish(39) from SmFlat(15) to SWitchFlounder(48)
+#Shift predation of Goosefish(39) from SmFlat(15) to WitchFlounder(48)
 #Shift 0.25%
 GOM.params$diet[15,40]<-GOM.params$diet[15,40]-0.0025
 GOM.params$diet[48,40]<-GOM.params$diet[48,40]+0.0025
@@ -623,6 +648,12 @@ GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.008
 GOM.params$diet[50,55]<-GOM.params$diet[50,55]-0.007
 GOM.params$diet[8,55]<-GOM.params$diet[8,55]+0.007
 
+<<<<<<< HEAD:R/rpath_balance_attempt_3.R
+#Shift predation of SummerFlounder(29) from Butterfish(50) to Megabenthos(56) 
+#Shift 12%
+REco.params$diet[50,30]<-REco.params$diet[50,30]-0.12
+REco.params$diet[56,30]<-REco.params$diet[56,30]+0.12
+=======
 #Shift predation of SummerFlounder(29) from Butterfish(50) to OtherPelagics(20) 
 #Shift 8%
 GOM.params$diet[50,30]<-GOM.params$diet[50,30]-0.08
@@ -632,6 +663,7 @@ GOM.params$diet[20,30]<-GOM.params$diet[20,30]+0.08
 #Shift 8%
 GOM.params$diet[50,30]<-GOM.params$diet[50,30]-0.08
 GOM.params$diet[56,30]<-GOM.params$diet[56,30]+0.08
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa:R/GOM_rpath_balance.R
 
 #Shift predation of SpinyDogfish(42) from Butterfish(50) to Illex(8)
 #Shift 0.9%
@@ -842,7 +874,6 @@ GOM.params$diet[52,12]<-GOM.params$diet[52,12]-0.00002
 GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.00002
 
 #Shift predation of OtherPelagics
-
 #Shift predation of OtherPelagics(20) from OtherPelagics(20) to Megabenthos(56)
 #Shift 4%
 GOM.params$diet[20,21]<-GOM.params$diet[20,21]-0.04
@@ -869,6 +900,68 @@ GOM.params$diet[53,52]<-GOM.params$diet[53,52]+0.025
 GOM.params$diet[5,52]<-GOM.params$diet[5,52]-0.025
 GOM.params$diet[39,52]<-0.025
 
+#Shift predation onto Barndoor
+#Shift predation of OtherDemersals(31) from OtherSkates(33) to Barndoor(35)
+#Shift 0.00001%
+REco.params$diet[33,32]<-REco.params$diet[33,32]-0.0000001
+REco.params$diet[35,32]<-0.0000001
+
+#Shift predation of SpinyDogfish(42) from OtherSkates(33) to Barndoor(35)
+#Shift 0.000001%
+REco.params$diet[33,43]<-REco.params$diet[33,43]-0.00000001
+REco.params$diet[35,43]<-0.00000001
+
+#Shift predation of Macrobenthos(11) from OtherSkates(33) to Barndoor(35)
+#Shift 0.00000001%
+REco.params$diet[33,12]<-REco.params$diet[33,12]-0.000000001
+REco.params$diet[35,12]<-0.000000001
+
+#Shifting diet of Micronekton
+#trying to get TLs to make more sense
+
+#Shift predation of Micronekton(7) from LgCopepods(5) to Phytoplankton(1)
+#Shift 10%
+REco.params$diet[5,8]<-REco.params$diet[5,8]-0.1
+REco.params$diet[1,8]<-REco.params$diet[1,8]+0.1
+
+#Shift predation of Illex(8) from Micronekton(7) to LgCopepods(5)
+#Shift 10%
+REco.params$diet[7,9]<-REco.params$diet[7,9]-0.1
+REco.params$diet[5,9]<-REco.params$diet[5,9]+0.1
+
+#Shift predation of Illex(8) from Micronekton(7) to SmCopepods(6)
+#Shift 10%
+REco.params$diet[7,9]<-REco.params$diet[7,9]-0.1
+REco.params$diet[6,9]<-REco.params$diet[6,9]+0.1
+
+#Shift predation of Loligo(9) from Micronekton(7) to LgCopepods(5)
+#Shift 10%
+REco.params$diet[7,10]<-REco.params$diet[7,10]-0.1
+REco.params$diet[5,10]<-REco.params$diet[5,10]+0.1
+
+#Shift predation of Loligo(9) from Micronekton(7) to SmCopepods(6)
+#Shift 10%
+REco.params$diet[7,10]<-REco.params$diet[7,10]-0.1
+REco.params$diet[6,10]<-REco.params$diet[6,10]+0.1
+
+#Shifting Sharks diet
+#Move predation of Sharks(51) from Detritus(57) to Odontocetes(55)
+#Shift 2.5%
+REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
+REco.params$diet[55,52]<-REco.params$diet[55,52]+0.025
+
+#Move predation of Sharks(51) from Detritus(57) to Pinnipeds(53)
+#Shift 2.5%
+REco.params$diet[57,52]<-REco.params$diet[57,52]-0.025
+REco.params$diet[53,52]<-REco.params$diet[53,52]+0.025
+
+#Move predation of Sharks(51) from LgCopepods(5) to Goosefish(39)
+#Shift 2.5%
+REco.params$diet[5,52]<-REco.params$diet[5,52]-0.025
+REco.params$diet[39,52]<-0.025
+
+#Assign data pedigree
+source(here("R/data_pedigree.R"))
 
 #Run model
 GOM <- rpath(GOM.params, eco.name = 'GOM Ecosystem')
@@ -881,6 +974,11 @@ EE[order(EE)]
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
+<<<<<<< HEAD:R/rpath_balance_attempt_3.R
+#write.Rpath(REco,morts=T,"outputs/GOM_Rpath_14.csv")
+
+=======
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa:R/GOM_rpath_balance.R
 #Print final modeal
 GOM
 
@@ -893,8 +991,49 @@ save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
 #webplot(GOM, labels = F)
 
 
+#Examine TLs
+TL<-REco$TL
+TL[order(TL)]
+
+#Save model
+save(REco.params,file = "REco_params_balance3.Rdata")
+save(REco,file="REco_balance3.Rdata")
+
+
 #Run EcoSim
 #Run model forward 50 years
+<<<<<<< HEAD:R/rpath_balance_attempt_3.R
+REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
+REco.run1 <- rsim.run(REco.sim, method = 'RK4', years = 1:50)
+#rsim.plot(REco.run1, groups[1:7])
+#rsim.plot(REco.run1, groups[8:14])
+#rsim.plot(REco.run1, groups[15:21])
+#rsim.plot(REco.run1, groups[22:28])
+#rsim.plot(REco.run1, groups[29:35])
+#rsim.plot(REco.run1, groups[36:42])
+#rsim.plot(REco.run1, groups[43:49])
+#rsim.plot(REco.run1, groups[50:56])
+
+webplot(REco,labels=T,fleets=F,label.cex=0.7, highlight = "SmCopepods")
+
+webplot(REco,labels=T,fleets=F,label.cex=0.7)
+webplot(REco, eco.name= attr(REco, "Gulf of Maine"), line.col="grey", labels=TRUE, highlight= "LgCopepods", highlight.col= c("green", "magenta", "NA"), label.cex=0.7, fleets=TRUE)
+
+#Try running forcing
+REco.sim <- rsim.scenario(REco, REco.params, years = 1:50)
+REco.sim.test<-adjust.forcing(REco.sim,'ForcedMort',group='Cod',sim.year = 1:50,value=1.5)
+REco.run.test<-rsim.run(REco.sim.test,method='RK4',years=1:50)
+rsim.plot(REco.run.test, groups[29:35])
+rsim.plot(REco.run.test, groups[36:42])
+rsim.plot(REco.run.test, groups[8:14])
+rsim.plot(REco.run.test, groups[15:21])
+rsim.plot(REco.run.test, groups[22:28])
+
+#Try forcing copepod biomass
+REco.sim.test<-adjust.forcing(REco.sim,'ForcedBio',group='SmCopepods',sim.year = 20:50,value=2)
+REco.run.test<-rsim.run(REco.sim.test,method='AB',years=1:50)
+rsim.plot(REco.run.test, groups[1:10])
+=======
 GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:50)
 #For AB method, need to set NoIntegrate flag for 
 GOM.sim$params$NoIntegrate[4:5]<-0
@@ -908,4 +1047,5 @@ GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:50)
 #rsim.plot(GOM.run1, groups[36:42])
 #rsim.plot(GOM.run1, groups[43:49])
 #rsim.plot(GOM.run1, groups[50:56])
+>>>>>>> 1aa4f678745dc36a7ef1e6e0eb3d2d0efb5e1baa:R/GOM_rpath_balance.R
 
