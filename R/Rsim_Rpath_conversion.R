@@ -1,16 +1,23 @@
-#Script to convert Ecosense output (i.e. Rsim scenario) to Rpath object
+# Title: Rsim to Rpath conversion
 
-#Author: Sarah J. Weisberg
+# Purpose: This script converts Rsim parameters to Rpath ones. This is useful
+#           for running Ecological Network Analysis (ENA) analyses on Ecosense
+#           results.
 
-# Tue Sep 21 09:14:35 2021 ------------------------------
+# DataFiles:"GOM_sense.RData"
+
+# Author: S. Weisberg
+# Contact details: sarah.j.weisberg@stonybrook.edu
+
+# Tue Nov  1 16:17:13 2022 ------------------------------
 
 #Run GOM_sense
-source(here('R/GOM_sense.R'))
+load(here('outputs/GOM_sense.RData'))
 
 #Copy initial Rpath parameters
 #Alternative scenarios will be the same except for Biomass, PB, QB, Diet
-alt<-copy(REco.params)
-alt.diet<-copy(REco.params$diet)
+alt<-copy(GOM.params)
+alt.diet<-copy(GOM.params$diet)
 
 #Count number of each group type
 ngroups <- nrow(alt$model)
@@ -20,28 +27,27 @@ ngear   <- nrow(alt$model[Type == 3, ])
 
 #Pull out individual Ecosense scenario
 #Loop over all successes
+alt.models<-as.list(rep(NA,length(GOM_sense)))
 
-alt.models<-as.list(rep(NA,length(REco.sense)))
-
-for (i in 1:length(REco.sense)) {
+for (i in 1:length(GOM_sense)) {
   #Copy initial Rpath parameters
-  Rpath.alt<-copy(REco.params)
+  Rpath.alt<-copy(GOM.params)
   #Copy scenario
-  REco.alt<-REco.sense[[i]]
+  GOM.alt<-GOM_sense[[i]]
   #Assign biomass
-  alt.biomass<-REco.alt$B_BaseRef[-1]
+  alt.biomass<-GOM.alt$B_BaseRef[-1]
   Rpath.alt$model[,Biomass:=alt.biomass]
   #Assign PB
-  Rpath.alt$model[,PB:=REco.alt$PBopt[-1]]
+  Rpath.alt$model[,PB:=GOM.alt$PBopt[-1]]
   #Assign QB
-  alt.QB<-REco.alt$FtimeQBOpt[-1]
+  alt.QB<-GOM.alt$FtimeQBOpt[-1]
   alt.QB[1]<-0 #How to make this generalizable to models with other PP groups?
   Rpath.alt$model[,QB:=alt.QB]
   #Assign diet
   #Remove first two columns which represent 'outside' and 'PP't
-  PreyFrom<-REco.alt$PreyFrom[-c(1,2)]
-  PreyTo<-REco.alt$PreyTo[-c(1,2)]
-  predpreyQ<-REco.alt$QQ[-c(1,2)]
+  PreyFrom<-GOM.alt$PreyFrom[-c(1,2)]
+  PreyTo<-GOM.alt$PreyTo[-c(1,2)]
+  predpreyQ<-GOM.alt$QQ[-c(1,2)]
   #Fill consumption matrix
   QQ<-matrix(nrow = (nliving + ndead + 1),ncol=nliving)
   for (j in 1:length(PreyFrom)){
@@ -64,4 +70,4 @@ for (i in 1:length(REco.sense)) {
   alt.models[[i]]<-alt.model
 }
 
-
+save(alt.models, file = "outputs/GOM_sense_Rpath.RData")
