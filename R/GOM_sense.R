@@ -140,7 +140,7 @@ orig.biomass<-scene$start_state$Biomass
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 7700
+NUM_RUNS <- 50000
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
