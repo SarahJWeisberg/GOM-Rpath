@@ -9,7 +9,8 @@
 #Author: Sarah J. Weisberg
 #Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Thu Nov  3 12:09:13 2022 ------------------------------
+# Mon Nov  7 12:15:01 2022 ------------------------------
+
 
 #Load needed packages
 library(here); library(dplyr); library(tidyr); library(ggplot2)
@@ -54,22 +55,7 @@ EE<- left_join(EE,TL,by="groups")
 #EE_test$EE<-as.numeric(EE_test$EE)
 
 #plot
-for (i in 1:4) {
-  EE_sub<-EE %>% filter(TL_bin == i)
-  #horizontal lines for orig EE
-  hline<-EE_sub %>% select(-EE) %>% distinct()
-  hline$EE_orig<-as.numeric(hline$EE_orig)
-  #plotting
-  print(ggplot(data=EE_sub,aes(x=groups,y=EE))+
-    geom_jitter()+
-    geom_hline(yintercept = 1,color="red")+
-    geom_point(data=hline, aes(x=groups,y=EE_orig), shape=95, size=20,color="blue"))
-}
-
-ggplot(data=EE,aes(x=groups,y=EE))+
-  geom_boxplot(outlier.shape = NA)+
-  geom_jitter()
-
+#one subset
 #horizontal lines for orig EE
 hline<-EE_sub %>% select(-EE) %>% distinct()
 hline$EE_orig<-as.numeric(hline$EE_orig)
@@ -79,3 +65,48 @@ ggplot(data=EE_sub,aes(x=groups,y=EE))+
   geom_jitter(position = position_jitter(width = 0.15))+
   geom_hline(yintercept = 1,color="red")+
   geom_point(data=hline, aes(x=groups,y=EE_orig), shape=95, size=20,color="blue")
+
+#loop over all subsets
+for (i in 1:4) {
+  EE_sub<-EE %>% filter(TL_bin == i)
+  #horizontal lines for orig EE
+  hline<-EE_sub %>% select(-EE) %>% distinct()
+  hline$EE_orig<-as.numeric(hline$EE_orig)
+  #plotting
+  print(ggplot(data=EE_sub,aes(x=groups,y=EE))+
+          geom_jitter()+
+          geom_hline(yintercept = 1,color="red")+
+          geom_point(data=hline, aes(x=groups,y=EE_orig), shape=95, size=20,color="blue"))
+}
+
+#Try plotting as density plots
+#one subset
+#vertical line for original EE
+vline<-EE_sub %>% select(-EE) %>% distinct()
+vline$EE_orig<-as.numeric(vline$EE_orig)
+
+ggplot(data=EE_sub,aes(x=EE))+
+  #geom_boxplot(outlier.shape = NA)+
+  geom_density(alpha = 0.4)+
+  facet_wrap(vars(groups),nrow = 3,scales = "free")+
+  geom_vline(xintercept = 1,color="red")+
+  geom_vline(data = vline, aes(xintercept = EE_orig), color = "blue")
+
+#loop over all subsets
+for (i in 1:4) {
+  EE_sub<-EE %>% filter(TL_bin == i)
+  #horizontal lines for orig EE
+  vline<-EE_sub %>% select(-EE) %>% distinct()
+  vline$EE_orig<-as.numeric(vline$EE_orig)
+  #plotting
+  print(ggplot(data=EE_sub,aes(x=EE))+
+          #geom_boxplot(outlier.shape = NA)+
+          geom_density(alpha = 0.4)+
+          facet_wrap(vars(groups),nrow = 3,scales = "free")+
+          geom_vline(xintercept = 1,color="red")+
+          geom_vline(data = vline, aes(xintercept = EE_orig), color = "blue"))
+}
+
+
+
+
