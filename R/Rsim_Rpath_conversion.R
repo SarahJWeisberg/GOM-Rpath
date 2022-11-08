@@ -4,7 +4,7 @@
 #           for running Ecological Network Analysis (ENA) analyses on Ecosense
 #           results.
 
-# DataFiles:"GOM_sense.RData"
+# DataFiles:"GOM_sense_50k.RData"
 
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
@@ -12,7 +12,7 @@
 # Tue Nov  1 16:17:13 2022 ------------------------------
 
 #Run GOM_sense
-load(here('outputs/GOM_sense.RData'))
+load(here('outputs/GOM_sense_50k.RData'))
 
 #Copy initial Rpath parameters
 #Alternative scenarios will be the same except for Biomass, PB, QB, Diet
@@ -70,4 +70,4 @@ for (i in 1:length(GOM_sense)) {
   alt.models[[i]]<-alt.model
 }
 
-save(alt.models, file = "outputs/GOM_sense_Rpath.RData")
+save(alt.models, file = "outputs/GOM_sense_Rpath_50k.RData")

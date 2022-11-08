@@ -7,7 +7,7 @@
 
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-# DataFile:"GOM_sense_Rpath.RData"
+# DataFile:"GOM_sense_Rpath_50k.RData"
 
 # Tue Nov  1 14:41:09 2022 ------------------------------
 
@@ -20,7 +20,7 @@ library(enaR)
 library(sna)
 
 #First Ecosense, convert Rsim outputs to Rpath models
-load(here("outputs/GOM_sense_Rpath.RData"))
+load(here("outputs/GOM_sense_Rpath_50k.RData"))
 
 #Need to calculate respiration, exports, detritus input
 #To do so, need to have pull unassim, M0, and F (fishing mortality)
@@ -206,3 +206,8 @@ ASC<-c()
 for (i in 1:length(alt.models)){
   ASC[i]<-info[[i]][[5]]
 }
+
+#save outputs
+save(info, file = "outputs/GOM_sense_enaR.RData")
+save(alt.networks, file = "outputs/GOM_sense_enaR_networks.RData")
+

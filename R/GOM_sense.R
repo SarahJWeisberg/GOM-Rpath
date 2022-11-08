@@ -168,5 +168,5 @@ nkept <- length(KEPT)
 nkept
 GOM_sense <- parlist[KEPT]
 
-save(GOM_sense, file = "outputs/GOM_sense.RData")
+save(GOM_sense, file = "outputs/GOM_sense_50k.RData")
 
