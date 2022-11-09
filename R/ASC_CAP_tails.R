@@ -27,8 +27,8 @@ for (i in 1:length(alt.models)){
 
 #find 5th, 9th quantile
 #based on ASC.CAP all values
-low_tail<-quantile(ASC.CAP, probs = 0.05)
-high_tail<-quantile(ASC.CAP, probs = 0.95)
+low_tail<-quantile(ASC.CAP$ASC.CAP, probs = 0.05)
+high_tail<-quantile(ASC.CAP$ASC.CAP, probs = 0.95)
 
 #basic density plot
 ASC.CAP<-as.data.frame(ASC.CAP)
@@ -112,7 +112,8 @@ ggplot(anom.high)+
   scale_y_continuous(breaks = seq(-100, 100, 20)) +
   scale_fill_manual(values = c("#034e7b","#99000d")) +
   labs(y = "Flow anomaly (%)", x = "") + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("High Efficiency Models")
 
 anom.high.select<-filter(anom.high,group == "Cod" | group == "AtlHerring" |
                            group == "Bacteria" |
@@ -143,7 +144,8 @@ ggplot(anom.low)+
   scale_y_continuous(breaks = seq(-100, 100, 20)) +
   scale_fill_manual(values = c("#034e7b","#99000d")) +
   labs(y = "Flow anomaly (%)", x = "") + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("Low Efficiency Models")
 
 anom.low.select<-filter(anom.low,group == "Cod" | group == "AtlHerring" |
                           group == "Bacteria" |
@@ -173,8 +175,10 @@ ggplot(anom.high)+
   geom_bar(stat = "identity",show.legend = F) +
   scale_y_continuous(breaks = seq(-100, 100, 20)) +
   scale_fill_manual(values = c("#034e7b","#99000d")) +
-  labs(y = "Flow anomaly (%)", x = "") + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(y = "Biomass anomaly (%)", x = "") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("High Efficiency Models")
+  
 
 anom.high.select<-filter(anom.high,group == "Cod" | group == "AtlHerring" |
                            group == "Bacteria" |
@@ -205,8 +209,9 @@ ggplot(anom.low)+
   geom_bar(stat = "identity",show.legend = F) +
   scale_y_continuous(breaks = seq(-100, 100, 20)) +
   scale_fill_manual(values = c("#034e7b","#99000d")) +
-  labs(y = "Flow anomaly (%)", x = "") + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(y = "Biomass anomaly (%)", x = "") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("Low Efficiency Models")
 
 anom.low.select<-filter(anom.low,group == "Cod" | group == "AtlHerring" |
                           group == "Bacteria" |
