@@ -7,7 +7,8 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 
-# Tue Nov  1 14:41:09 2022 ------------------------------
+# Sun Nov 13 15:01:33 2022 ------------------------------
+
 
 #Load packages
 #install.packages(c('devtools','tinytex','lwgeom'))
@@ -23,7 +24,7 @@ source(here("R/groups_fleets.R"))
 #Set up model with group names and types
 #1 = primary producer, 0 = consumer, 2 = detritus, 3 = fleet
 groups<-as.vector(groups_fleets$RPATH)
-types<-c(1,rep(0,55),rep(2,2),rep(3,10))
+types<-c(1,rep(0,55),rep(2,2),rep(3,9))
 GOM.params<-create.rpath.params(group = groups,type=types)
 rm(types)
 
@@ -284,7 +285,7 @@ source(here("R/biomass_accumulation.R"))
 ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
-ba[59:68]<-NA
+ba[59:67]<-NA
 
 #Change barndoor ba
 ba[35]<-ba[35]/1000
@@ -295,12 +296,12 @@ ba[13]<- -0.004
 GOM.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
-GOM.params$model[, Unassim := c(0,rep(0.4,5),rep(0.2, 50),rep(0,2), rep(NA, 10))]
+GOM.params$model[, Unassim := c(0,rep(0.4,5),rep(0.2, 50),rep(0,2), rep(NA, 9))]
 #COME BACK TO THIS
 
 #Detrital Fate
-GOM.params$model[, Detritus := c(rep(1, 56), rep(0, 12))]
-GOM.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 10))]
+GOM.params$model[, Detritus := c(rep(1, 56), rep(0, 11))]
+GOM.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 9))]
 
 #Fisheries
 #Landings
@@ -426,7 +427,7 @@ other_dredge.d[57:58]<-0
 GOM.params$model[, "Other Dredge.disc" := other_dredge.d]
 
 #Clam Dredge
-clam.d<-c(rep(0,56),rep(0,2),rep(NA,10))
+clam.d<-c(rep(0,56),rep(0,2),rep(NA,9))
 GOM.params$model[, "Clam Dredge.disc" := clam.d]
 
 
@@ -907,12 +908,12 @@ save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
 #webplot(GOM, labels = T)
 
 #Examine TLs
-TL<-REco$TL
-TL[order(TL)]
+#TL<-REco$TL
+#TL[order(TL)]
 
 #Save model
-save(REco.params,file = "REco_params_balance3.Rdata")
-save(REco,file="REco_balance3.Rdata")
+#save(REco.params,file = "REco_params_balance3.Rdata")
+#save(REco,file="REco_balance3.Rdata")
 
 #Rsim basic
 GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:50)
