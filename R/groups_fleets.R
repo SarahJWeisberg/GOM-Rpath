@@ -8,7 +8,7 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Last modified: # Fri Jul  2 14:10:11 2021 ------------------------------
+# Sun Nov 13 15:00:15 2022 ------------------------------
 
 
 #Load needed packages
@@ -34,6 +34,9 @@ colnames(fleets)<-"RPATH"
 
 #Bind fleets and functional groups
 groups_fleets<-rbind(groups_fleets,fleets)
+
+#remove Scallop Dredge
+groups_fleets<-groups_fleets %>% filter(RPATH != "Scallop Dredge")
 
 #Remove unneeded items from environment
 rm(d.d,fleets)
