@@ -104,4 +104,4 @@ ggplot(spp.land,aes(x=Year, y = Value)) +
 #add a column called 'catch?'
 
 #save file
-write.csv(spp.land,"landings_fit.csv")
+write.csv(spp.land,"fitting/landings_fit.csv")

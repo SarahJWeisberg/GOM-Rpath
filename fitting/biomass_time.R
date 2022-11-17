@@ -79,35 +79,56 @@ biomass_fit<-biomass_fit[YEAR %in% 1985:2019]
 
 #drop units for plotting purposes
 biomass_fit$Biomass <- drop_units(biomass_fit$Biomass)
+biomass_fit$Stdev <- drop_units(biomass_fit$Stdev)
+
+biomass_fit<-biomass_fit[!RPATH %in% c(NA, 'Fauna','Freshwater','SouthernDemersals')]
+
+#adjust biomass values for changes made during balancing
+source(here("R/groups_fleets.R"))
+#pull initial estimates
+source(here("R/EMAX_biomass_estimates.R"))
+#pull estimates from balanced model
+load(here( "outputs/GOM_params_Rpath.RData"))
+biomass_80s_balanced<-as.data.frame(cbind(GOM.params$model$Group[1:58], GOM.params$model$Biomass[1:58]))
+colnames(biomass_80s_balanced)<-c("RPATH","Biomass_balanced")
+#merge
+ratio<-left_join(biomass_80s,biomass_80s_balanced,by="RPATH")
+ratio$Biomass_balanced<-as.numeric(ratio$Biomass_balanced) #why does this happen??
+ratio<-ratio %>% mutate(ratio = Biomass_balanced/Biomass) %>% select(RPATH,ratio)
+
+#Need to deal with Macrobenthos and Megabenthos groups - these come from EMAX not trawl
+#But want to keep temporal trend captured by trawl
+#So rescale based on starting value
+#remove current 
+ratio<-ratio %>% filter(RPATH != "Macrobenthos" & RPATH != "Megabenthos")
+benthos<-left_join(biomass_fit %>% filter(YEAR == 1985, RPATH %in% c("Macrobenthos","Megabenthos")), biomass_80s_balanced %>% filter(RPATH %in% c("Macrobenthos","Megabenthos")),by="RPATH")
+benthos$Biomass_balanced<-as.numeric(benthos$Biomass_balanced)
+benthos<-benthos %>% mutate(ratio = Biomass_balanced/Biomass) %>% select(RPATH,ratio)
+
+#merge
+ratio<-bind_rows(ratio,benthos)
+
+#add adjusted biomass column 
+biomass_adjust<- left_join(biomass_fit,ratio,by="RPATH") %>% replace_na(list(ratio=1))
+biomass_adjust <- biomass_adjust %>% mutate(Value = Biomass*ratio)
 
 #rename columns to comply with fitting code
-colnames(biomass_fit)<-c("Group", "Year", "Value","Stdev")
+biomass_adjust <- biomass_adjust %>% rename(Group = RPATH, Year = YEAR) %>% select(-Biomass, -ratio)
+#set biomass as index or absolute as appropriate
+biomass_adjust$Type <- rep("absolute",length(biomass_adjust$Group))
+biomass_adjust$Scale <- rep(1,length(biomass_adjust$Group))
 
-#add sd, scale columns
-#biomass_fit[,Stdev := Value * 0.1]
-biomass_fit[,Scale := rep(1,length(biomass_fit$Value))]
+#save file
+write.csv(biomass_adjust,"fitting/biomass_fit.csv")
 
-fitting_groups<-biomass_fit[Group %in% c("Cod","Haddock","WhiteHake","SilverHake")]
 
 #visualize biomass trends over time
-ggplot(biomass_fit,aes(x=Year, y = Index)) +
+ggplot(biomass_adjust,aes(x=Year, y = Value)) +
   geom_point() +
   facet_wrap(vars(Group),ncol = 4, scale = "free")
 
-ggplot(fitting_groups,aes(x=Year, y = Index)) +
-  geom_smooth(method = "lm", se=FALSE, color="grey", formula = y ~ x)+
-  geom_point() +
-  facet_wrap(vars(Group),ncol = 2, scale = "free") +
-  labs(title = "Biomass Trends over Time", y="t/sq.km")
-
-#exclude groups not in final Rpath model
-
-biomass_fit<-biomass_fit[!Group %in% c(NA, 'Fauna','Freshwater','SouthernDemersals')]
-
-#set biomass as index or absolute as appropriate
-
-biomass_fit$Type <- rep("index",length(biomass_fit$Group))
-biomass_fit$Type <- rep("absolute",length(biomass_fit$Group))
-
-#save file
-write.csv(biomass_fit,"biomass_fit.csv")
+#ggplot(fitting_groups,aes(x=Year, y = Index)) +
+# geom_smooth(method = "lm", se=FALSE, color="grey", formula = y ~ x)+
+#geom_point() +
+#facet_wrap(vars(Group),ncol = 2, scale = "free") +
+#labs(title = "Biomass Trends over Time", y="t/sq.km")
