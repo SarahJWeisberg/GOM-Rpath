@@ -54,7 +54,7 @@ fixed<-filter(mean.land,FLEET == "Fixed Gear")
 lg_mesh<-filter(mean.land,FLEET == "LG Mesh")
 other<-filter(mean.land,FLEET == "Other")
 sm_mesh<-filter(mean.land,FLEET == "SM Mesh")
-scallop<-filter(mean.land,FLEET == "Scallop Dredge")
+#scallop<-filter(mean.land,FLEET == "Scallop Dredge")
 trap<-filter(mean.land,FLEET == "Trap")
 hms<-filter(mean.land,FLEET == "HMS Fleet")
 pelagic<-filter(mean.land,FLEET == "Pelagic")
@@ -84,10 +84,10 @@ sm_mesh<-left_join(GOM.groups,sm_mesh,by="RPATH")
 sm_mesh$FLEET<-"SM Mesh"
 sm_mesh[is.na(sm_mesh)]<-0
 
-#Scallop
-scallop<-left_join(GOM.groups,scallop,by="RPATH")
-scallop$FLEET<-"Scallop"
-scallop[is.na(scallop)]<-0
+#Scallop - removing because there is not actually any catch
+#scallop<-left_join(GOM.groups,scallop,by="RPATH")
+#scallop$FLEET<-"Scallop"
+#scallop[is.na(scallop)]<-0
 
 #Trap
 trap<-left_join(GOM.groups,trap,by="RPATH")

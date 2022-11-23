@@ -285,7 +285,7 @@ source(here("R/biomass_accumulation.R"))
 ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
-ba[59:67]<-NA
+ba[59:67]<-NA #for
 
 #Change barndoor ba
 ba[35]<-ba[35]/1000
@@ -332,10 +332,10 @@ sm_mesh[57:58]<-0
 GOM.params$model[, "SM Mesh" := sm_mesh]
 
 #Scallop Dredge
-scallop<-left_join(groups_fleets,scallop,by="RPATH")
-scallop<-as.vector(scallop$landings)
-scallop[57:58]<-0
-GOM.params$model[, "Scallop Dredge" := scallop]
+#scallop<-left_join(groups_fleets,scallop,by="RPATH")
+#scallop<-as.vector(scallop$landings)
+#scallop[57:58]<-0
+#GOM.params$model[, "Scallop Dredge" := scallop]
 
 #Trap
 trap<-left_join(groups_fleets,trap,by="RPATH")
@@ -397,10 +397,10 @@ sm_mesh.d[57:58]<-0
 GOM.params$model[, "SM Mesh.disc" := sm_mesh.d]
 
 #Scallop Dredge
-scallop.d<-left_join(groups_fleets,scallop.d,by="RPATH")
-scallop.d<-as.vector(scallop.d$discards)
-scallop.d[57:58]<-0
-GOM.params$model[, "Scallop Dredge" := scallop.d]
+#scallop.d<-left_join(groups_fleets,scallop.d,by="RPATH")
+#scallop.d<-as.vector(scallop.d$discards)
+#scallop.d[57:58]<-0
+#GOM.params$model[, "Scallop Dredge" := scallop.d]
 
 #Trap
 trap.d<-left_join(groups_fleets,trap.d,by="RPATH")
@@ -911,15 +911,11 @@ save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
 #TL<-REco$TL
 #TL[order(TL)]
 
-#Save model
-#save(REco.params,file = "REco_params_balance3.Rdata")
-#save(REco,file="REco_balance3.Rdata")
-
 #Rsim basic
-GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:50)
+#GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:50)
 #For AB method, need to set NoIntegrate flag for 
-GOM.sim$params$NoIntegrate[4:5]<-0
+#GOM.sim$params$NoIntegrate[4:5]<-0
 #Run simulation
-GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:50)
+#GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:50)
 
 

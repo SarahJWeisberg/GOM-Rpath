@@ -9,6 +9,9 @@
 #0.6 if estimate is from FishBase or other source
 #0.8 if estimate was dramatically adjusted in balancing 
 
+#Load required packages
+library(data.table)
+
 #Load pedigree table
 pedigree<-as.data.table(read.csv(here('data/GOM_data_pedigree.csv')))
 #Remove unneeded columns
@@ -31,6 +34,6 @@ GOM.params$pedigree[, QB := pedigree$QB]
 GOM.params$pedigree[, Diet := pedigree$Diet]
 
 #Fleets
-GOM.params$pedigree[, c('Fixed Gear','HMS Fleet','LG Mesh','Scallop Dredge','Trap','Other Dredge','Other','Pelagic','SM Mesh','Clam Dredge') := pedigree$Fleets]
+GOM.params$pedigree[, c('Fixed Gear','HMS Fleet','LG Mesh','Trap','Other Dredge','Other','Pelagic','SM Mesh','Clam Dredge') := pedigree$Fleets]
 
 

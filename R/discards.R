@@ -27,6 +27,9 @@ load("data/observer_data.RData")
 #Change "HMS" to "HMS Fleet" to avoid confusion
 ob.all[FLEET =="HMS",FLEET:="HMS Fleet"]
 
+#Remove Scallop Dredge
+ob.all<-subset(ob.all, FLEET != "Scallop Dredge")
+
 #Load landings data
 source("R/landings_conversion.R")
 
@@ -130,7 +133,7 @@ fixed.d<-filter(discards,FLEET == "Fixed Gear")
 lg_mesh.d<-filter(discards,FLEET == "LG Mesh")
 other.d<-filter(discards,FLEET == "Other")
 sm_mesh.d<-filter(discards,FLEET == "SM Mesh")
-scallop.d<-filter(discards,FLEET == "Scallop Dredge")
+#scallop.d<-filter(discards,FLEET == "Scallop Dredge")
 trap.d<-filter(discards,FLEET == "Trap")
 hms.d<-filter(discards,FLEET == "HMS Fleet")
 pelagic.d<-filter(discards,FLEET == "Pelagic")
@@ -160,9 +163,9 @@ sm_mesh.d$FLEET<-"SM Mesh"
 sm_mesh.d[is.na(sm_mesh.d)]<-0
 
 #Scallop
-scallop.d<-left_join(GOM.groups,scallop.d,by="RPATH")
-scallop.d$FLEET<-"Scallop"
-scallop.d[is.na(scallop.d)]<-0
+#scallop.d<-left_join(GOM.groups,scallop.d,by="RPATH")
+#scallop.d$FLEET<-"Scallop"
+#scallop.d[is.na(scallop.d)]<-0
 
 #Trap
 trap.d<-left_join(GOM.groups,trap.d,by="RPATH")

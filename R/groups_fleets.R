@@ -32,11 +32,14 @@ groups_fleets<-rbind(GOM.groups,d.d)
 fleets<-as.data.table(unique(mean.land$FLEET))
 colnames(fleets)<-"RPATH"
 
+#Remove Scallop Dredge (no landings)
+fleets<-subset(fleets, RPATH != "Scallop Dredge")
+
 #Bind fleets and functional groups
 groups_fleets<-rbind(groups_fleets,fleets)
 
 #remove Scallop Dredge
-groups_fleets<-groups_fleets %>% filter(RPATH != "Scallop Dredge")
+#groups_fleets<-groups_fleets %>% filter(RPATH != "Scallop Dredge")
 
 #Remove unneeded items from environment
 rm(d.d,fleets)
