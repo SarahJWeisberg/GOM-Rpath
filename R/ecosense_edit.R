@@ -1,0 +1,176 @@
+#Copy paste of Ecosense code
+#Exploring changes to fishing calculations
+
+#'@useDynLib Rpath
+#' @export
+rsim.sense <- function(Rsim.scenario, Rpath.params, 
+                       Vvary=c(0,0), Dvary=c(0,0)){
+  
+  # A "read only" version of the input params, for reference  
+  orig.params  <- Rsim.scenario$params
+  
+  # The output params, initialized as copy of input params
+  sense.params <- Rsim.scenario$params
+  
+  # handy numbers
+  nliving <- orig.params$NUM_LIVING
+  ndead   <- orig.params$NUM_DEAD
+  ngears  <- orig.params$NUM_GEARS
+  ngroups <- orig.params$NUM_GROUPS
+  
+  # HERE SHOULD BE THE ONLY USE OF THE Rpath.params object - 
+  # do all extractions from Rpath.params in this section 
+  # Pedigree vectors, including zeroes for gear groups.
+  BBVAR	<- c(as.numeric(unlist(Rpath.params$pedigree[,2])),rep(0,ngears))
+  PBVAR	<- c(as.numeric(unlist(Rpath.params$pedigree[,3])),rep(0,ngears))
+  QBVAR	<- c(as.numeric(unlist(Rpath.params$pedigree[,4])),rep(0,ngears))
+  DCVAR   <-   as.numeric(unlist(Rpath.params$pedigree[,5]))  
+  #DCVAR  <- c(as.numeric(unlist(Rpath.params$pedigree[,5])),rep(0,Rpath$NUM_GEARS))
+  TYPE    <- Rpath.params$model$Type 
+  
+  # KYA 12/30/19 when drawing from a scenario, the Outside is already added.
+  # But we have to strip it off to align with pedigree using IND of 2..(ngroups+1) 
+  # (generating an extra number would break the random seed setting alignment)
+  IND <- 2:(ngroups+1)
+  
+  # Biomass (the most straightforward).  VARiance is broken out so runif can
+  # easily be replaced by other standard distributions.
+  ranBB <- orig.params$B_BaseRef[IND]  * (1 + BBVAR*runif(ngroups,-1.0,1.0))
+  
+  # PB, QB, Mzero, and the dependent respiration fractions
+  ranPB <- orig.params$PBopt[IND]      * (1 + PBVAR*runif(ngroups,-1.0,1.0))                        
+  ranQB <- orig.params$FtimeQBOpt[IND] * (1 + QBVAR*runif(ngroups,-1.0,1.0))
+  
+  # To keep Mzero scaled to EE, we back-calculate EE then use that
+  # EE = 1 - Mzero/PB - Note that this introduces tiny numerical
+  # differences (1e-16 order) compared to doing it from Rpath EE directly.
+  ranM0 <- ranPB * (orig.params$MzeroMort[IND] / orig.params$PBopt[IND]) *
+    (1 + PBVAR*runif(ngroups,-1.0,1.0))
+  
+  # Active respiration is proportion of CONSUMPTION that goes to "heat"
+  # Passive respiration/ VonB adjustment is left out here
+  # Switched ranQB>0 test to TYPE test as QB for prim prods isn't 0 in rsim
+  # TODO Fix negative respiration rates?
+  ranActive <- 1.0 - (ranPB/ranQB) - orig.params$UnassimRespFrac[IND]
+  
+  # Now copy these the output scenario, prepending the "Outside" values
+  # and fixing values for different group types.
+  sense.params$B_BaseRef      <- c(1.0, ranBB)
+  sense.params$PBopt          <- c(1.0, ranPB)      
+  sense.params$FtimeQBOpt     <- c(1.0, ifelse(TYPE==1, ranPB, ranQB))     
+  sense.params$MzeroMort      <- c(0.0, ifelse(TYPE==3, 0, ranM0))
+  sense.params$ActiveRespFrac <- c(0.0, ifelse(TYPE<1 , ranActive, 0))
+  
+  # Version of new QB saved without "Outside" group, used later 
+  QBOpt <- sense.params$FtimeQBOpt[IND]  
+  
+  # TODO IMPORTANT - confirm that NoIntegrate gets switched appropriately for stanzas?
+  # No Integrate for A-B, fixing 2*steps_yr*steps_m as 24
+  sense.params$NoIntegrate <- 
+    ifelse(sense.params$MzeroMort*sense.params$B_BaseRef > 24, 0, sense.params$spnum)
+  
+  # KYA 12/31/19 - We don't need to recaculated predprey links, just Q(links)
+  # So the section from 'primTo <- ifelse' to  'sense.params$PreyTo   <- c(primTo'
+  # has been deleted.
+  
+  ##### This is where we add uncertainty to diet  #####
+  # Original version created this diet comp vector from Rpath$DC and
+  # recalculated all the links (i.e. PreyFrom, PreyTo).  
+  # KYA 12/31/19 new version calculates DC from QQ vector instead.
+  
+  # Old Version got DC vector from Rpath like this:
+  #    DCvector <- c(rep(0.0, sum(Rpath$type==1)), Rpath$DC[Rpath$DC>0])
+  #
+  # For new version, first strip the Outside link off the predprey link lists
+  PPIND <- 2:(orig.params$NumPredPreyLinks+1) 
+  sp.PreyTo <- orig.params$PreyTo[PPIND]
+  Qvector   <-     orig.params$QQ[PPIND]
+  # Then convert to DC proportions based on Q summed by PreyTo groups
+  # We don't actually need to replace PP groups with 0 (using type) but 
+  # setting those to 0's means rgamma's aren't generated so the set.seed 
+  # alignment is off for comparisons with the old method unless we do this.
+  # IMPORTANT:  The tapply method words for PreyTo (e.g. predators) because
+  # there is no predator group 0 - 0 breaks array lookups.  It doesn't work 
+  # for Prey - for prey, convert to character as in the preyprey loop below.
+  QDCvector <- ifelse(TYPE[sp.PreyTo]==1,0, 
+                      Qvector/(tapply(Qvector, sp.PreyTo, "sum")[sp.PreyTo]) )
+  DCvector  <- QDCvector 
+  # KYA 12/31/19 the remainer of this section (drawing from a gamma that
+  # based on DC that is then normalized) is unchanged from previous version.
+  # Diet comp pedigree
+  DCpedigree <- DCVAR[sp.PreyTo]
+  ## Random diet comp
+  # TODO: make EPSILON lower??  (1e-16 might work?)
+  EPSILON <- 1*10^-8
+  betascale <- 1.0
+  DCbeta <- betascale * DCpedigree * DCpedigree
+  alpha <- ifelse(DCbeta>0,DCvector/DCbeta, DCvector)
+  DClinks <- rgamma(length(DCvector), shape=alpha, rate=DCbeta)
+  # We do need to check cases were Beta=0 (implying no variance)   
+  DClinks1 <- ifelse(DCbeta<=0, DCvector, DClinks)
+  DClinks2 <- ifelse(DClinks1 < EPSILON, 2 * EPSILON, DClinks1)
+  # DClinks2 prevents random diet comps from becoming too low, effectively
+  # equal to zero. Zeros in DClinks will produce NaN's in sense.params$QQ, and
+  # others, ultimately preventing ecosim.
+  DCtot <- tapply(DClinks2, sp.PreyTo, "sum")    
+  # Normalized diet comp
+  DCnorm <- ifelse(TYPE[sp.PreyTo]==1, 1.0, DClinks2/DCtot[sp.PreyTo])
+  # The "if" part of DCnorm is so the DC of phytoplankton (type==1) won't equal zero
+  DCQB  <- QBOpt[sp.PreyTo]
+  DCBB  <- ranBB[sp.PreyTo]  
+  ranQQ <- DCnorm * DCQB * DCBB             	
+  
+  # Sarah used the following formula to vary vulnerability in Gaichas et al. (2012)
+  # That paper states that "vulnerability" (also known as X*predprey) has an
+  # effective range from 1.01 to 91 in EwE.
+  # KYA 12/30/19: changed to allow specification of V range and D range
+  # by user (in log space deviations from original) 
+  # Note the old version of this set DD to 1001, not 1000 (minor bug)  
+  NPP    <-  length(PPIND)
+  log.v  <-  log(orig.params$VV[PPIND] - 1) 
+  log.d  <-  log(orig.params$DD[PPIND] - 1) 
+  ranVV  <-  1 + exp(runif(NPP, log.v+Vvary[1], log.v+Vvary[2]))
+  ranDD  <-  1 + exp(runif(NPP, log.d+Dvary[1], log.d+Dvary[2]))
+  
+  # Scramble combined prey pools
+  # KYA 12/30/19 PredTotWeight and PreyTotWeight are no longer exported in the
+  # creation of an Rsim scenario - so made local only.  Then changed to use
+  # tapply instead of a sum looper.
+  # IMPORTANT:  since 0 appears as an index for tapply (for prey=0), we need
+  # to convert the pred and prey indices to characters and use a character
+  # lookup to account for the 0.
+  namedBB <- c(1.0,ranBB); names(namedBB)<-0:ngroups
+  py   <- as.character(orig.params$PreyFrom[PPIND]) # + 1.0
+  pd   <- as.character(orig.params$PreyTo[PPIND])   # + 1.0
+  prey.BB <- namedBB[py]
+  pred.BB <- namedBB[pd]
+  VV   <- as.numeric(ranVV*ranQQ / prey.BB)
+  AA   <- as.numeric((2.0 * ranQQ * VV) / (VV*pred.BB*prey.BB - ranQQ*pred.BB))
+  ranPredPred <- as.numeric(AA * pred.BB)
+  ranPreyPrey <- as.numeric(AA * prey.BB)
+  ranPredPredWeight <- as.numeric(ranPredPred/(tapply(ranPredPred, py, "sum")[py]))
+  ranPreyPreyWeight <- as.numeric(ranPreyPrey/(tapply(ranPreyPrey, pd, "sum")[pd]))
+  
+  #sense.params$PreyFrom       <- c(0, sense.params$PreyFrom)
+  #sense.params$PreyTo         <- c(0, sense.params$PreyTo)
+  sense.params$QQ             <- c(0, ranQQ)
+  sense.params$DD             <- c(1000, ranDD) # using default of 1000 for first group 
+  sense.params$VV             <- c(2, ranVV)    # using default of 2 for first group
+  sense.params$PredPredWeight <- c(0, ranPredPredWeight)
+  sense.params$PreyPreyWeight <- c(0, ranPreyPreyWeight)
+  
+  # Fisheries Catch
+  # The Whitehouse et al. version didn't actualy vary catch, the only thing it 
+  # does it renomalize FishQ.  Therefore only Q calculation lines are needed.  
+  # Since Q is now calculated slightly differently (not from rpath) there are 
+  # slight (10^-18) differences from the previous version.
+  CIND = orig.params$FishFrom + 1
+  sense.params$FishQ <- orig.params$FishQ * 
+    sense.params$B_BaseRef[CIND]/orig.params$B_BaseRef[CIND] 
+  
+  #TODO add catch uncertainty
+  
+  class(sense.params) <- 'Rsim.params'
+  return(sense.params)   
+  
+}
