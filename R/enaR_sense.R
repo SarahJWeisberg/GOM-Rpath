@@ -9,21 +9,21 @@
 
 # DataFile:"GOM_sense_Rpath_50k.RData"
 
-# Tue Nov  1 14:41:09 2022 ------------------------------
+# Thu Nov 17 16:58:51 2022 ------------------------------
+
 
 #Install package
 #Note that I had to pull from github; CRAN version is depreciated
 install.packages("sna")
 library(devtools)
 install_github('SEELab/enaR')
-library(enaR)
-library(sna)
+library(enaR); library(sna); library(here)
 
 #First Ecosense, convert Rsim outputs to Rpath models
 load(here("outputs/GOM_sense_Rpath_50k.RData"))
 
 #Need to calculate respiration, exports, detritus input
-#To do so, need to have pull unassim, M0, and F (fishing mortality)
+#To do so, need to pull unassim, M0, and F (fishing mortality)
 
 #Count number of each group type
 #ngroups <- nrow(GOM.params)
@@ -58,7 +58,7 @@ for (i in 1:length(alt.models)) {
   #Calculate flow to detritus
   #If EE >1, assume 0 M0
   M0<-ifelse(model$EE<1,model$PB*(1-model$EE),0)
-  Detritus<-M0*model$Biomass+model$QB*model$Biomass*model$Unassim
+  Detritus<-M0*model$Biomass*model$DetFate[,1]+model$QB*model$Biomass*model$Unassim
   Detritus<-Detritus[1:58]
   #Deal with flow to detritus from discards
   #Should be equal to all flow to discards minus consumption by SeaBirds(45)
@@ -98,7 +98,7 @@ for (i in 1:length(alt.models)) {
   #Trim biomass
   Biomass<-model$Biomass[1:58]
   #Pack the model directly and store
-  alt.networks[[i]]<-pack(flow = QQ,
+  alt.networks[[i]]<-enaR::pack(flow = QQ,
              input = Import,
              export = Export,
              living = c(rep(TRUE,56),rep(FALSE,2)),
@@ -161,7 +161,7 @@ Import<-Import[1:58]
 #Trim biomass
 Biomass<-GOM$Biomass[1:58]
 #Pack the model directly and store
-orig.network<-pack(flow = QQ,
+orig.network<-enaR::pack(flow = QQ,
                         input = Import,
                         export = Export,
                         living = c(rep(TRUE,56),rep(FALSE,2)),

@@ -163,6 +163,7 @@ sm_mesh.d$FLEET<-"SM Mesh"
 sm_mesh.d[is.na(sm_mesh.d)]<-0
 
 #Scallop
+#Ignoring because I've removed this fishery from the model (because there is no catch)
 #scallop.d<-left_join(GOM.groups,scallop.d,by="RPATH")
 #scallop.d$FLEET<-"Scallop"
 #scallop.d[is.na(scallop.d)]<-0

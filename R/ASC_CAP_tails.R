@@ -4,7 +4,7 @@
 
 #Load packages
 install.packages("GGally")
-library(GGally)
+library(GGally); library(here)
 
 #Load balanced model
 load(here("outputs/GOM_params_Rpath.RData"))
@@ -25,13 +25,13 @@ for (i in 1:length(alt.models)){
   ASC.CAP[i]<-info[[i]][[7]]
 }
 
+ASC.CAP<-as.data.frame(ASC.CAP)
 #find 5th, 9th quantile
 #based on ASC.CAP all values
 low_tail<-quantile(ASC.CAP$ASC.CAP, probs = 0.05)
 high_tail<-quantile(ASC.CAP$ASC.CAP, probs = 0.95)
 
 #basic density plot
-ASC.CAP<-as.data.frame(ASC.CAP)
 ggplot(data = ASC.CAP, aes(x=ASC.CAP)) +
   geom_density(color="magenta",fill=4, alpha=0.7)+
   geom_vline(xintercept = low_tail, color = 'black')+
@@ -51,7 +51,9 @@ for(i in 1:length(high.ASC.flow)){
   flow<-high.ASC.flow[[i]]
   flows.high[,i]<-flow$T
 }
-rownames(flows.high)<-groups[1:58] #come back and fix
+#make new dataframe for means
+means.high<-matrix(nrow = length(groups[1:58]),ncol=1)
+rownames(means.high)<-groups[1:58]
 flows.high$means<-rowMeans(flows.high)
 
 flows.low<-data.frame(matrix(nrow = 58,ncol=length(low.ASC.flow)))

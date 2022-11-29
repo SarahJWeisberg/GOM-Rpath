@@ -9,7 +9,7 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Tue Nov  1 16:17:13 2022 ------------------------------
+# Wed Nov 23 13:06:22 2022 ------------------------------
 
 #Run GOM_sense
 load(here('outputs/GOM_sense_50k.RData'))
@@ -35,6 +35,7 @@ for (i in 1:length(GOM_sense)) {
   #Copy scenario
   GOM.alt<-GOM_sense[[i]]
   #Assign biomass
+  #Ignore Outside
   alt.biomass<-GOM.alt$B_BaseRef[-1]
   Rpath.alt$model[,Biomass:=alt.biomass]
   #Assign PB
@@ -44,7 +45,7 @@ for (i in 1:length(GOM_sense)) {
   alt.QB[1]<-0 #How to make this generalizable to models with other PP groups?
   Rpath.alt$model[,QB:=alt.QB]
   #Assign diet
-  #Remove first two columns which represent 'outside' and 'PP't
+  #Remove first two columns which represent 'outside' and 'PP'
   PreyFrom<-GOM.alt$PreyFrom[-c(1,2)]
   PreyTo<-GOM.alt$PreyTo[-c(1,2)]
   predpreyQ<-GOM.alt$QQ[-c(1,2)]
@@ -65,6 +66,9 @@ for (i in 1:length(GOM_sense)) {
   alt.diet[,2:(nliving+1)]<-as.data.table(diet)
   Rpath.alt$diet<-alt.diet
   #Fill landings
+  #alt.landings<-matrix(nrow=ngroups, ncol=ngear,rep(0,ngroups*ngear))
+  #model$Landings<-alt.landings
+  #Fill discards
   #Save model
   alt.model<-rpath(Rpath.alt)
   alt.models[[i]]<-alt.model

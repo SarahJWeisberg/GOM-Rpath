@@ -76,7 +76,8 @@ for (i in 1:4) {
   print(ggplot(data=EE_sub,aes(x=groups,y=EE))+
           geom_jitter()+
           geom_hline(yintercept = 1,color="red")+
-          geom_point(data=hline, aes(x=groups,y=EE_orig), shape=95, size=20,color="blue"))
+          geom_point(data=hline, aes(x=groups,y=EE_orig), shape=95, size=20,color="blue")
+        )
 }
 
 #Try plotting as density plots
