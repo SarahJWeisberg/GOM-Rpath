@@ -1,7 +1,8 @@
 #Data pedigree assignments
 #Author: Sarah J. Weisberg
 
-# Mon Sep 13 13:29:59 2021 ------------------------------
+# Thu Dec  1 10:53:39 2022 ------------------------------
+
 
 #0.2 if estimate is directly from data without modification
 #0.4 if estimate is from data but data are variable or sparse
@@ -17,9 +18,11 @@ pedigree<-as.data.table(read.csv(here('data/GOM_data_pedigree.csv')))
 #Remove unneeded columns
 pedigree<-pedigree[,-c(2:7)]
 #pedigree<-left_join(groups_fleets,pedigree,by='RPATH')
+#Remove pedigree for discards
+pedigree<-pedigree[1:57]
 
-#Remove pedigree for fleets
-GOM.params$pedigree<-GOM.params$pedigree[1:58]
+#Remove pedigree for fleets & discards
+GOM.params$pedigree<-GOM.params$pedigree[1:57]
 
 #Biomass
 GOM.params$pedigree[, Biomass := pedigree$Biomass]
