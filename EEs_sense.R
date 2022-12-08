@@ -19,6 +19,8 @@ library(here); library(dplyr); library(tidyr); library(ggplot2)
 #Bin based on TL in original model
 #Load original model
 load(here("outputs/GOM_Rpath.RData"))
+load(here("outputs/GOM_sense_50k.RData"))
+load(here("outputs/GOM_sense_Rpath_50k.RData"))
 
 #Pull out TLs & EEs, assign to 4 bins (56/4 = 14 per bin)
 #Ignoring fleets for now
@@ -32,7 +34,7 @@ TL<-TL %>% mutate(TL_bin = ntile(TL, n=4))
 EE<-c()
 for (i in 1:length(alt.models)){
   model<-alt.models[[i]]
-  EE_i<-cbind(groups,model$EE[1:56])
+  EE_i<-cbind(groups,model$EE[1:56], rep(i,56))
   EE<-rbind(EE,EE_i)
   rownames(EE)<-NULL
 }
@@ -45,14 +47,30 @@ for (i in 1:length(alt.models)){
 #}
 
 EE<-as.data.frame(EE)
-colnames(EE)<-c("groups", "EE")
+colnames(EE)<-c("groups", "EE","model")
 EE$EE<-as.numeric(EE$EE)
 EE<- left_join(EE,TL,by="groups")
 
+#plot proportion of models kept by various EE filters
+totals<-c()
+for(i in 0:10){
+  x<-1+0.5*i
+  EE_sub<-EE %>% filter(EE<=x) %>% count(model) %>% filter(n==56)
+  y<-cbind(x,length(EE_sub$model)/length(alt.models))
+  totals<-rbind(totals,y)
+}
+totals<-as.data.frame(totals)
+colnames(totals)<-c("threshold","percent_below")
 
-#EE_test<-EE %>% filter(groups %in% c("Phytoplankton","Bacteria","SmCopepods"))
+#plot results
+ggplot(data = totals,aes(x=threshold,y=percent_below))+
+  geom_line()+
+  geom_point()+
+  scale_x_continuous(breaks = seq(1,6,0.5))+
+  scale_y_continuous(breaks=seq(0,0.8,0.1))
+  
 
-#EE_test$EE<-as.numeric(EE_test$EE)
+#max EE = 245 --> Megabenthos
 
 #plot
 #one subset
