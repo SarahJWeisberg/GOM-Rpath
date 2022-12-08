@@ -19,6 +19,10 @@ library(devtools)
 install_github('SEELab/enaR')
 library(enaR); library(sna); library(here)
 
+#Load initial model
+load(here("outputs/GOM_params_Rpath.RData"))
+load(here("outputs/GOM_Rpath.RData"))
+
 #First Ecosense, convert Rsim outputs to Rpath models
 load(here("outputs/GOM_sense_Rpath_50k.RData"))
 
@@ -49,37 +53,37 @@ for (i in 1:length(alt.models)) {
   QQ[,j]<-diet[,j]*model$QB[j]*model$Biomass[j]
   }
   #Ignore Imports
-  QQ<-QQ[1:58,]
+  QQ<-QQ[1:57,]
   colnames(QQ)<-groups[1:56]
-  rownames(QQ)<-groups[1:58]
+  rownames(QQ)<-groups[1:57]
   #Sum discards
   Discards<-rowSums(model$Discards)
-  Discards<-Discards[1:58]
+  Discards<-Discards[1:57]
   #Calculate flow to detritus
   #If EE >1, assume 0 M0
   M0<-ifelse(model$EE<1,model$PB*(1-model$EE),0)
   Detritus<-M0*model$Biomass*model$DetFate[,1]+model$QB*model$Biomass*model$Unassim
-  Detritus<-Detritus[1:58]
+  Detritus<-Detritus[1:57]
   #Deal with flow to detritus from discards
   #Should be equal to all flow to discards minus consumption by SeaBirds(45)
-  DetInDisc<-sum(Discards)
-  Detritus[58]<-DetInDisc-QQ[58,45]
+  #DetInDisc<-sum(Discards)
+  #Detritus[58]<-DetInDisc-QQ[58,45]
   #Flow to detritus from detritus = 0
   Detritus[57]<-0
   #Bind diet matrix (QQ) with flow to detritus, discards
-  QQ<-cbind(QQ,Detritus,Discards)
+  QQ<-cbind(QQ,Detritus)
   #Calculate exports
   #First sum catch
   Catch<-rowSums(model$Landings)
   #Add positive biomass accumulation terms
   Export<-Catch+(ifelse(model$BA>0,model$BA*model$Biomass,0))
-  Export<-Export[1:58]
+  Export<-Export[1:57]
   #Calculate respiration
   #Assume detritus, discards have 0 respiration
   Resp<-((1-model$Unassim)*model$QB-model$PB)*model$Biomass
   Resp<-ifelse(Resp>0,Resp,0)
-  Resp<-Resp[1:58]
-  Resp[57:58]<-0
+  Resp<-Resp[1:57]
+  Resp[57]<-0
   #Deal with Primary Production
   #First, estimate GROSS production = Imports
   #P/B in Ecopath model gives NET production
@@ -94,14 +98,14 @@ for (i in 1:length(alt.models)) {
   EE_Biomass<-ifelse(model$EE>1,(model$EE-1)*model$Biomass,0)
   Import<-BA_Biomass+EE_Biomass
   Import[1]<-gross
-  Import<-Import[1:58]
+  Import<-Import[1:57]
   #Trim biomass
-  Biomass<-model$Biomass[1:58]
+  Biomass<-model$Biomass[1:57]
   #Pack the model directly and store
   alt.networks[[i]]<-enaR::pack(flow = QQ,
              input = Import,
              export = Export,
-             living = c(rep(TRUE,56),rep(FALSE,2)),
+             living = c(rep(TRUE,56),rep(FALSE,1)),
              respiration = Resp,
              storage = Biomass)
 }
@@ -115,36 +119,36 @@ for (j in 1:nliving){
   QQ[,j]<-diet[,j]*GOM$QB[j]*GOM$Biomass[j]
   }
 #Ignore Imports
-QQ<-QQ[1:58,]
+QQ<-QQ[1:57,]
 colnames(QQ)<-groups[1:56]
-rownames(QQ)<-groups[1:58]
+rownames(QQ)<-groups[1:57]
 #Sum discards
-Discards<-rowSums(GOM$Discards)
-Discards<-Discards[1:58]
+#Discards<-rowSums(GOM$Discards)
+#Discards<-Discards[1:58]
 #Calculate flow to detritus
 M0<-GOM$PB*(1-GOM$EE)
 Detritus<-M0*GOM$Biomass+GOM$QB*GOM$Biomass*GOM$Unassim
-Detritus<-Detritus[1:58]
+Detritus<-Detritus[1:57]
 #Deal with flow to detritus from discards
 #Should be equal to all flow to discards minus consumption by SeaBirds(45)
-DetInDisc<-sum(Discards)
-Detritus[58]<-DetInDisc-QQ[58,45]
+#DetInDisc<-sum(Discards)
+#Detritus[58]<-DetInDisc-QQ[58,45]
 #Flow to detritus from detritus = 0
 Detritus[57]<-0
 #Bind diet matrix (QQ) with flow to detritus, discards
-QQ<-cbind(QQ,Detritus,Discards)
+QQ<-cbind(QQ,Detritus)
 #Calculate exports
 #First sum catch
 Catch<-rowSums(GOM$Landings)
 #Add positive biomass accumulation terms
 Export<-Catch+(ifelse(GOM$BA>0,GOM$BA*GOM$Biomass,0))
-Export<-Export[1:58]
+Export<-Export[1:57]
 #Calculate respiration
 #Assume detritus, discards have 0 respiration
 Resp<-((1-GOM$Unassim)*GOM$QB-GOM$PB)*GOM$Biomass
 Resp<-ifelse(Resp>0,Resp,0)
-Resp<-Resp[1:58]
-Resp[57:58]<-0
+Resp<-Resp[1:57]
+Resp[57]<-0
 #Deal with Primary Production
 #First, estimate GROSS production = Imports
 #P/B in Ecopath model gives NET production
@@ -157,33 +161,36 @@ Resp[1]<-gross-(GOM$PB[1]*GOM$Biomass[1])
 #Gross primary production
 Import<-abs(ifelse(GOM$BA<0,GOM$BA*GOM$Biomass,0))
 Import[1]<-gross
-Import<-Import[1:58]
+Import<-Import[1:57]
 #Trim biomass
-Biomass<-GOM$Biomass[1:58]
+Biomass<-GOM$Biomass[1:57]
 #Pack the model directly and store
 orig.network<-enaR::pack(flow = QQ,
                         input = Import,
                         export = Export,
-                        living = c(rep(TRUE,56),rep(FALSE,2)),
+                        living = c(rep(TRUE,56),rep(FALSE,1)),
                         respiration = Resp,
                         storage = Biomass)
+
+#Information analysis of original model
+info.orig<-enaAscendency(orig.network)
+info.orig
+control.orig<-enaControl(orig.network, balance.override = T)
+mti.orig<-enaMTI(orig.network)
 
 #Information analyes of suite of models
 info<-lapply(alt.networks,enaAscendency)
 
-#Information analysis of original model
-info.orig<-enaAscendency(orig.network)
-control.orig<-enaControl(orig.network, balance.override = T)
-mti.orig<-enaMTI(orig.network)
+
 
 #Generate flow models for all alternates
 alt.flows<-lapply(alt.networks,enaFlow,balance.override=T)
 flow.orig<-enaFlow(orig.network,balance.override=T)
 
 #Pick out relative ascendancy metric
-ASC.CAP<-c()
-for (i in 1:length(alt.models)){
-  ASC.CAP[i]<-info[[i]][[7]]
+ASC.CAP.old<-c()
+for (i in 1:length(alt.networks)){
+  ASC.CAP.old[i]<-info[[i]][[7]]
 }
 
 #Pick out relative redundancy metric
@@ -192,9 +199,9 @@ for (i in 1:length(alt.models)){
   OH.CAP[i]<-info[[i]][[8]]
 }
 
-Tput<-c()
-for (i in 1:length(alt.models)){
-  ASC.CAP[i]<-info[[i]][[7]]
+R<-c()
+for (i in 1:length(alt.networks)){
+  R[i]<-info[[i]][[9]]
 }
 
 

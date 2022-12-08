@@ -15,7 +15,8 @@
 xfun::session_info()
 
 #Last modified 
-# Tue Nov  1 15:36:24 2022 ------------------------------
+# Thu Dec  1 10:52:18 2022 ------------------------------
+
 
 #Load packages
 library(readr);library (data.table);library(here)
@@ -229,6 +230,9 @@ all.groups <- as.data.table(all.groups[,c(1,2,3)])
 
 #Remove EMAX:RPATH many:1s
 all.groups <- all.groups[!RPATH %in% c('Megabenthos','Macrobenthos'),]
+
+#Change Discard to Detritus
+all.groups[which(EMAX == "Discard")]$RPATH <- "Detritus"
 
 #Calculate proportionality for EMAX:RPATH many:1s
 

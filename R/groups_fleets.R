@@ -8,7 +8,7 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Sun Nov 13 15:00:15 2022 ------------------------------
+# Thu Dec  1 10:02:21 2022 ------------------------------
 
 
 #Load needed packages
@@ -24,9 +24,9 @@ mean.land[FLEET =="HMS",FLEET:="HMS Fleet"]
 source(here("R/Groups.R"))
 
 #Add detritus and discards
-d.d<-as.data.table(rbind("Detritus","Discards"))
-colnames(d.d)<-"RPATH"
-groups_fleets<-rbind(GOM.groups,d.d)
+detritus<-as.data.table("Detritus")
+colnames(detritus)<-"RPATH"
+groups_fleets<-rbind(GOM.groups,detritus)
 
 #Pull out unique fleets
 fleets<-as.data.table(unique(mean.land$FLEET))
@@ -38,11 +38,7 @@ fleets<-subset(fleets, RPATH != "Scallop Dredge")
 #Bind fleets and functional groups
 groups_fleets<-rbind(groups_fleets,fleets)
 
-#remove Scallop Dredge
-#groups_fleets<-groups_fleets %>% filter(RPATH != "Scallop Dredge")
-
 #Remove unneeded items from environment
-rm(d.d,fleets)
-
+rm(detritus,fleets)
 
 
