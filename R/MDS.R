@@ -26,12 +26,12 @@ plot(x, y, xlab="Coordinate 1", ylab="Coordinate 2",
 
 #repeat for flows
 #all flows
-flows.all<-data.frame(matrix(ncol = 58,nrow = length(alt.flows)))
+flows.all<-data.frame(matrix(ncol = 57,nrow = length(alt.flows)))
 for(i in 1:length(alt.flows)){
   flow<-alt.flows[[i]]
   flows.all[i,]<-flow$T
 }
-colnames(flows.all)<-groups[1:58]
+colnames(flows.all)<-groups[1:57]
 rownames(flows.all)<-paste(rep("model",length(alt.flows)),1:length(alt.flows))
 
 d<-dist(flows.all)
