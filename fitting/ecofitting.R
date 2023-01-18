@@ -136,8 +136,8 @@ rsim.fit.obj <- function(SIM,RES,verbose=TRUE){
   obs <- SIM$fitting$Catch$obs + epsilon
   sd  <- SIM$fitting$Catch$sd  + epsilon
   sdlog  <- sqrt(log(1.0+sd*sd/(obs*obs)))
-  sdiff  <- (log(obs)-log(est))/sdlog
-  fit    <- SIM$fitting$Catch$wt * (log(sdlog) + FLOGTWOPI + 0.5*sdiff*sdiff)
+  sdiff  <- (log(obs)-log(est))
+  fit    <- SIM$fitting$Catch$wt * (0.5*log(sdlog) + FLOGTWOPI + 0.5*sdiff*sdiff/sdlog)
   if (verbose){
     OBJ$Catch <- cbind(SIM$fitting$Catch,est,sdiff,fit)
   } else {
