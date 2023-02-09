@@ -20,8 +20,7 @@ library(Rpath); library(data.table);library(dplyr);library(here)
 
 #Pull in code from GitHub
 #library(devtools)
-#source_url('https://github.com/NOAA-EDAB/Rpath/blob/fit_alpha/R/ecofitting.R')
-source(here("fitting/ecofitting.R"))
+source_url('https://github.com/NOAA-EDAB/Rpath/blob/fit_alpha/R/ecofitting.R')
 
 #Load balanced model
 load(here("outputs/GOM_Rpath.Rdata"))
