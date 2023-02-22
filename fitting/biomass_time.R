@@ -13,7 +13,7 @@
 
 #Load needed packages
 #Load required packages
-library(here);library(data.table);library(survdat); library(units); library(ggplot2)
+library(here);library(data.table);library(survdat); library(units); library(ggplot2); library(dplyr); library(tidyr)
 
 #Load survey data
 load(here('data/NEFSC_BTS_2021_all_seasons.RData'))
@@ -118,14 +118,33 @@ biomass_adjust <- biomass_adjust %>% rename(Group = RPATH, Year = YEAR) %>% sele
 biomass_adjust$Type <- rep("absolute",length(biomass_adjust$Group))
 biomass_adjust$Scale <- rep(1,length(biomass_adjust$Group))
 
+#rename columns to comply with fitting code
+biomass_fit <- biomass_fit %>% rename(Group = RPATH, Year = YEAR, Value = Biomass)
+#set biomass as index or absolute as appropriate
+biomass_fit$Type <- rep("index",length(biomass_adjust$Group))
+biomass_fit$Scale <- rep(1,length(biomass_adjust$Group))
+
 #save file
 write.csv(biomass_adjust,"fitting/biomass_fit.csv")
+write.csv(biomass_fit,"fitting/biomass_fit_index.csv")
+
 
 
 #visualize biomass trends over time
 ggplot(biomass_adjust,aes(x=Year, y = Value)) +
   geom_point() +
   facet_wrap(vars(Group),ncol = 4, scale = "free")
+
+#just Herring and Redfish
+herring<-biomass_adjust%>%filter(Group == "AtlHerring")
+herring$anom<-(herring$Value*100/mean(herring$Value))-100
+redfish<-biomass_adjust%>%filter(Group == "Redfish")
+redfish$anom<-(redfish$Value*100/mean(redfish$Value))-100
+redfish_herring<-rbind(herring,redfish)
+ggplot(redfish_herring, aes(x=Year))+
+    geom_line(aes(y=anom, color=Group))
+
+recent<-redfish_herring%>% filter(Year >=2005 & Year <=2012)
 
 #ggplot(fitting_groups,aes(x=Year, y = Index)) +
 # geom_smooth(method = "lm", se=FALSE, color="grey", formula = y ~ x)+
