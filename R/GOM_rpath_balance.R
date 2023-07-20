@@ -46,8 +46,8 @@ biomass<-as.vector(biomass$Biomass)
 biomass[35]<-2.5*10^-5
 
 #Changes to biomass for balancing
-#Multiply OtherCeph biomass by 30
-biomass[10]<-biomass[10]*30
+#Multiply OtherCeph biomass by 32
+biomass[10]<-biomass[10]*32
 
 #Multiply SmFlatfish biomass by 105
 biomass[15]<-biomass[15]*105
@@ -81,8 +81,8 @@ biomass[18]<-biomass[18]*20
 #In accordance with Yong
 biomass[21]<-biomass[21]*10
 
-#Multiply AtlMackerel biomass by 5.06
-biomass[27]<-biomass[27]*5.06
+#Multiply AtlMackerel biomass by 5.1
+biomass[27]<-biomass[27]*5.1
 
 #Multiply AmLobster biomass by 3
 #In accordance with Yong's estimates
@@ -91,8 +91,10 @@ biomass[12]<-biomass[12]*3
 #Multiply WinterFlounder biomass by 2.7
 biomass[47]<-biomass[47]*2.7
 
-#Multiply Windowpane by 2
-biomass[46]<-biomass[46]*2
+#Change Windowpane to match assessment
+biomass[46]<-0.033519469
+#OR multiply by 2
+#biomass[46]<-biomass[46]*2
 
 #Multiply WhiteHake biomass by 0.75
 biomass[41]<-biomass[41]*0.75
@@ -122,8 +124,8 @@ biomass[38]<-biomass[38]*0.75
 #Multiply Butterfish biomass by 3
 biomass[50]<-biomass[50]*3
 
-#Multiply OceanPout biomass by 2
-biomass[13]<-biomass[13]*2
+#Multiply OceanPout biomass by 2.01
+biomass[13]<-biomass[13]*2.01
 
 #Multiply Macrobenthos biomass by 0.5
 biomass[11]<-biomass[11]*0.5
@@ -148,6 +150,12 @@ biomass[34]<-biomass[34]*1.1
 
 #Multiply Loligo biomass by 1.03
 biomass[9]<-biomass[9]*1.03
+
+#Multiply LittleSkate biomass by 1.1
+biomass[44]<-biomass[44]*1.1
+
+#Multiply WinterSkate biomass by 1.75
+biomass[52]<-biomass[52]*1.75
 
 #Fill model
 GOM.params$model[,Biomass:=biomass]
@@ -504,15 +512,20 @@ GOM.params$diet[8,35]<-GOM.params$diet[8,35]+0.011
 GOM.params$diet[10,44]<-GOM.params$diet[10,44]-0.0021
 GOM.params$diet[8,44]<-0.0021
 
-#Shift predation of AtlHerring(27) from OtherCeph(10) to Illex(8)
+#Shift predation of AtlMackerel(27) from OtherCeph(10) to Illex(8)
 #Shift 1.1%
 GOM.params$diet[10,28]<-GOM.params$diet[10,28]-0.011
 GOM.params$diet[8,28]<-0.011
 
-#Shift predation of AtlMackerel(21) from OtherCeph(10) to Illex(8)
+#Shift predation of AtlHerring(21) from OtherCeph(10) to Illex(8)
 #Shift 0.029%
 GOM.params$diet[10,22]<-GOM.params$diet[10,22]-0.00029
 GOM.params$diet[8,22]<-GOM.params$diet[8,22]+0.00029
+
+#Shift predation of Windowpane(46) from OtherCeph(10) to AmLobster(12)
+#Shift 0.05%
+GOM.params$diet[10,47]<-GOM.params$diet[10,47]-0.0005
+GOM.params$diet[12,47]<-0.0005
 
 #Shift predation of WinterFlounder(47) from OtherCeph(10) to AmLobster(12)
 #Shift 1.6%
@@ -887,6 +900,8 @@ GOM.params$diet[5,52]<-GOM.params$diet[5,52]-0.025
 GOM.params$diet[39,52]<-0.025
 
 
+#Reassign copepod groups
+source(here("R/redo_copes.R"))
 
 #Assign data pedigree
 source(here("R/data_pedigree.R"))
@@ -902,7 +917,7 @@ EE[order(EE)]
 #Print EEs
 #write.csv(EE,"outputs/EE_8.csv")
 
-#Print final modeal
+#Print final model
 GOM
 
 #Save files
@@ -917,10 +932,16 @@ save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
 #TL[order(TL)]
 
 #Rsim basic
-#GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:50)
-#For AB method, need to set NoIntegrate flag for 
-#GOM.sim$params$NoIntegrate[4:5]<-0
+GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:20)
+#For AB method, need to set NoIntegrate flag manually 
+GOM.sim$params$NoIntegrate[4:5]<-0
 #Run simulation
-#GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:50)
+GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:20)
 
+#plotting
+rsim.plot(GOM.run1,spname = GOM.groups$RPATH[1:10])
+rsim.plot(GOM.run1,spname = GOM.groups$RPATH[11:20])
+rsim.plot(GOM.run1,spname = GOM.groups$RPATH[21:30])
+rsim.plot(GOM.run1,spname = GOM.groups$RPATH[31:40])
+rsim.plot(GOM.run1,spname = GOM.groups$RPATH[41:56])
 
