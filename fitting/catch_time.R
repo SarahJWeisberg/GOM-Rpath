@@ -52,7 +52,7 @@ spp <- spp[RPATH == 'Weakfish', RPATH := 'OtherDemersals']
 #Cusk not included in Georges Bank model -- need to create RPATH name
 spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
 #Merge NESPP3 and RPath codes
-spp<-select(spp,one_of(c("NESPP3","RPATH")))
+spp<-dplyr::select(spp,one_of(c("NESPP3","RPATH")))
 spp<-unique(na.exclude(spp)) 
 
 #5 NESPP3 codes are matched with 2 RPATH codes

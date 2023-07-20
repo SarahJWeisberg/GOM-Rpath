@@ -1,5 +1,7 @@
-#Ecofitting - cut & paste from Kerim's code
-#Modification made to fitting routine (see notes)
+#Copy-pasted from Kerim's code - fit alpha branch
+#change made on 1/13/23
+
+# Wed Jan 18 13:32:57 2023 ------------------------------
 
 ################################################################################
 #'@useDynLib Rpath
@@ -112,19 +114,33 @@ rsim.fit.obj <- function(SIM,RES,verbose=TRUE){
   wt  <- SIM$fitting$Biomass$wt 
   # We need to get variance-weighted survey means by species, for
   # calculating mean values needed for setting best-fit q
-  inv_var <- 1.0/(sd*sd)
-  obs_sum <- tapply(obs*inv_var*wt, as.character(SIM$fitting$Biomass$Group),sum)
-  inv_sum <- tapply(inv_var*wt,     as.character(SIM$fitting$Biomass$Group),sum)
-  obs_mean <- obs_sum/inv_sum
-  est_mean <- tapply(est,as.character(SIM$fitting$Biomass$Group),mean)
-  survey_q <- ifelse(SIM$fitting$Biomass$Type=="absolute", 1.0,
-                     #(obs_mean/est_mean)[as.character(SIM$fitting$Biomass$Group)])
-                     (est_mean/obs_mean)[as.character(SIM$fitting$Biomass$Group)])
-  obs_scaled <-obs*survey_q 
-  sdlog  <- sqrt(log(1.0+sd*sd*survey_q*survey_q/(obs_scaled*obs_scaled)))
-  sdiff  <- (log(obs_scaled)-log(est))
-  fit    <- wt * (0.5*log(sdlog) + FLOGTWOPI + 0.5*sdiff*sdiff/sdlog)
+  
+  # Formula for weighted average q: 
+  # q = exp(sum(w * log(obs/est))/sum(w)) where w is wt/sd  
+  logdiff       <- log(obs/est)
+  sdlog         <- sqrt(log(1.0+sd*sd/(obs*obs))) # sigma^2 of lognormal dist 
+  wt_sd_inverse <- wt/sdlog# sd
+  wt_logdiffsum <- tapply(logdiff*wt_sd_inverse, as.character(SIM$fitting$Biomass$Group),sum)
+  wt_sum        <- tapply(wt_sd_inverse,         as.character(SIM$fitting$Biomass$Group),sum)
+  q_est         <- exp(wt_logdiffsum/wt_sum) # need ifelse here for 0 weights?
+  survey_q      <- ifelse(SIM$fitting$Biomass$Type=="absolute", 1.0,
+                          q_est[as.character(SIM$fitting$Biomass$Group)])
+  ## Jan 2023 incorrect code
+  #inv_var <- 1.0/(sd*sd)
+  #obs_sum <- tapply(obs*inv_var*wt, as.character(SIM$fitting$Biomass$Group),sum)
+  #inv_sum <- tapply(inv_var*wt,     as.character(SIM$fitting$Biomass$Group),sum)
+  #obs_mean <- obs_sum/inv_sum
+  #est_mean <- tapply(est,as.character(SIM$fitting$Biomass$Group),mean)
+  #survey_q <- ifelse(SIM$fitting$Biomass$Type=="absolute", 1.0,
+  #            #(obs_mean/est_mean)[as.character(SIM$fitting$Biomass$Group)])
+  #            (est_mean/obs_mean)[as.character(SIM$fitting$Biomass$Group)])
+  #obs_scaled <-obs*survey_q 
+  #sdlog  <- sqrt(log(1.0+sd*sd*survey_q*survey_q/(obs_scaled*obs_scaled)))
+  sdiff  <- log((obs/survey_q)/est)/sdlog
+  fit    <- wt * (FLOGTWOPI + log(sdlog) + 0.5*sdiff*sdiff)
+  
   if (verbose){
+    obs_scaled  <- obs/survey_q
     OBJ$Biomass <- cbind(SIM$fitting$Biomass,est,survey_q,obs_scaled,sdiff,fit)
   } else {
     OBJ$tot <- OBJ$tot + sum(fit)
@@ -136,8 +152,8 @@ rsim.fit.obj <- function(SIM,RES,verbose=TRUE){
   obs <- SIM$fitting$Catch$obs + epsilon
   sd  <- SIM$fitting$Catch$sd  + epsilon
   sdlog  <- sqrt(log(1.0+sd*sd/(obs*obs)))
-  sdiff  <- (log(obs)-log(est))
-  fit    <- SIM$fitting$Catch$wt * (0.5*log(sdlog) + FLOGTWOPI + 0.5*sdiff*sdiff/sdlog)
+  sdiff  <- log(obs/est)/sdlog
+  fit    <- SIM$fitting$Catch$wt * (log(sdlog) + FLOGTWOPI + 0.5*sdiff*sdiff)
   if (verbose){
     OBJ$Catch <- cbind(SIM$fitting$Catch,est,sdiff,fit)
   } else {
