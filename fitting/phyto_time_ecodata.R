@@ -43,18 +43,18 @@ ppd_gom$Value<-as.numeric(ppd_gom$Value)
 ppd_gom$Var<-str_remove(ppd_gom$Var,"ANNUAL_PPD_")
 
 #Plot both median and anomaly
-ggplot(data = ppd_gom,aes(x=Year, y=Value))+
-  geom_line()+
-  stat_smooth(method = "lm")+
-  facet_wrap(~Var, scales = "free")
+# ggplot(data = ppd_gom,aes(x=Year, y=Value))+
+#   geom_line()+
+#   stat_smooth(method = "lm")+
+#   facet_wrap(~Var, scales = "free")
 
 #Plot just anomalies
-ppd_gom %>% filter(Var == "RATIO_ANOMALY") %>%
-  ggplot(aes(x=Year, y=Value))+
-  geom_point()
+# ppd_gom %>% filter(Var == "RATIO_ANOMALY") %>%
+#   ggplot(aes(x=Year, y=Value))+
+#   geom_point()
 
-lm<-lm(Value~Year, data = ppd_gom, subset = (Var == "MEDIAN"))
-summary(lm)
+# lm<-lm(Value~Year, data = ppd_gom, subset = (Var == "MEDIAN"))
+# summary(lm)
 #chl <- read.csv(file.path(raw.dir, chl_csv)) %>%
   #dplyr::mutate(ALGORITHM = word(stringr::str_replace(ALGORITHM, "_", " "))) %>%
   #tidyr::unite(.,VARIABLE, c("VARIABLE","SENSOR","ALGORITHM"), sep = " ") %>%
@@ -94,12 +94,12 @@ ggplot(data = chl_gom,aes(x=Year, y=Value))+
   facet_wrap(~Var, scales = "free")
 
 #Plot just anomalies
-chl_gom %>% filter(Var == "RATIO_ANOMALY") %>%
-  ggplot(aes(x=Year, y=Value))+
-  geom_point()
+# chl_gom %>% filter(Var == "RATIO_ANOMALY") %>%
+#   ggplot(aes(x=Year, y=Value))+
+#   geom_point()
 
-lm<-lm(Value~Year, data = chl_gom, subset = (Var == "RATIO_ANOMALY"))
-summary(lm)
+# lm<-lm(Value~Year, data = chl_gom, subset = (Var == "RATIO_ANOMALY"))
+# summary(lm)
 
 #set baselines
 #prior to 2001, which is years included in EMAX estimates
@@ -111,22 +111,36 @@ ppd_gom<-left_join(ppd_gom,ppd_EMAX, by="Var")
 ppd_gom$anom<-(ppd_gom$Value-ppd_gom$mean)/ppd_gom$mean
 
 #plot just after 2000
-ppd_gom %>% filter(Year >2000)%>%
-ggplot(aes(x=Year, y=anom))+
-  geom_point()+
-  geom_line(aes(y=zoo::rollmean(anom,3,na.pad = T)))+
-  facet_wrap(~Var)
+# ppd_gom %>% filter(Year >2000, Var == "MEDIAN")%>%
+# ggplot(aes(x=Year, y=anom))+
+#   geom_line()+
+#   #geom_line(aes(y=zoo::rollmean(anom,3,na.pad = T)))+
+#   #facet_wrap(~Var)+
+#   labs(y="Production Anomaly (gC/m^2/day)")+
+#   stat_smooth(method = "lm",col="red")
 
 #repeat with chl
 chl_EMAX<-chl_gom %>% group_by(Var) %>%
   filter(Year <2001) %>% summarise(mean=mean(Value))
 
 chl_gom<-left_join(chl_gom,chl_EMAX, by="Var")
-chl_gom$anom<-(chl_gom$Value-chl_gom$mean)/chl_gom$mean
+#chl_gom$anom<-(chl_gom$Value-chl_gom$mean)/chl_gom$mean
+#rescale to starting biomass value
+pp_start<-22.126
+pp_force<-chl_gom %>% filter(Year>=2001,Var == "MEDIAN") %>% 
+  mutate(force_b = Value/mean * pp_start) %>% dplyr::select(Year,force_b)
+
+#add previous years
+# pre<-cbind(seq(1985,2000),rep(pp_start,16))
+# colnames(pre)<-c("Year","force_b")
+# pp_force<-rbind(pre,pp_force)
 
 #plot just after 2003
-chl_gom %>% filter(Year >2000)%>%
-  ggplot(aes(x=Year, y=anom))+
-  geom_point()+
-  geom_line(aes(y=zoo::rollmean(anom,3,na.pad = T)))+
-  facet_wrap(~Var, scales = "free")
+# chl_gom %>% filter(Year >2000, Var == "MEDIAN")%>%
+#   ggplot(aes(x=Year, y=anom))+
+#   geom_line()+
+#   #geom_line(aes(y=zoo::rollmean(anom,3,na.pad = T)))+
+#  #facet_wrap(~Var, scales = "free")+ 
+#   labs(y="ChlA Anomaly (mg/m^3)")+
+#   stat_smooth(method = "lm",col="red")
+
