@@ -14,9 +14,10 @@ library(tidyr)
 library(stringr)
 library(ggplot2)
 library(zoo)
+library(here)
 
 # input files 
-chl_csv <- read.csv("data/OCCCI-V6.0-L3B4-SUBAREAS_EXTRACT.CSV")
+chl_csv <- read.csv(here("data/OCCCI-V6.0-L3B4-SUBAREAS_EXTRACT.CSV"))
 
 #isolate years, geometric means
 chl<-chl_csv %>% dplyr::select(PERIOD, GMEAN) %>%
