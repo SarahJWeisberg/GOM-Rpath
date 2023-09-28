@@ -108,3 +108,61 @@ temp_comp <- rbind(GOM_temp,bottom_temp)
 #plot
 ggplot(data = temp_comp, aes(x=Time,y=Value,color=source))+
   geom_line()
+
+#Pull Tmax_survey from survey data
+#Load survey data
+load(here('data/NEFSC_BTS_2021_all_seasons.RData'))
+#load species codes
+load(here('data/speciescodesandstrata/Species_codes.RData'))
+#load model groups
+source(here('R/Groups.R'))
+
+#pull out fish groups chosen for variable bioenergetics
+cons_groups<-GOM.groups %>% dplyr::filter(RPATH %in% c('OceanPout',
+                                                       'RiverHerring',
+                                                       'AtlHerring','YTFlounder','Cod',
+                                                       'Haddock','AmPlaice','AtlMackerel','AtlHalibut',
+                                                       'SummerFlounder', 
+                                                       #'Cusk',
+                                                       'RedHake','Fourspot',
+                                                       'SmoothDogfish','Pollock','Goosefish','SilverHake',
+                                                       'WhiteHake','SpinyDogfish','Redfish',
+                                                       'Windowpane','WinterFlounder',
+                                                       'WitchFlounder','BlackSeaBass','Butterfish'))
+
+
+#Cusk not included in Georges Bank model -- need to create RPATH name
+spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
+
+survdat<-survey$survdat
+survdat<-left_join(survdat,spp, by = "SVSPP")
+
+#need:
+#biomass per stratum per cruise
+swept<-calc_swept_area(surveyData=survdat, areaPolygon = 'NEFSC strata', areaDescription = 'STRATA', 
+                       filterByArea = c(1220), filterBySeason = "all",
+                       groupDescription = "RPATH", filterByGroup = "AtlHalibut", mergesexFlag = T,tidy = F, q = NULL, a = 0.0384)
+#avg temp per stratum per cruise
+
+#look at halibut
+halibut<-survdat %>% dplyr::filter(RPATH == "AtlHalibut")
+#filter after 1980
+halibut<-halibut %>% filter(YEAR >1979)
+#where do we find halibut (which strata)?
+halibut_strata<- halibut$STRATUM %>% unique()
+#calculate biomass per stratum per year, append stratum
+halibut_biomass<-c()
+for (i in 1:length(halibut_strata)) {
+  stratum<-halibut_strata[i]
+  swept<-calc_swept_area(surveyData=survdat, areaPolygon = 'NEFSC strata', areaDescription = 'STRATA', 
+                         filterByArea = stratum, filterBySeason = "all",
+                         groupDescription = "RPATH", filterByGroup = "AtlHalibut", mergesexFlag = T,tidy = F, q = NULL, a = 0.0384)
+  biomass<-swept %>% select(YEAR,RPATH,tot.biomass)
+  biomass$stratum<-stratum
+  halibut_biomass<-rbind(halibut_biomass,biomass)
+}
+
+#merge with temp
+
+halibut_biomass<-halibut_biomass %>% rename(STRATUM=stratum)
+halibut_biomass<-halibut_biomass %>% left_join(GOM_survey)
