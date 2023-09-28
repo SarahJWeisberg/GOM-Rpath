@@ -1,7 +1,10 @@
 #Incorporating temp-dependent P and Q
 
 #Data files: "data/bot_temp_GOM.csv" - Bottom temperature of GOM from ecodata
-#             "data/Fitting_Inputs_Bioen.csv" - Bioenergetic parameters from literature review
+#             "data/Fitting_Inputs_Bioen.csv" - Bioenergetic parameters from literature reviews
+
+# Data from https://github.com/NOAA-EDAB/ecodata/blob/master/data-raw/bot_temp_GOM.csv
+# Data processing code from https://github.com/NOAA-EDAB/ecodata/blob/master/data-raw/get_bottom_temp.R
 
 # Tue Sep 26 18:34:01 2023 ------------------------------
 
@@ -22,8 +25,7 @@ library(survdat)
 library(ggplot2)
 library(Rpath)
 
-bottom_temp_GOM_csv<-read.csv(here("data/bot_temp_GOM.csv"))
-
+bottom_temp_GOM_csv<-read.csv(here("data/bot_temp_GOM.csv")) 
 temp<- bottom_temp_GOM_csv %>% dplyr::mutate(Time = as.Date(format(lubridate::date_decimal(Time))),
                                                     Var, Var = plyr::mapvalues(Var, from = c("Tsfc_anom",#Rename variables
                                                                                              "Tsfc_ref",
@@ -44,8 +46,7 @@ bottom_temp <- temp %>% filter(Var == "bt_anomaly") %>% dplyr::group_by(Time = l
   #dplyr::summarise(Value = mean(Value))
 
 ggplot(bottom_temp,aes(x=Time,y=Value))+
-  geom_line()+
-  scale_color_brewer(palette = "Accent")
+  geom_line()
 
 #get SST in absolute values
 #sst<-anom %>% filter(Var == "sst_anomaly") %>% mutate(sst = Value+10.3727)
