@@ -122,7 +122,7 @@ bt_max_survey <- as.data.frame(cbind(cons_groups,bt_max_survey))
 bioen<-read.csv(here("data/Fitting_Inputs_Bioen.csv"))
 #make empty data frame
 cons<-data.frame(matrix(ncol=4,nrow = length((cons_groups$RPATH))))
-colnames(cons)<-c("Group","Tmax","Topt","Q10")
+colnames(cons)<-c("RPATH","Tmax","Topt","Q10")
 
 for (i in 1: length(cons_groups$RPATH)){
   group<-cons_groups$RPATH[i]
@@ -144,13 +144,14 @@ for (i in 1: length(cons_groups$RPATH)){
   Q10<-ifelse(length(Q10)>0,mean(Q10),2.3)
   cons[i,]<-c(group,Tmax,Topt,Q10)
 }
+cons$Tmax<-as.numeric(cons$Tmax)
+cons$Topt<-as.numeric(cons$Topt)
+cons$Q10<-as.numeric(cons$Q10)
 
-#default Topt and Q10 values
-#calculate initial RC
 #need index from starting model to get QB, B
-# cons <- cons %>% mutate(bt_opt = bt_max*0.9, q10 = 2.3,
-#                         start_rc = rc(Tmax = bt_max,Topt = bt_opt,Q10=q10,Temp=start_temp),
-#                         index = which(GOM.groups$RPATH %in% cons_groups$RPATH))
+#calculate starting rc
+cons <- cons %>% mutate(index = which(GOM.groups$RPATH %in% cons_groups$RPATH),
+                        start_rc = rc(Tmax = Tmax,Topt = Topt,Q10=Q10,Temp=start_temp))
 
 #change lobster-specific values
 #cons <- cons %>% mutate(bt_opt = replace(bt_opt, RPATH == "AmLobster", 20)) %>%
@@ -167,8 +168,8 @@ cons <- cons %>% mutate(qb = GOM$QB[cons$index],
 bottom_temp<-bottom_temp %>% filter(Time >= 1991 & Time <=2019)
 cons_time<-c()
 for (i in 1:length(cons$RPATH)) {
-  group<-cons[i]
-  cons_time_group<-bottom_temp %>%  mutate(rc = rc(Tmax = group$bt_max,Topt = group$bt_opt,Q10=group$q10,Temp=bottom_temp$Value), 
+  group<-cons[i,]
+  cons_time_group<-bottom_temp %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=bottom_temp$Value), 
                                      rel_rc = rc/group$start_rc,
                                      cons = rel_rc*group$qb*group$biomass,
                                      rel_resp=rel_resp(temp_c = Value),

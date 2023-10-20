@@ -54,6 +54,9 @@ scene0$fitting$Catch[which(scene0$fitting$Group %in% c("SmFlatfishes","OtherShri
 #scene0 <- adjust.fishing(scene0, "ForcedEffort", rpath.gears(GOM), fit.years, value=1.0)
 #scene0$forcing$ForcedBio[,"Discards"] <- GOM$Biomass["Discards"]
 
+#run active respiration forcing
+source(here("fitting/act_resp_force.R"))
+
 # For species without catch, reapply Ecopath F (originally through gears) to ForcedFRate
 F_equil <- rowSums(GOM$Landings)  /(GOM$Biomass)  #+ rowSums(GOM$Discards))
 
@@ -149,3 +152,11 @@ cor.test(haddock_o$Value,haddock_p$Haddock, method="pearson")
 AmLobster_o<-observed %>% filter(Group == "AmLobster")
 AmLobster_p<-predicted %>% select(AmLobster)
 cor.test(AmLobster_o$Value,AmLobster_p$AmLobster)
+
+AtlHerring_o<-observed %>% filter(Group == "AtlHerring")
+AtlHerring_p<-predicted %>% select(AtlHerring)
+cor.test(AtlHerring_o$Value,AtlHerring_p$AtlHerring, method="pearson")
+
+Redfish_o<-observed %>% filter(Group == "Redfish")
+Redfish_p<-predicted %>% select(Redfish)
+cor.test(Redfish_o$Value,Redfish_p$Redfish, method="spearman")
