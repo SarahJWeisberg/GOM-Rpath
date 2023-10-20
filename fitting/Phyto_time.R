@@ -43,12 +43,6 @@ chl$EMAX_mean<-rep(chl_EMAX$mean, length(chl$Year))
 
 chl<-chl %>% mutate (anom = (Value-EMAX_mean)/EMAX_mean)
 
-#repeat with chl
-chl_EMAX<-chl_gom %>% group_by(Var) %>%
-  filter(Year < 2001) %>% summarise(mean=mean(Value))
-
-chl_gom<-left_join(chl_gom,chl_EMAX, by="Var")
-
 #rescale to starting biomass value
 pp_start<-22.126
 pp_force<-chl %>% 

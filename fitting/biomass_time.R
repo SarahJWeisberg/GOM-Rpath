@@ -94,7 +94,7 @@ colnames(biomass_80s_balanced)<-c("RPATH","Biomass_balanced")
 #merge
 ratio<-left_join(biomass_80s,biomass_80s_balanced,by="RPATH")
 ratio$Biomass_balanced<-as.numeric(ratio$Biomass_balanced) #why does this happen??
-ratio<-ratio %>% mutate(ratio = Biomass_balanced/Biomass) %>% select(RPATH,ratio)
+ratio<-ratio %>% mutate(ratio = Biomass_balanced/Biomass) %>% dplyr::select(RPATH,ratio)
 
 #Need to deal with Macrobenthos and Megabenthos groups - these come from EMAX not trawl
 #But want to keep temporal trend captured by trawl
@@ -103,7 +103,7 @@ ratio<-ratio %>% mutate(ratio = Biomass_balanced/Biomass) %>% select(RPATH,ratio
 ratio<-ratio %>% filter(RPATH != "Macrobenthos" & RPATH != "Megabenthos")
 benthos<-left_join(biomass_fit %>% filter(YEAR == 1985, RPATH %in% c("Macrobenthos","Megabenthos")), biomass_80s_balanced %>% filter(RPATH %in% c("Macrobenthos","Megabenthos")),by="RPATH")
 benthos$Biomass_balanced<-as.numeric(benthos$Biomass_balanced)
-benthos<-benthos %>% mutate(ratio = Biomass_balanced/Biomass) %>% select(RPATH,ratio)
+benthos<-benthos %>% mutate(ratio = Biomass_balanced/Biomass) %>% dplyr::select(RPATH,ratio)
 
 #merge
 ratio<-bind_rows(ratio,benthos)
@@ -113,7 +113,7 @@ biomass_adjust<- left_join(biomass_fit,ratio,by="RPATH") %>% replace_na(list(rat
 biomass_adjust <- biomass_adjust %>% mutate(Value = Biomass*ratio)
 
 #rename columns to comply with fitting code
-biomass_adjust <- biomass_adjust %>% rename(Group = RPATH, Year = YEAR) %>% select(-Biomass, -ratio)
+biomass_adjust <- biomass_adjust %>% rename(Group = RPATH, Year = YEAR) %>% dplyr::select(-Biomass, -ratio)
 #set biomass as index or absolute as appropriate
 biomass_adjust$Type <- rep("absolute",length(biomass_adjust$Group))
 biomass_adjust$Scale <- rep(1,length(biomass_adjust$Group))

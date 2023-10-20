@@ -87,7 +87,7 @@ ggplot(data = GOM_temp, aes(x=YEAR,y=weighted_bt))+
 
 #plot trawl data (my calcs) next to ecodata results
 #act_resp_force.R
-GOM_survey<-GOM_survey %>% filter(YEAR > 1976) %>% #ecodata starts in 1977
+GOM_strat_temp<-GOM_survey %>% filter(YEAR > 1976) %>% #ecodata starts in 1977
   group_by(STRATUM,YEAR) %>% mutate(mean_bt = mean(BOTTEMP, na.rm = T)) %>% select(YEAR,STRATUM,mean_bt) %>%
   distinct()
 
@@ -136,6 +136,7 @@ spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
 
 survdat<-survey$survdat
 survdat<-left_join(survdat,spp, by = "SVSPP")
+GOM_survey<-left_join(GOM_survey,spp, by = "SVSPP")
 
 #need:
 #biomass per stratum per cruise
@@ -145,9 +146,7 @@ swept<-calc_swept_area(surveyData=survdat, areaPolygon = 'NEFSC strata', areaDes
 #avg temp per stratum per cruise
 
 #look at halibut
-halibut<-survdat %>% dplyr::filter(RPATH == "AtlHalibut")
-#filter after 1980
-halibut<-halibut %>% filter(YEAR >1979)
+halibut<-GOM_survey %>% dplyr::filter(RPATH == "AtlHalibut")
 #where do we find halibut (which strata)?
 halibut_strata<- halibut$STRATUM %>% unique()
 #calculate biomass per stratum per year, append stratum
@@ -163,6 +162,85 @@ for (i in 1:length(halibut_strata)) {
 }
 
 #merge with temp
-
 halibut_biomass<-halibut_biomass %>% rename(STRATUM=stratum)
-halibut_biomass<-halibut_biomass %>% left_join(GOM_survey)
+halibut_biomass<-halibut_biomass %>% left_join(GOM_strat_temp)
+halibut_annual_temp<-halibut_biomass %>% na.omit() %>% group_by(YEAR) %>% 
+  mutate(biomass_temp = mean_bt*tot.biomass) %>% 
+  mutate(weighted_temp = sum(biomass_temp)/sum(tot.biomass)) %>% 
+  select(YEAR,weighted_temp) %>% distinct()
+
+ggplot(data=halibut_annual_temp,aes(x=YEAR,y=weighted_temp))+
+  geom_line()
+
+#look at black sea bass
+bsb<-GOM_survey %>% dplyr::filter(RPATH == "BlackSeaBass")
+#where do we find bsb (which strata)?
+bsb_strata<- bsb$STRATUM %>% unique()
+#calculate biomass per stratum per year, append stratum
+bsb_biomass<-c()
+for (i in 1:length(bsb_strata)) {
+  stratum<-bsb_strata[i]
+  swept<-calc_swept_area(surveyData=survdat, areaPolygon = 'NEFSC strata', areaDescription = 'STRATA', 
+                         filterByArea = stratum, filterBySeason = "all",
+                         groupDescription = "RPATH", filterByGroup = "BlackSeaBass", mergesexFlag = T,tidy = F, q = NULL, a = 0.0384)
+  biomass<-swept %>% select(YEAR,RPATH,tot.biomass)
+  biomass$stratum<-stratum
+  bsb_biomass<-rbind(bsb_biomass,biomass)
+}
+
+#merge with temp
+bsb_biomass<-bsb_biomass %>% rename(STRATUM=stratum)
+bsb_biomass<-bsb_biomass %>% left_join(GOM_strat_temp)
+bsb_annual_temp<-bsb_biomass %>% na.omit() %>% group_by(YEAR) %>% 
+  mutate(biomass_temp = mean_bt*tot.biomass) %>% 
+  mutate(weighted_temp = sum(biomass_temp)/sum(tot.biomass)) %>% 
+  select(YEAR,weighted_temp) %>% distinct()
+
+ggplot(data=bsb_annual_temp,aes(x=YEAR,y=weighted_temp))+
+  geom_line()
+
+ggplot(data=test,aes(x=YEAR,y=weighted_temp,color=sp))+
+  geom_line()
+
+#look at all
+biomass_temp<-c()
+for (j in 1:length(cons_groups$RPATH)) {
+  group<-cons_groups$RPATH[j]
+  group_survey<-GOM_survey %>% dplyr::filter(RPATH == group)
+  #where do we find bsb (which strata)?
+  group_strata<- group_survey$STRATUM %>% unique()
+  #calculate biomass per stratum per year, append stratum and group name
+  for (i in 1:length(group_strata)) {
+    stratum<-group_strata[i]
+    swept<-calc_swept_area(surveyData=survdat, areaPolygon = 'NEFSC strata', areaDescription = 'STRATA', 
+                           filterByArea = stratum, filterBySeason = "all",
+                           groupDescription = "RPATH", filterByGroup = group, mergesexFlag = T,tidy = F, q = NULL, a = 0.0384)
+    biomass<-swept %>% select(YEAR,RPATH,tot.biomass)
+    biomass$stratum<-stratum
+    biomass_temp<-rbind(biomass_temp,biomass)
+  }
+}
+  
+  #merge with temp
+biomass_temp<-biomass_temp %>% rename(STRATUM=stratum) %>% left_join(GOM_strat_temp)
+biomass_annual_temp<-biomass_temp %>% na.omit() %>% group_by(YEAR,RPATH) %>% 
+  mutate(biomass_temp = mean_bt*tot.biomass) %>% 
+  mutate(weighted_temp = sum(biomass_temp)/sum(tot.biomass)) %>% 
+  select(YEAR,weighted_temp,RPATH) %>% distinct()
+
+
+biomass_annual_temp %>% filter(RPATH %in% c("Haddock")) %>%
+  ggplot(aes(x=YEAR,y=weighted_temp,color=RPATH))+
+  geom_line()
+
+linear_trends<-c()
+for (i in 1:length(cons_groups$RPATH)){
+  group<-cons_groups$RPATH[i]
+  test<-biomass_annual_temp %>% filter(RPATH == group)
+  lm<-lm(data=test,weighted_temp~YEAR)
+  p<-summary(lm)[["coefficients"]][8]
+  p_group<-cbind(p,group)
+  linear_trends<-rbind(linear_trends,p_group)
+}
+
+#write.csv(biomass_annual_temp,"outputs/biomass_weighted_annual_temp.csv")                                                                                                         

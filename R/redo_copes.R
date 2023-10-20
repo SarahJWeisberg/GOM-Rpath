@@ -55,6 +55,7 @@ GOM.params$diet[5,19]<-GOM.params$diet[5,19]*0.25
 #Shift SmCopepod[6] predation
 GOM.params$diet[5,7]<-GOM.params$diet[6,7]*0.05
 GOM.params$diet[6,7]<-GOM.params$diet[6,7]*0.95
+
 #Shift 3% predation from Microzooplankton[3] to Bacteria[2]
 GOM.params$diet[2,7]<-GOM.params$diet[2,7]+0.03
 GOM.params$diet[3,7]<-GOM.params$diet[3,7]-0.03
