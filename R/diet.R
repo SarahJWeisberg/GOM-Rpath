@@ -31,7 +31,9 @@ prey <- as.data.table(read_csv("data/SASPREY12B.csv"))
 EMAX.params<-as.data.table(read.csv('data/GOM_EMAX_params.csv'))
 
 #load biomass estimates from EMAX
-#source('R/EMAX_biomass_estimates.R')
+source(here("R/groups_fleets.R"))
+source('R/EMAX_biomass_estimates.R')
+
 
 #Match prey codes with RPath group names
 #Start with 1:1
@@ -77,7 +79,8 @@ prey[PYNAM == 'EPIGONUS PANDIONIS', RPATH := 'OtherDemersals']
 #Need to revisit River Herring classification
 
 #Easy many to ones
-prey[PYCOMNAM %in% c('SEA SCALLOP', 'SEA SCALLOP VISCERA'), RPATH := 'Megabenthos']
+prey[PYCOMNAM %in% c('SEA SCALLOP', 'SEA SCALLOP VISCERA','SCALLOPS',
+                     'SCALLOP VISCERA', 'SCALLOP SHELL'), RPATH := 'AtlScallop']
 prey[PYCOMNAM %in% c('ATLANTIC SURFCLAM', 'SURFCLAM VISCERA', 'OCEAN QUAHOG', 
                      'OCEAN QUAHOG VISCERA', 'OCEAN QUAHOG SHELL'), RPATH := 'Megabenthos']
 prey[PYCOMNAM %in% c('LONGFIN SQUID', 'LOLIGO SP PEN'), RPATH := 'Loligo']
@@ -619,3 +622,4 @@ rm(all.groups,EMAX.params,GOM.cluster,GOM.fh,GOM.fh2,GOM.groups,GOM.pred,Macrobe
 GOM.diet <- rbindlist(list(GOM.diet.survey, GOM.diet.EMAX), use.names = T)
 
 rm(GOM.diet.EMAX,GOM.diet.survey)
+
