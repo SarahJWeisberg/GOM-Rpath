@@ -13,8 +13,8 @@
 #Load packages
 #install.packages(c('devtools','tinytex','lwgeom'))
 library(devtools)
-#install_github('NOAA-EDAB/Rpath')
-#install_github('NOAA-EDAB/survdat')
+remotes::install_github('NOAA-EDAB/Rpath')
+remotes::install_github('NOAA-EDAB/survdat')
 library(Rpath); library(data.table);library(dplyr);library(here);library(tinytex);
 library(survdat); library(lwgeom)
 
@@ -156,6 +156,9 @@ biomass[44]<-biomass[44]*1.1
 
 #Multiply WinterSkate biomass by 1.75
 biomass[52]<-biomass[52]*1.75
+
+#Multiply AtlScallop biomass by 1.15
+biomass[19]<-biomass[19]*1.15
 
 #Fill model
 GOM.params$model[,Biomass:=biomass]
@@ -671,7 +674,6 @@ GOM.params$diet[8,43]<-GOM.params$diet[8,43]+0.009
 
 
 #Shifting some predation of WinterFlounder
-
 #Shift predation of OtherPelagics(20) from WinterFlounder(47) to Illex(8)
 #Shift 2%
 GOM.params$diet[47,21]<-GOM.params$diet[47,21]-0.02
@@ -683,7 +685,6 @@ GOM.params$diet[47,12]<-GOM.params$diet[47,12]-0.00002
 GOM.params$diet[33,12]<-GOM.params$diet[33,12]+0.00002
 
 #Shifting some predation of BSB
-
 #Shift predation of SpinyDogfish(42) from BlackSeaBass(49) to Megabenthos(56)
 #Shift 0.04%
 GOM.params$diet[49,43]<-GOM.params$diet[49,43]-0.0004
@@ -699,18 +700,12 @@ GOM.params$diet[56,41]<-GOM.params$diet[56,41]+0.00009
 GOM.params$diet[49,25]<-GOM.params$diet[49,25]-0.0001
 GOM.params$diet[8,25]<-GOM.params$diet[8,25]+0.0001
 
-#Shift some predation of Macrobenthos(11) from BlackSeaBass(49) to AtlScallop(19)
-#Shift 0.00001%
-GOM.params$diet[49,12]<-GOM.params$diet[49,12]-0.0000001
-GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.0000001
-
 #Shift some predation of Goosefish(39) from BlackSeaBass(49) to Illex(8)
 #Shift 0.015%
 GOM.params$diet[49,40]<-GOM.params$diet[49,40]-0.00015
 GOM.params$diet[8,40]<-GOM.params$diet[8,40]+0.00015
 
 #Shifting some predation of Windowpane
-
 #Shift predation of OtherSkates(33) from Windowpane(46) to Megabenthos(56)
 #Shift 0.15%
 GOM.params$diet[46,34]<-GOM.params$diet[46,34]-0.0015
@@ -846,31 +841,15 @@ GOM.params$diet[39,25]<-GOM.params$diet[39,25]+0.005
 GOM.params$diet[13,43]<-GOM.params$diet[13,43]-0.005
 GOM.params$diet[39,43]<-GOM.params$diet[39,43]+0.005
 
-#Shifting some predation to AtlScallop (EE too low)
-#Shift predation of Macrobenthos(11) from AtlHalibut(28) to AtlScallop(19)
-#Shift 0.0004%
+# #Shift predation of Macrobenthos(11) from AtlHalibut(28) to AmLobster(12)
+# #Shift 0.0004%
 GOM.params$diet[28,12]<-GOM.params$diet[28,12]-0.000004
-GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000004
-
-#Shift predation of Macrobenthos(11) from Fourspot(36) to AtlScallop(19)
-#Shift 0.0001%
+GOM.params$diet[12,12]<-GOM.params$diet[12,12]+0.000004
+# 
+# #Shift predation of Macrobenthos(11) from Fourspot(36) to AmLobster(12)
+# #Shift 0.0001%
 GOM.params$diet[36,12]<-GOM.params$diet[36,12]-0.000001
-GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000001
-
-#Shift predation of Macrobenthos(11) from Windowpane(46) to AtlScallop(19)
-#Shift #Shift 0.0002%
-GOM.params$diet[46,12]<-GOM.params$diet[46,12]-0.000002
-GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000002
-
-#Shift predation of Macrobenthos(11) from WinterFlounder(47) to AtlScallop(19)
-#Shift 0.0004%
-GOM.params$diet[47,12]<-GOM.params$diet[47,12]-0.000004
-GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.000004
-
-#Shift predation of Macrobenthos(11) from WinterSkate(52) to AtlScallop(19)
-#Shift 0.002%
-GOM.params$diet[52,12]<-GOM.params$diet[52,12]-0.00002
-GOM.params$diet[19,12]<-GOM.params$diet[19,12]+0.00002
+GOM.params$diet[12,12]<-GOM.params$diet[12,12]+0.000001
 
 #Shift predation of OtherPelagics
 #Shift predation of OtherPelagics(20) from OtherPelagics(20) to Megabenthos(56)
