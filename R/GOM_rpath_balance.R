@@ -13,7 +13,7 @@
 #Load packages
 #install.packages(c('devtools','tinytex','lwgeom'))
 library(devtools)
-remotes::install_github('NOAA-EDAB/Rpath')
+#remotes::install_github('NOAA-EDAB/Rpath')
 remotes::install_github('NOAA-EDAB/survdat')
 library(Rpath); library(data.table);library(dplyr);library(here);library(tinytex);
 library(survdat); library(lwgeom)
@@ -151,8 +151,8 @@ biomass[34]<-biomass[34]*1.1
 #Multiply Loligo biomass by 1.03
 biomass[9]<-biomass[9]*1.03
 
-#Multiply LittleSkate biomass by 1.1
-biomass[44]<-biomass[44]*1.1
+#Multiply LittleSkate biomass by 1.25
+biomass[44]<-biomass[44]*1.25
 
 #Multiply WinterSkate biomass by 1.75
 biomass[52]<-biomass[52]*1.75

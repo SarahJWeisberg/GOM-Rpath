@@ -8,7 +8,8 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Fri Oct 20 13:34:26 2023 ------------------------------
+# Tue Nov 14 12:56:14 2023 ------------------------------
+
 
 #Load packages
 remotes::install_github('NOAA-EDAB/Rpath', ref='forced_catch_fix', force = T)
@@ -89,9 +90,10 @@ rsim.fit.table(scene0,run0)
 
 # Species to test 
 test_sp <- c("Haddock", "AmLobster", "Redfish","AtlHerring", "Cusk", "Cod")
-index_sp<-c("Goosefish","AmPlaice","SilverHake","AtlHalibut",
+index_sp<-c("Goosefish","AmPlaice","AtlHalibut",
             "WitchFlounder","YTFlounder","Fourspot","WinterFlounder")
-data_type <- "index"  #"index"
+            #maybe include "SilverHake"
+data_type <- "index"  #"absolute"
 
 # Set data weightings for all data input low (zeros not allowed)
 scene0$fitting$Biomass$wt[] <- 1e-36
@@ -113,7 +115,6 @@ fit_vartype  <- c(rep("mzero",length(test_sp)),
                   rep("preyvul",length(test_sp)))
 
 #Initial fit
-
 fit.initial  <- rsim.fit.run(fit_values, fit_species, fit_vartype, scene0, verbose=T,
                              run_method='AB', years=fit.years)
 for (i in 1:length(test_sp)){
@@ -137,7 +138,13 @@ for (i in 1:length(test_sp)){
   rsim.plot.catch(scene0, fit.final, test_sp[i])
 }
 
-
+pdf(file = "fitting/Plots/Fits_nov_2023_2.pdf")
+par( mfrow= c(3,2) )
+for (i in 1:length(GOM.groups$RPATH)){
+  rsim.plot.biomass(scene0, fit.final, GOM.groups$RPATH[i])
+  rsim.plot.catch(scene0, fit.final, GOM.groups$RPATH[i])
+}
+dev.off()
 scene1 <- rsim.fit.update(out_values, fit_species, fit_vartype, scene0)
 run1 <- rsim.run(scene1, method='AB', years=fit.years)
 
