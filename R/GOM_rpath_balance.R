@@ -7,7 +7,7 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 
-# Thu Dec  1 10:09:52 2022 ------------------------------
+# Thu Dec 14 12:51:35 2023 ------------------------------
 
 
 #Load packages
@@ -584,9 +584,9 @@ GOM.params$diet[31,34]<-GOM.params$diet[31,34]-0.01
 GOM.params$diet[34,34]<-GOM.params$diet[34,34]+0.01
 
 #Shift predation of OtherPelagics(20) from OtherDem(31) to OtherPelagics(20)
-#Shift 9%
-GOM.params$diet[31,21]<-GOM.params$diet[31,21]-0.09
-GOM.params$diet[20,21]<-GOM.params$diet[20,21]+0.09
+#Shift 6%
+GOM.params$diet[31,21]<-GOM.params$diet[31,21]-0.06
+GOM.params$diet[20,21]<-GOM.params$diet[20,21]+0.06
 
 #Shift predation of SpinyDogfish(42) from OtherDem(31) to WhiteHake(41)
 #Shift 0.5%
