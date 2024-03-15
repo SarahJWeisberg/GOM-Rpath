@@ -13,8 +13,16 @@ library(devtools)
 install.packages("gdata", repos = "https://packagemanager.posit.co/cran/2023-05-06") 
 install_github('SEELab/enaR', force = T)
 
-#first run enaR_sense.R to get orig.network
+#Load initial model
+load(here("outputs/GOM_params_Rpath.RData"))
+load(here("outputs/GOM_Rpath.RData"))
 
+#Count number of each group type
+#ngroups <- nrow(GOM.params)
+nliving <- nrow(GOM.params$model[Type <  2, ])
+ndead   <- nrow(GOM.params$model[Type == 2, ])
+
+#run enaR_sense.R to get orig.network
 #pull network structure
 A<-enaStructure(orig.network)$A
 g<-igraph::graph_from_adjacency_matrix(A)
