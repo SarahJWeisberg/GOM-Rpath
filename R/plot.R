@@ -9,9 +9,11 @@ library(ggplot2)
 library(ggnetwork)
 library(viridis)
 library(devtools)
-#need to install an older version of gdata to get enaR to wrok
+#need to install an older version of gdata to get enaR to work
 install.packages("gdata", repos = "https://packagemanager.posit.co/cran/2023-05-06") 
 install_github('SEELab/enaR', force = T)
+library(gdata)
+library(enaR)
 
 #Load initial model
 load(here("outputs/GOM_params_Rpath.RData"))
@@ -73,13 +75,12 @@ GOM_web<-ggplot(n,aes(x, y, xend = xend, yend = yend)) +
   geom_edges(arrow = arrow(length = unit(7, "pt"), type = "open"),
              curvature = 0.15,position="jitter",
              aes(color=TL,linewidth=flow)) +
-  scale_color_gradientn(colors = turbo(6))+
-  scale_linewidth(range = c(0.15,9))+
-  geom_nodelabel(aes(label=vertex.names,size=((storage_adjust))),show.legend = F) +
-  scale_size(range=c(2.5,10))+
+  scale_color_gradientn(colors = turbo(6))+ #sets color scale
+  scale_linewidth(range = c(0.15,9))+ #sets arrow width range
+  geom_nodelabel(aes(label=vertex.names,size=storage_adjust),show.legend = F) +
+  scale_size(range=c(2.5,10))+ #sets label size range
   guides(linewidth="none")+
   annotate("text",x=0.025,y=0.975,label="GOM",size=9)+
-  theme_blank(legend.position="none")+
   theme_blank(legend.position=c(0.8,0.2))+
   theme(panel.background = element_rect(fill="#EEEEEEFF"),
         plot.background = element_rect(fill="#EEEEEEFF"),
@@ -87,6 +88,5 @@ GOM_web<-ggplot(n,aes(x, y, xend = xend, yend = yend)) +
 
 GOM_web
 
-
-ggsave(filename = "outputs/webplot_GOM.png",width = 30, height=15,units = c("cm"),plot=GOM_web,dpi=300)
+ggsave(filename = "outputs/webplot_GOM.png",width = 35, height=25,units = c("cm"),plot=GOM_web,dpi=300)
 
