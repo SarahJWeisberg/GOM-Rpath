@@ -12,11 +12,9 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-xfun::session_info()
 # Sun Aug 21 11:19:12 2022 ------------------------------
 
 
-#Load needed packages
 #Load required packages
 #install_github('NOAA-EDAB/survdat')
 library(here);library(data.table);library(survdat)
