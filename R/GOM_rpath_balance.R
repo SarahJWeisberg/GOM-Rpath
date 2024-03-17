@@ -13,7 +13,7 @@
 #Load packages
 #install.packages(c('devtools','tinytex','lwgeom'))
 library(devtools)
-#remotes::install_github('NOAA-EDAB/Rpath')
+remotes::install_github('NOAA-EDAB/Rpath')
 remotes::install_github('NOAA-EDAB/survdat')
 library(Rpath); library(data.table);library(dplyr);library(here);library(tinytex);
 library(survdat); library(lwgeom)
@@ -142,8 +142,8 @@ biomass[36]<-biomass[36]*1.06
 #Multiply BlackSeaBass biomass by 1.4
 biomass[49]<-biomass[49]*1.4
 
-#Multiply OtherDemersals biomass by 2.1
-biomass[31]<-biomass[31]*2.1
+#Multiply OtherDemersals biomass by 2.5
+biomass[31]<-biomass[31]*2.5
 
 #Multiply RedHake biomass by 1.1
 biomass[34]<-biomass[34]*1.1
@@ -159,6 +159,7 @@ biomass[52]<-biomass[52]*1.75
 
 #Multiply AtlScallop biomass by 1.15
 biomass[19]<-biomass[19]*1.15
+
 
 #Fill model
 GOM.params$model[,Biomass:=biomass]
@@ -312,7 +313,7 @@ ba[13]<- -0.004
 GOM.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
-GOM.params$model[, Unassim := c(0,rep(0.25,5),rep(0.2, 50),rep(0,1), rep(NA, 9))]
+GOM.params$model[, Unassim := c(0,rep(0.3,5),rep(0.2, 50),rep(0,1), rep(NA, 9))]
 #COME BACK TO THIS
 
 #Detrital Fate
@@ -729,6 +730,12 @@ GOM.params$diet[38,25]<-GOM.params$diet[38,25]+0.0017
 GOM.params$diet[43,12]<-GOM.params$diet[43,12]-0.00011
 GOM.params$diet[56,12]<-GOM.params$diet[56,12]+0.00011
 
+#Shifting some predation of Redfish
+#Shift predation of OtherDemersals(31) from Redfish(43) to Megabenthos(56)
+#Shift 0.2%
+GOM.params$diet[43,32]<-GOM.params$diet[43,32]-0.002
+GOM.params$diet[56,32]<-GOM.params$diet[56,32]+0.002
+
 #Shifting some predation of SilverHake
 #Shift predation of SilverHake(40) from SilverHake(40) to Megabenthos(56)
 #Shift 2.5%
@@ -904,7 +911,7 @@ save(GOM, file = "outputs/GOM_Rpath.RData")
 save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
 
 #Initiate webplot
-#webplot(GOM, labels = T)
+webplot(GOM, labels = T)
 
 #Examine TLs
 #TL<-REco$TL
@@ -924,3 +931,10 @@ rsim.plot(GOM.run1,spname = GOM.groups$RPATH[21:30])
 rsim.plot(GOM.run1,spname = GOM.groups$RPATH[31:40])
 rsim.plot(GOM.run1,spname = GOM.groups$RPATH[41:56])
 
+#plot biomass vs. TL
+biomass_TL<-as.data.frame(cbind(GOM$Biomass[1:56],GOM$TL[1:56]))
+colnames(biomass_TL) <- c("biomass","TL")
+biomass_TL<- biomass_TL%>% arrange(TL) %>% mutate(cum_biomass = cumsum(biomass))
+
+ggplot(biomass_TL, aes(x=TL,y=cum_biomass))+
+  geom_line()
