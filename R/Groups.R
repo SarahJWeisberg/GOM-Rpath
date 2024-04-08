@@ -32,6 +32,6 @@ GOM.groups <-as.data.table(c('Phytoplankton', 'Bacteria', 'Microzooplankton',
                              'SeaBirds','Windowpane','WinterFlounder',
                              'WitchFlounder','BlackSeaBass','Butterfish',
                              'Sharks','WinterSkate','Pinnipeds','BaleenWhales',
-                             'Odontocetes', 'Megabenthos'))
+                             'Odontocetes', 'Megabenthos','Krill'))
 setnames(GOM.groups,'V1','RPATH')
   

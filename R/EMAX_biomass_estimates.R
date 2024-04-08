@@ -12,7 +12,8 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-#Last modified: # Tue Jun 15 17:31:55 2021 ------------------------------
+# Mon Apr  8 13:49:19 2024 ------------------------------
+
 
 #Load needed packages
 library(here); library(data.table)
@@ -65,10 +66,16 @@ rm(MegabenthosBiomass)
 GOM.EMAX<-GOM.EMAX[RPATH %like% 'Detritus', RPATH :='Detritus']
 GOM.EMAX<-GOM.EMAX[RPATH %like% 'Discard', RPATH :='Discards']
 
-
 #Remove groups not included in Rpath model
 GOM.EMAX<- GOM.EMAX[!RPATH %in% c('Larval-juv fish- all','Shrimp et al.','Pelagics','Demersals','Fishery'),]
 GOM.EMAX<-unique(GOM.EMAX)
+
+#Assign a portion of Micronekton biomass to Krill group
+krill_prop<-0.36503276
+KrillBiomass<-GOM.EMAX[RPATH == 'Micronekton', Biomass]*krill_prop
+GOM.EMAX<-GOM.EMAX[RPATH == 'Micronekton', Biomass := Biomass*(1-krill_prop)]
+GOM.EMAX<-rbind(GOM.EMAX,list("Krill",KrillBiomass))
+
 
 #Merge survey and EMAX biomass estimates
 biomass_80s<-merge(GOM.groups,GOM.EMAX,by='RPATH', all=TRUE)
