@@ -21,10 +21,13 @@ library(survdat); library(lwgeom)
 #Load groups and fleets
 source(here("R/groups_fleets.R"))
 
+#Load Sean's prebal functions
+source(url("https://github.com/NOAA-EDAB/GBRpath/blob/master/R/PreBal.R?raw=true"))
+
 #Set up model with group names and types
 #1 = primary producer, 0 = consumer, 2 = detritus, 3 = fleet
 groups<-as.vector(groups_fleets$RPATH)
-types<-c(1,rep(0,55),rep(2,1),rep(3,9))
+types<-c(1,rep(0,56),rep(2,1),rep(3,9))
 GOM.params<-create.rpath.params(group = groups,type=types)
 rm(types)
 
@@ -81,8 +84,8 @@ biomass[18]<-biomass[18]*20
 #In accordance with Yong
 biomass[21]<-biomass[21]*10
 
-#Multiply AtlMackerel biomass by 5.1
-biomass[27]<-biomass[27]*5.1
+#Multiply AtlMackerel biomass by 5.25
+biomass[27]<-biomass[27]*5.25
 
 #Multiply AmLobster biomass by 3
 #In accordance with Yong's estimates
@@ -295,6 +298,10 @@ qb[31]<-qb[31]*1.2
 #Lowering pb, keeping ge the same
 qb[13]<-3.85
 
+#Increase qb of SeaBirds
+#Really low estimate in EMAX, higher in NWACS
+qb[45]<-35
+
 GOM.params$model[,QB:=qb]
 
 #Fill biomass accumulation
@@ -302,7 +309,7 @@ source(here("R/biomass_accumulation.R"))
 ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
-ba[58:66]<-NA 
+ba[59:67]<-NA 
 
 #Change barndoor ba
 ba[35]<-ba[35]/1000
@@ -313,11 +320,11 @@ ba[13]<- -0.004
 GOM.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
-GOM.params$model[, Unassim := c(0,rep(0.3,5),rep(0.2, 50),rep(0,1), rep(NA, 9))]
+GOM.params$model[, Unassim := c(0,rep(0.3,5),rep(0.2, 51),rep(0,1), rep(NA, 9))]
 #COME BACK TO THIS
 
 #Detrital Fate
-GOM.params$model[, Detritus := c(rep(1, 56), rep(0, 10))]
+GOM.params$model[, Detritus := c(rep(1, 57), rep(0, 10))]
 #GOM.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 9))]
 
 #Fisheries
@@ -327,49 +334,49 @@ source(here("R/discards.R"))
 #Fixed Gear
 fixed<-left_join(groups_fleets,fixed,by="RPATH")
 fixed<-as.vector(fixed$landings)
-fixed[57]<-0
+fixed[58]<-0
 GOM.params$model[, "Fixed Gear" := fixed]
 
 #Large Mesh
 lg_mesh<-left_join(groups_fleets,lg_mesh,by="RPATH")
 lg_mesh<-as.vector(lg_mesh$landings)
-lg_mesh[57]<-0
+lg_mesh[58]<-0
 GOM.params$model[, "LG Mesh" := lg_mesh]
 
 #Other
 other<-left_join(groups_fleets,other,by="RPATH")
 other<-as.vector(other$landings)
-other[57]<-0
+other[58]<-0
 GOM.params$model[, "Other" := other]
 
 #Small Mesh
 sm_mesh<-left_join(groups_fleets,sm_mesh,by="RPATH")
 sm_mesh<-as.vector(sm_mesh$landings)
-sm_mesh[57]<-0
+sm_mesh[58]<-0
 GOM.params$model[, "SM Mesh" := sm_mesh]
 
 #Scallop Dredge
 #scallop<-left_join(groups_fleets,scallop,by="RPATH")
 #scallop<-as.vector(scallop$landings)
-#scallop[57:58]<-0
+#scallop[58:59]<-0
 #GOM.params$model[, "Scallop Dredge" := scallop]
 
 #Trap
 trap<-left_join(groups_fleets,trap,by="RPATH")
 trap<-as.vector(trap$landings)
-trap[57]<-0
+trap[58]<-0
 GOM.params$model[, "Trap" := trap]
 
 #HMS.fleet
 hms<-left_join(groups_fleets,hms,by="RPATH")
 hms<-as.vector(hms$landings)
-hms[57]<-0
+hms[58]<-0
 GOM.params$model[, "HMS Fleet" := hms]
 
 #Pelagic
 pelagic<-left_join(groups_fleets,pelagic,by="RPATH")
 pelagic<-as.vector(pelagic$landings)
-pelagic[57]<-0
+pelagic[58]<-0
 
 #Reduce fishing on OtherPelagics, multiply by 0.89
 pelagic[20]<-pelagic[20]*0.89
@@ -379,68 +386,68 @@ GOM.params$model[, "Pelagic" := pelagic]
 #Other Dredge
 other_dredge<-left_join(groups_fleets,other_dredge,by="RPATH")
 other_dredge<-as.vector(other_dredge$landings)
-other_dredge[57]<-0
+other_dredge[58]<-0
 GOM.params$model[, "Other Dredge" := other_dredge]
 
 #Clam
 clam<-left_join(groups_fleets,clam,by="RPATH")
 clam<-as.vector(clam$landings)
-clam[57]<-0
+clam[58]<-0
 GOM.params$model[, "Clam Dredge" := clam]
 
 #Fill in discards
 #Fixed Gear
 #fixed.d<-left_join(groups_fleets,fixed.d,by="RPATH")
 #fixed.d<-as.vector(fixed.d$discards)
-#fixed.d[57:58]<-0
+#fixed.d[58:59]<-0
 #GOM.params$model[, "Fixed Gear.disc" := fixed.d]
 
 #Lg Mesh
 #lg_mesh.d<-left_join(groups_fleets,lg_mesh.d,by="RPATH")
 #lg_mesh.d<-as.vector(lg_mesh.d$discards)
-#lg_mesh.d[57:58]<-0
+#lg_mesh.d[58:59]<-0
 #GOM.params$model[, "LG Mesh.disc" := lg_mesh.d]
 
 #Other
 #other.d<-left_join(groups_fleets,other.d,by="RPATH")
 #other.d<-as.vector(other.d$discards)
-#other.d[57:58]<-0
+#other.d[58:59]<-0
 #GOM.params$model[, "Other.disc" := other.d]
 
 #SM Mesh
 #sm_mesh.d<-left_join(groups_fleets,sm_mesh.d,by="RPATH")
 #sm_mesh.d<-as.vector(sm_mesh.d$discards)
-#sm_mesh.d[57:58]<-0
+#sm_mesh.d[58:59]<-0
 #GOM.params$model[, "SM Mesh.disc" := sm_mesh.d]
 
 #Scallop Dredge
 #scallop.d<-left_join(groups_fleets,scallop.d,by="RPATH")
 #scallop.d<-as.vector(scallop.d$discards)
-#scallop.d[57:58]<-0
+#scallop.d[58:59]<-0
 #GOM.params$model[, "Scallop Dredge" := scallop.d]
 
 #Trap
 #trap.d<-left_join(groups_fleets,trap.d,by="RPATH")
 #trap.d<-as.vector(trap.d$discards)
-#trap.d[57:58]<-0
+#trap.d[58:59]<-0
 #GOM.params$model[, "Trap.disc" := trap.d]
 
 #HMS
 #hms.d<-left_join(groups_fleets,hms.d,by="RPATH")
 #hms.d<-as.vector(hms.d$discards)
-#hms.d[57:58]<-0
+#hms.d[58:59]<-0
 #GOM.params$model[, "HMS Fleet.disc" := hms.d]
 
 #Pelagic
 #pelagic.d<-left_join(groups_fleets,pelagic.d,by="RPATH")
 #pelagic.d<-as.vector(pelagic.d$discards)
-#pelagic.d[57:58]<-0
+#pelagic.d[58:59]<-0
 #GOM.params$model[, "Pelagic.disc" := pelagic.d]
 
 #Other Dredge
 #other_dredge.d<-left_join(groups_fleets,other_dredge.d,by="RPATH")
 #other_dredge.d<-as.vector(other_dredge.d$discards)
-#other_dredge.d[57:58]<-0
+#other_dredge.d[58:59]<-0
 #GOM.params$model[, "Other Dredge.disc" := other_dredge.d]
 
 #Clam Dredge
@@ -870,14 +877,14 @@ GOM.params$diet[20,41]<-GOM.params$diet[20,41]-0.015
 GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.015
 
 #Shifting Sharks diet
-#Move predation of Sharks(51) from Detritus(57) to Odontocetes(55)
+#Move predation of Sharks(51) from Detritus(58) to Odontocetes(55)
 #Shift 2.5%
-GOM.params$diet[57,52]<-GOM.params$diet[57,52]-0.025
+GOM.params$diet[58,52]<-GOM.params$diet[58,52]-0.025
 GOM.params$diet[55,52]<-GOM.params$diet[55,52]+0.025
 
-#Move predation of Sharks(51) from Detritus(57) to Pinnipeds(53)
+#Move predation of Sharks(51) from Detritus(58) to Pinnipeds(53)
 #Shift 2.5%
-GOM.params$diet[57,52]<-GOM.params$diet[57,52]-0.025
+GOM.params$diet[58,52]<-GOM.params$diet[58,52]-0.025
 GOM.params$diet[53,52]<-GOM.params$diet[53,52]+0.025
 
 #Move predation of Sharks(51) from LgCopepods(5) to Goosefish(39)

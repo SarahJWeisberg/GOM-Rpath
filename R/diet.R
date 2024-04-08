@@ -15,9 +15,7 @@
 xfun::session_info()
 
 #Last modified 
-# Tue Nov  7 12:35:12 2023 ------------------------------
-
-
+# Mon Apr  8 15:44:38 2024 ------------------------------
 
 #Load packages
 library(readr);library (data.table);library(here)
@@ -69,7 +67,7 @@ prey[PYCOMNAM == 'LITTLE SKATE',            RPATH := 'LittleSkate']
 prey[PYCOMNAM == 'NORTHERN SHORTFIN SQUID', RPATH := 'Illex']
 prey[PYNAM    == 'ILLEX SP',                RPATH := 'Illex']
 prey[PYCOMNAM == 'AMERICAN LOBSTER',        RPATH := 'AmLobster']
-prey[PYCOMNAM == 'KRILL',                   RPATH := 'Micronekton'] 
+prey[PYCOMNAM == 'KRILL',                   RPATH := 'Krill'] 
 prey[PYCOMNAM == 'EMPTY STOMACH',           RPATH := 'Empty']
 prey[PYCOMNAM == 'BLOWN STOMACH',           RPATH := 'Blown']
 prey[PYCOMNAM == 'NORTHERN SHRIMP',         RPATH := 'NShrimp']
@@ -109,7 +107,7 @@ prey[is.na(RPATH) & MODCAT == 'BENINV', RPATH := 'Macrobenthos']
 #MODCAT PELINV
 prey[is.na(RPATH) & Collcom == 'COMB JELLIES', RPATH := 'GelZooplankton']
 prey[PYCOMNAM == 'ROTIFERS', RPATH := 'Microzooplankton']
-prey[is.na(RPATH) & Collcom == 'KRILL', RPATH := 'Micronekton'] 
+prey[is.na(RPATH) & Collcom == 'KRILL', RPATH := 'Krill'] 
 prey[is.na(RPATH) & Collcom == 'COPEPODA', RPATH := 'LgCopepods']
 prey[is.na(RPATH) & MODCAT == 'PELINV', RPATH := 'Micronekton']
 
@@ -414,6 +412,21 @@ setnames(micronekton, c('RPATH', 'V1'), c('Rprey', 'preyper'))
 GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,micronekton))
 
 rm(micronekton)
+
+#Krill
+#Use micronekton diet from EMAX
+krill <- EMAX.params[, list(diet.Micronekton,diet.Group)]
+setnames(krill,'diet.Group','EMAX')
+krill <- merge(krill, all.groups[, list(RPATH, EMAX, Rpath.prop)], by = 'EMAX')
+krill[, preyper := diet.Micronekton * Rpath.prop]
+#Need to sum many:1 EMAX:Rpath
+krill <- krill[, sum(preyper), by = RPATH]
+krill[, Rpred := 'Krill']
+setnames(krill, c('RPATH', 'V1'), c('Rprey', 'preyper'))
+
+GOM.diet.EMAX<-rbindlist(list(GOM.diet.EMAX,krill))
+
+rm(krill)
 
 #OtherPelagics-- going to try to use diet from food habits database for initial balancing, rather than EMAX
 
