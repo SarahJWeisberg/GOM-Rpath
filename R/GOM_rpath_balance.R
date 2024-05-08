@@ -7,11 +7,9 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 
-# Thu Dec 14 12:51:35 2023 ------------------------------
-
+# Wed May  8 11:16:39 2024 ------------------------------
 
 #Load packages
-#install.packages(c('devtools','tinytex','lwgeom'))
 library(devtools)
 remotes::install_github('NOAA-EDAB/Rpath')
 remotes::install_github('NOAA-EDAB/survdat')
@@ -20,9 +18,6 @@ library(survdat); library(lwgeom)
 
 #Load groups and fleets
 source(here("R/groups_fleets.R"))
-
-#Load Sean's prebal functions
-source(url("https://github.com/NOAA-EDAB/GBRpath/blob/master/R/PreBal.R?raw=true"))
 
 #Set up model with group names and types
 #1 = primary producer, 0 = consumer, 2 = detritus, 3 = fleet
@@ -33,8 +28,6 @@ rm(types)
 
 #Fill in biomass estimates
 source(here("R/EMAX_biomass_estimates.R"))
-
-#Remove Discards 
 biomass_80s<-biomass_80s %>% filter(RPATH !="Discards")
 #and set Detritus biomass to NA
 biomass_80s[which(RPATH == "Detritus")]$Biomass<-NA
@@ -48,18 +41,20 @@ biomass<-as.vector(biomass$Biomass)
 #If set to 0, Ecosense does not work properly
 biomass[35]<-2.5*10^-5
 
-#Changes to biomass for balancing
-#Multiply OtherCeph biomass by 32
-biomass[10]<-biomass[10]*32
 
-#Multiply SmFlatfish biomass by 105
-biomass[15]<-biomass[15]*105
+# Changes to biomass for balancing ---------------------------------------
+
+#Multiply OtherCeph biomass by 65
+biomass[10]<-biomass[10]*65
+
+#Multiply SmFlatfish biomass by 150
+biomass[15]<-biomass[15]*150
 
 #Multiply SpinyDogfish biomass by 0.5
-biomass[42]<-biomass[42]*0.5
+biomass[42]<-biomass[42]*0.7
 
-#Multiply OtherPelagics biomass by 180
-biomass[20]<-biomass[20]*180
+#Multiply OtherPelagics biomass by 115
+biomass[20]<-biomass[20]*115
 
 #Multiply SmPelagics biomass by 25
 biomass[14]<-biomass[14]*25
@@ -67,15 +62,11 @@ biomass[14]<-biomass[14]*25
 #Multiply Mesopelagics biomass by 20
 biomass[22]<-biomass[22]*20
 
-#Multiply SummerFlounder biomass by 4
-biomass[29]<-biomass[29]*4
+#Multiply SummerFlounder biomass by 5
+biomass[29]<-biomass[29]*5
 
 #Multiply Sharks biomass by 3
 biomass[51]<-biomass[51]*3
-
-#Multiply Cod biomass by 0.5
-#Similar to Yong's estimate
-biomass[24]<-biomass[24]*0.5
 
 #Multiply RiverHerring biomass by 20
 biomass[18]<-biomass[18]*20
@@ -84,8 +75,8 @@ biomass[18]<-biomass[18]*20
 #In accordance with Yong
 biomass[21]<-biomass[21]*10
 
-#Multiply AtlMackerel biomass by 5.25
-biomass[27]<-biomass[27]*5.25
+#Multiply AtlMackerel biomass by 15
+biomass[27]<-biomass[27]*15
 
 #Multiply AmLobster biomass by 3
 #In accordance with Yong's estimates
@@ -102,57 +93,60 @@ biomass[46]<-0.033519469
 #Multiply WhiteHake biomass by 0.75
 biomass[41]<-biomass[41]*0.75
 
-#Multiply SilverHake biomass by 2.15
-biomass[40]<-biomass[40]*2.15
+#Multiply SilverHake biomass by 3
+biomass[40]<-biomass[40]*3
 
 #Multiply WitchFlounder biomass by 5
 biomass[48]<-biomass[48]*5
 
-#Multiply OtherSkates biomass by 0.2
-biomass[33]<-biomass[33]*0.2
+#Multiply OtherSkates biomass by 0.4
+biomass[33]<-biomass[33]*0.4
 
-#Multiply Redfish biomass by 3
-biomass[43]<-biomass[43]*3
+#Multiply Redfish biomass by 3.25
+biomass[43]<-biomass[43]*3.25
 
-#Multiply OtherShrimps biomass by 6
-biomass[17]<-biomass[17]*6
+#Multiply OtherShrimps biomass by 15
+biomass[17]<-biomass[17]*15
 
-#Multiply NShrimp biomass by 5
+#Multiply NShrimp biomass by 6
 #Similar estimate to Zheng & Chen
-biomass[16]<-biomass[16]*5
+biomass[16]<-biomass[16]*6
 
 #Multiply Pollock biomass by 0.75
 biomass[38]<-biomass[38]*0.75
 
-#Multiply Butterfish biomass by 3
-biomass[50]<-biomass[50]*3
+#Multiply Butterfish biomass by 3.15
+biomass[50]<-biomass[50]*3.15
 
-#Multiply OceanPout biomass by 2.01
-biomass[13]<-biomass[13]*2.01
+#Multiply OceanPout biomass by 4
+biomass[13]<-biomass[13]*4
 
-#Multiply Macrobenthos biomass by 0.5
-biomass[11]<-biomass[11]*0.5
+#Multiply Macrobenthos biomass by 0.4
+biomass[11]<-biomass[11]*0.4
 
-#Multiply AmPlaice biomass by 1.21
-biomass[26]<-biomass[26]*1.21
+#Multiply Megabenthos biomass by 0.4
+biomass[56]<-biomass[56]*0.4
 
-#Multiply YTFlounder biomass by 1.15
-biomass[23]<-biomass[23]*1.15
+#Multiply AmPlaice biomass by 1.3
+biomass[26]<-biomass[26]*1.3
 
-#Multiply Fourspot biomass by 1.06
-biomass[36]<-biomass[36]*1.06
+#Multiply YTFlounder biomass by 1.2
+biomass[23]<-biomass[23]*1.2
+
+#Multiply Fourspot biomass by 1.5
+biomass[36]<-biomass[36]*1.5
 
 #Multiply BlackSeaBass biomass by 1.4
 biomass[49]<-biomass[49]*1.4
 
-#Multiply OtherDemersals biomass by 2.5
-biomass[31]<-biomass[31]*2.5
+#Multiply OtherDemersals biomass by 5
+biomass[31]<-biomass[31]*5
 
-#Multiply RedHake biomass by 1.1
-biomass[34]<-biomass[34]*1.1
+#Multiply RedHake biomass by 1.8
+biomass[34]<-biomass[34]*1.8
 
-#Multiply Loligo biomass by 1.03
-biomass[9]<-biomass[9]*1.03
+#Multiply Loligo biomass by 1.6
+biomass[9]<-biomass[9]*1.6
 
 #Multiply LittleSkate biomass by 1.25
 biomass[44]<-biomass[44]*1.25
@@ -160,78 +154,126 @@ biomass[44]<-biomass[44]*1.25
 #Multiply WinterSkate biomass by 1.75
 biomass[52]<-biomass[52]*1.75
 
-#Multiply AtlScallop biomass by 1.15
-biomass[19]<-biomass[19]*1.15
+#Multiply AtlScallop biomass by 1.35
+biomass[19]<-biomass[19]*1.35
 
 
 #Fill model
 GOM.params$model[,Biomass:=biomass]
 
-
+# Fill PB, QB -------------------------------------------------------------
 #Fill pb
 source(here("R/biological_parameters.R"))
 pb<-cbind(GOM.groups,PB)
 pb<-left_join(groups_fleets,pb,by="RPATH")
 pb<-as.vector(pb$PB)
 
+#PB changes below mostly based on longevity estimates
+#Tend to be lower than NWACS estimates
+
 #Increase pb of SmPelagics to 2
 #Value from Sean's GB model
 pb[14]<-2
-
-#Increase pb of RedHake to 1.3
-#Value from NWACS
-pb[34]<-1.3
-
-#Increase pb of AtlMackerel 3x
-#Copying Sean
-pb[27]<-pb[27]*3
-
-#Increase pb of AtlHerring to 1.64
-#Copying Sean
-pb[21]<-1.64
-
-#Increase pb of SilverHake to 0.735
-#0.735 according to Yong; 0.4 according to Sean
-pb[40]<-0.9
-
-#Increase pb of OtherShrimps 2.25x
-#Copying Sean
-pb[17]<-pb[17]*2.25
-
-#Increase pb of OtherDemersals 1.8x
-#Similar to Sean
-pb[31]<-pb[31]*1.8
 
 #Increase pb of Mesopelagics 1.5x
 #Copying Sean
 pb[22]<-pb[22]*1.5
 
-#Increase pb of WinterFlounder 2.2x
-#Based on PREBAL results
-pb[47]<-pb[47]*2.2
-
-#Increase pb of SpinyDogfish 1.2x
-#Similar to Sean
-pb[42]<-pb[42]*1.2
-
-#Increase pb of WitchFlounder 2x
-#Based on PREBAL results
-pb[48]<-pb[48]*2
-
-#Decrease pb of OceanPout to 0.86
-#Based on conversation with Mike/Sean
-pb[13]<-0.86
-
-#Decrease pb of Barndoor to 0.2
-#Based on conversation with Mike/Sean
-pb[35]<-0.2
-
 #Decrease pb of Sharks to 0.13
 #Based on conversation with Mike/Sean
 pb[51]<-0.13
 
-#Increase pb of BlackSeaBass to 0.65
-pb[49]<-0.65
+#Increase AtlHerring to 1.4
+pb[21]<-1.4
+
+#Decrease AmLobster pb to 1.5
+#EMAX recommends ~1.5, NWACS estimate = 2.3
+#Zhang & Chen (2007) have adults at 1.2, juveniles at 2.4
+pb[12]<-1.5
+
+#Decrease AmPlaice pb to 0.45
+#Previous estimate = 0.6 from Heymans 2001
+#max lifespan = 20 years
+pb[26]<-0.45
+
+#Decrease Barndoor pb to 0.2
+#max lifespan = 30 years
+pb[35]<-0.2
+
+#Increase BlackSeaBass pb to 0.45- 49
+#max lifespan = 20 years
+pb[49]<-0.45
+
+#Decrease Cod pb to 0.4  - 24
+#0.87 value from NWACS, seems too high
+#max lifespan = 25 years
+pb[24]<-0.4
+
+#Decreased Goosefish to 0.35
+#0.4 value from Sean's dissertation
+#max lifespan = 30 years
+pb[39]<-0.35
+
+#Haddock - 25
+#0.7 from NWACS
+#max lifespan = 20 years
+pb[25]<-0.4
+
+#Decrease Loligo / Illex / OtherCeph pb to 3
+#5.72 estimate from NWACS is too high
+pb[9]<-pb[8]<-pb[10]<-3
+
+#Decrease OceanPout pb to 0.57
+#max lifespan ~ 13 years
+pb[13]<-0.57
+
+#Increase OtherDemersals pb to 0.58
+# 0.52 in NWACS, 0.9 in EMAX
+pb[31]<-0.58
+
+#Decrease OtherPelagics pb to 0.75
+#1.17 in NWACS
+pb[20]<-0.75
+
+#Decrease OtherSkates pb to 0.4
+#0.47 in Heymans 2001
+pb[33]<-0.4
+
+#Decrease Redfish pb to 0.25- 43
+#0.3 from Heymans 2001
+#max lifespan = 40 years
+pb[43]<-0.25
+
+#Increase SilverHake pb to 0.6
+#0.59 in Sissenwine 
+#max lifespan = 12 years
+pb[40]<-0.6
+
+#Decrease SpinyDogfish pb to 0.27
+#max lifespan = 31 years
+#0.32 in NWACS
+pb[42]<-0.27
+
+#Decrease SummerFlounder pb to 0.7
+#1.12 in NWACS, 0.46 in Heymans
+#max lifespan = 9 years
+pb[29]<-0.7
+
+#Increase WhiteHake pb to 0.43
+#max lifespan = 23 years
+pb[41] <- 0.43
+
+#Decrease Windowpane pb to 0.15
+#0.25 from NWACS
+pb[46]<-0.15
+
+#Increase WinterFlounder pb to 0.57
+#max lifespan = 14 years
+pb[47]<-0.57
+
+#Increase WitchFlounder pb to 0.4
+#max lifespan = 25 years
+pb[48]<-0.4
 
 GOM.params$model[,PB:=pb]
 
@@ -247,36 +289,14 @@ qb[38]<-qb[38]*0.5
 #Decrease qb of Spiny Dogfish - 0.5x
 qb[42]<-qb[42]*0.5
 
-#Decrease qb of SilverHake to 3.06
-#Copying Sean
-qb[40]<-3.06
-
-#Increase qb of SilverHake to 4.26
-#Copying Yong
-#qb[40]<-4.26
-
 #Decrease qb of Goosefish - 0.5x
 qb[39]<-qb[39]*0.5
 
 #Decrease qb of Redfish - 0.5x
 qb[43]<-qb[43]*0.5
 
-#Decrease qb of WhiteHake - 0.75x
-qb[41]<-qb[41]*0.75
-
 #Decrease qb of Macrobenthos - 0.75x
 qb[11]<-qb[11]*0.75
-
-#Decrease qb of OtherPelagics - 0.5x
-qb[20]<-qb[20]*0.5
-
-#Increase qb of RedHake to 3.85
-#Value from NWACS
-qb[34]<-3.85
-
-#Increase qb of OtherShrimps 2.25x
-#Copying Sean
-qb[17]<-qb[17]*2.25
 
 #Increase qb of WinterFlounder 2.2x
 #Based on PREBAL results
@@ -286,23 +306,41 @@ qb[47]<-qb[47]*2.2
 #Based on PREBAL results
 qb[48]<-qb[48]*2
 
-#Increase qb of AtlMackerel 2.2x
-#Keep GE reasonable
-qb[27]<-qb[27]*2.2
-
-#Increase qb of OtherDemersals 1.2x
-#Keep GE reasonable
-qb[31]<-qb[31]*1.2
-
-#Decrease qb of OceanPout to 3.85
-#Lowering pb, keeping ge the same
-qb[13]<-3.85
-
 #Increase qb of SeaBirds
 #Really low estimate in EMAX, higher in NWACS
 qb[45]<-35
 
+#QB changes below made to keep PB/QB ratios within 0.1-0.3 range
+
+# Increase BlackSeaBass qb to 1.66
+qb[49]<-1.66
+
+#Decrease Cod qb to 1.2
+qb[24]<-1.2
+
+#Decrease Fourspot qb to 1.84
+qb[36]<-1.84
+
+#Increase LittleSkate qb to 1.245
+qb[44]<-1.245
+
+#Decrease OceanPout qb to 2
+qb[13]<-2
+
+#Decrease OtherPelagics qb to 2
+qb[20]<-2
+
+#Decrease OtherSkates qb to 1.1
+qb[33]<-1.1
+
+#Decrease SilverHake qb to 2
+qb[40]<-2
+
+#Decrease WhiteHake qb to 2
+qb[41]<-2
+
 GOM.params$model[,QB:=qb]
+
 
 #Fill biomass accumulation
 source(here("R/biomass_accumulation.R"))
@@ -320,8 +358,12 @@ ba[13]<- -0.004
 GOM.params$model[,BioAcc:=ba]
 
 #Fill unassimilated consumption
-GOM.params$model[, Unassim := c(0,rep(0.3,5),rep(0.2, 51),rep(0,1), rep(NA, 9))]
-#COME BACK TO THIS
+GOM.params$model[, Unassim := c(0,rep(0.4,5),rep(0.2, 51),rep(0,1), rep(NA, 9))]
+
+#Increase unassim to 0.3 for other detritovores
+GOM.params$model[Group %in% c('AmLobster', 'Macrobenthos', 'Megabenthos', 
+                                 'AtlScallop', 'OtherShrimps'), 
+                    Unassim := 0.3]
 
 #Detrital Fate
 GOM.params$model[, Detritus := c(rep(1, 57), rep(0, 10))]
@@ -378,8 +420,8 @@ pelagic<-left_join(groups_fleets,pelagic,by="RPATH")
 pelagic<-as.vector(pelagic$landings)
 pelagic[58]<-0
 
-#Reduce fishing on OtherPelagics, multiply by 0.89
-pelagic[20]<-pelagic[20]*0.89
+#Reduce fishing on OtherPelagics, multiply by 0.3
+pelagic[20]<-pelagic[20]*0.3
 
 GOM.params$model[, "Pelagic" := pelagic]
 
@@ -567,14 +609,19 @@ GOM.params$diet[8,25]<-GOM.params$diet[8,25]+0.0011
 
 #Shifting predation on OtherDemersals
 #Shift predation of WhiteHake(41) from OtherDem(31) to Megabenthos(56)
-#Shift 2%
-GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.02
-GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.02
+#Shift 3%
+GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.03
+GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.03
 
 #Shift predation of WhiteHake(41) from OtherDem(31) to WhiteHake(41)
 #Shift 3%
 GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.03
 GOM.params$diet[41,42]<-GOM.params$diet[41,42]+0.03
+
+#Shift predation of RedHake(34) from OtherDem(31) to Megabenthos(56)
+#Shift 2%
+GOM.params$diet[31,35]<-GOM.params$diet[31,35]-0.02
+GOM.params$diet[56,35]<-GOM.params$diet[56,35]+0.02
 
 #Shift predation of WhiteHake(41) from OtherDem(31) to Micronekton(7)
 #Shift 0.5%
@@ -586,16 +633,6 @@ GOM.params$diet[7,42]<-GOM.params$diet[7,42]+0.005
 GOM.params$diet[31,34]<-GOM.params$diet[31,34]-0.13
 GOM.params$diet[56,34]<-GOM.params$diet[56,34]+0.13
 
-#Shift predation of OtherSkates(33) from OtherDem(31) to RedHake(34)
-#Shift 1%
-GOM.params$diet[31,34]<-GOM.params$diet[31,34]-0.01
-GOM.params$diet[34,34]<-GOM.params$diet[34,34]+0.01
-
-#Shift predation of OtherPelagics(20) from OtherDem(31) to OtherPelagics(20)
-#Shift 6%
-GOM.params$diet[31,21]<-GOM.params$diet[31,21]-0.06
-GOM.params$diet[20,21]<-GOM.params$diet[20,21]+0.06
-
 #Shift predation of SpinyDogfish(42) from OtherDem(31) to WhiteHake(41)
 #Shift 0.5%
 GOM.params$diet[31,43]<-GOM.params$diet[31,43]-0.005
@@ -605,11 +642,6 @@ GOM.params$diet[41,43]<-GOM.params$diet[41,43]+0.005
 #Shift 5%
 GOM.params$diet[31,40]<-GOM.params$diet[31,40]-0.05
 GOM.params$diet[41,40]<-GOM.params$diet[41,40]+0.05
-
-#Shift predation of Cod(24) from OtherDem(31) to RedHake(34)
-#Shift 3%
-GOM.params$diet[31,25]<-GOM.params$diet[31,25]-0.03
-GOM.params$diet[34,25]<-GOM.params$diet[34,25]+0.03
 
 #Shift predation of Cusk(30) from OtherDem(31) to AmLobster(12)
 #Can cite Boudreau & Worm (2010)
@@ -622,21 +654,11 @@ GOM.params$diet[12,31]<-0.07
 GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.09
 GOM.params$diet[7,31]<-GOM.params$diet[7,31]+0.09
 
-#Shift predation of Cusk(30) from OtherDem(31) to OtherShrimps(17)
-#Shift 3%
-GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.03
-GOM.params$diet[17,31]<-GOM.params$diet[17,31]+0.03
-
 #Shift predation of Cusk(30) from OtherDem(31) to Megabenthos(56)
 #Shift 12%
 GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.12
 GOM.params$diet[56,31]<-GOM.params$diet[56,31]+0.12
 
-
-#Shift predation of Goosefish(39) from OtherDem(31) to RedHake(34)
-#Shift 4%
-GOM.params$diet[31,40]<-GOM.params$diet[31,40]-0.04
-GOM.params$diet[34,40]<-GOM.params$diet[34,40]+0.04
 
 #Shift predation of Goosefish(39) from OtherDem(31) to Goosefish(39)
 #Shift 5%
@@ -664,11 +686,6 @@ GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.008
 #Shift 0.7%
 GOM.params$diet[50,55]<-GOM.params$diet[50,55]-0.007
 GOM.params$diet[8,55]<-GOM.params$diet[8,55]+0.007
-
-#Shift predation of SummerFlounder(29) from Butterfish(50) to OtherPelagics(20) 
-#Shift 8%
-GOM.params$diet[50,30]<-GOM.params$diet[50,30]-0.08
-GOM.params$diet[20,30]<-GOM.params$diet[20,30]+0.08
 
 #Shift predation of SummerFlounder(29) from Butterfish(50) to Megabenthos(56) 
 #Shift 8%
@@ -737,11 +754,20 @@ GOM.params$diet[38,25]<-GOM.params$diet[38,25]+0.0017
 GOM.params$diet[43,12]<-GOM.params$diet[43,12]-0.00011
 GOM.params$diet[56,12]<-GOM.params$diet[56,12]+0.00011
 
-#Shifting some predation of Redfish
 #Shift predation of OtherDemersals(31) from Redfish(43) to Megabenthos(56)
 #Shift 0.2%
 GOM.params$diet[43,32]<-GOM.params$diet[43,32]-0.002
 GOM.params$diet[56,32]<-GOM.params$diet[56,32]+0.002
+
+#Shift predation of WhiteHake(41) from Redfish(43) to Megabenthos(56)
+#Shift 1%
+GOM.params$diet[43,42]<-GOM.params$diet[43,42]-0.01
+GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.01
+
+#Shift predation of Cusk(30) from Redfish(43) to Megabenthos(56)
+#Shift 5%
+GOM.params$diet[43,31]<-GOM.params$diet[43,31]-0.05
+GOM.params$diet[56,31]<-GOM.params$diet[56,31]+0.05
 
 #Shifting some predation of SilverHake
 #Shift predation of SilverHake(40) from SilverHake(40) to Megabenthos(56)
@@ -749,15 +775,10 @@ GOM.params$diet[56,32]<-GOM.params$diet[56,32]+0.002
 GOM.params$diet[40,41]<-GOM.params$diet[40,41]-0.025
 GOM.params$diet[56,41]<-GOM.params$diet[56,41]+0.025
 
-#Shift predation of SilverHake(40) from SilverHake(40) to OtherShrimps(17)
-#Shift 2.5%
-GOM.params$diet[40,41]<-GOM.params$diet[40,41]-0.025
-GOM.params$diet[17,41]<-GOM.params$diet[17,41]+0.025
-
 #Shift predation of SilverHake(40) from SilverHake(40) to SmPelagics(14)
-#Shift 9%
-GOM.params$diet[40,41]<-GOM.params$diet[40,41]-0.09
-GOM.params$diet[14,41]<-GOM.params$diet[14,41]+0.09
+#Shift 15%
+GOM.params$diet[40,41]<-GOM.params$diet[40,41]-0.15
+GOM.params$diet[14,41]<-GOM.params$diet[14,41]+0.15
 
 #Shift predation of Pollock(38) from SilverHake(40) to Micronekton(7)
 #Shift 3%
@@ -784,40 +805,25 @@ GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.02
 GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
 GOM.params$diet[8,42]<-GOM.params$diet[8,42]+0.02
 
-#Shift predation of WhiteHake(41) from SilverHake(40) to RedHake(34)
-#Shift 2%
-GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
-GOM.params$diet[34,42]<-GOM.params$diet[34,42]+0.02
-
 #Shift predation of WhiteHake(41) from SilverHake(40) to WhiteHake(41)
-#Shift 2%
-GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
-GOM.params$diet[41,42]<-GOM.params$diet[41,42]+0.02
-
-#Shift predation of WhiteHake(41) from SilverHake(40) to Micronekton(7)
-#Shift 2%
-GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.02
-GOM.params$diet[7,42]<-GOM.params$diet[7,42]+0.02
-
-#Shift predation of WhiteHake(41) from SilverHake(40) to SmPelagics(14)
-#Shift 8%
-GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.08
-GOM.params$diet[14,42]<-GOM.params$diet[14,42]+0.08
-
-#Shift predation of WhiteHake(41) from SilverHake(40) to AtlHerring(21)
 #Shift 5%
 GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.05
-GOM.params$diet[21,42]<-GOM.params$diet[21,42]+0.05
+GOM.params$diet[41,42]<-GOM.params$diet[41,42]+0.05
+
+#Shift predation of WhiteHake(41) from SilverHake(40) to Micronekton(7)
+#Shift 4%
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.04
+GOM.params$diet[7,42]<-GOM.params$diet[7,42]+0.04
+
+#Shift predation of WhiteHake(41) from SilverHake(40) to SmPelagics(14)
+#Shift 10%
+GOM.params$diet[40,42]<-GOM.params$diet[40,42]-0.1
+GOM.params$diet[14,42]<-GOM.params$diet[14,42]+0.1
 
 #Shift predation of Cod(24) from SilverHake(40) to Megabenthos(56)
 #Shift 5%
 GOM.params$diet[40,25]<-GOM.params$diet[40,25]-0.05
 GOM.params$diet[56,25]<-GOM.params$diet[56,25]+0.05
-
-#Shift predation of Cod(24) from SilverHake(40) to AmPlaice(26)
-#Shift 3%
-GOM.params$diet[40,25]<-GOM.params$diet[40,25]-0.03
-GOM.params$diet[26,25]<-GOM.params$diet[26,25]+0.03
 
 #Shift predation of Cod(24) from SilverHake(40) to SmPelagics(14)
 #Shift 3%
@@ -871,10 +877,11 @@ GOM.params$diet[12,12]<-GOM.params$diet[12,12]+0.000001
 GOM.params$diet[20,21]<-GOM.params$diet[20,21]-0.04
 GOM.params$diet[56,21]<-GOM.params$diet[56,21]+0.04
 
-#Shift predation of SilverHake (40) from OtherPelagics(20) to Illex(8)
-#Shift 1.5%
-GOM.params$diet[20,41]<-GOM.params$diet[20,41]-0.015
-GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.015
+#Shift predation of OtherPelagics
+#Shift predation of OtherPelagics(20) from OtherPelagics(20) to Megabenthos(56)
+#Shift 1%
+GOM.params$diet[20,41]<-GOM.params$diet[20,41]-0.01
+GOM.params$diet[14,41]<-GOM.params$diet[14,41]+0.01
 
 #Shifting Sharks diet
 #Move predation of Sharks(51) from Detritus(58) to Odontocetes(55)
@@ -892,12 +899,17 @@ GOM.params$diet[53,52]<-GOM.params$diet[53,52]+0.025
 GOM.params$diet[5,52]<-GOM.params$diet[5,52]-0.025
 GOM.params$diet[39,52]<-0.025
 
+#Macrobenthos
+#Move predation of Macrobenthos(11) from Macrobenthos(11) to Detritus (58)
+#Shift 4%
+GOM.params$diet[11,12]<-GOM.params$diet[11,12]-0.03
+GOM.params$diet[58,12]<-GOM.params$diet[58,12]+0.03
 
 #Reassign copepod groups
 source(here("R/redo_copes.R"))
 
 #Assign data pedigree
-source(here("R/data_pedigree.R"))
+#source(here("R/data_pedigree.R"))
 
 #Run model
 GOM <- rpath(GOM.params, eco.name = 'GOM Ecosystem')
@@ -913,35 +925,35 @@ EE[order(EE)]
 #Print final model
 GOM
 
-#Save files
+# #Save files
 save(GOM, file = "outputs/GOM_Rpath.RData")
 save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
-
-#Initiate webplot
-webplot(GOM, labels = T)
-
-#Examine TLs
-#TL<-REco$TL
-#TL[order(TL)]
-
-#Rsim basic
-GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:20)
-#For AB method, need to set NoIntegrate flag manually 
-GOM.sim$params$NoIntegrate[4:5]<-0
-#Run simulation
-GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:20)
-
-#plotting
-rsim.plot(GOM.run1,spname = GOM.groups$RPATH[1:10])
-rsim.plot(GOM.run1,spname = GOM.groups$RPATH[11:20])
-rsim.plot(GOM.run1,spname = GOM.groups$RPATH[21:30])
-rsim.plot(GOM.run1,spname = GOM.groups$RPATH[31:40])
-rsim.plot(GOM.run1,spname = GOM.groups$RPATH[41:56])
-
-#plot biomass vs. TL
-biomass_TL<-as.data.frame(cbind(GOM$Biomass[1:56],GOM$TL[1:56]))
-colnames(biomass_TL) <- c("biomass","TL")
-biomass_TL<- biomass_TL%>% arrange(TL) %>% mutate(cum_biomass = cumsum(biomass))
-
-ggplot(biomass_TL, aes(x=TL,y=cum_biomass))+
-  geom_line()
+# 
+# #Initiate webplot
+# webplot(GOM, labels = T)
+# 
+# #Examine TLs
+# #TL<-REco$TL
+# #TL[order(TL)]
+# 
+# #Rsim basic
+# GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:20)
+# #For AB method, need to set NoIntegrate flag manually 
+# GOM.sim$params$NoIntegrate[4:5]<-0
+# #Run simulation
+# GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:20)
+# 
+# #plotting
+# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[1:10])
+# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[11:20])
+# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[21:30])
+# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[31:40])
+# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[41:56])
+# 
+# #plot biomass vs. TL
+# biomass_TL<-as.data.frame(cbind(GOM$Biomass[1:56],GOM$TL[1:56]))
+# colnames(biomass_TL) <- c("biomass","TL")
+# biomass_TL<- biomass_TL%>% arrange(TL) %>% mutate(cum_biomass = cumsum(biomass))
+# 
+# ggplot(biomass_TL, aes(x=TL,y=cum_biomass))+
+#   geom_line()
