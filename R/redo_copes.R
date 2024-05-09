@@ -97,8 +97,8 @@ GOM.params$model[,Biomass:=biomass]
 #For AtlHerring, use ratio of Calanus to all copepods
 cal_all<-biomass[5]/(biomass[5]+biomass[6])
 #need to get rid of NAs first
-GOM.params$diet[6,2:57]<-replace(GOM.params$diet[6,2:57],is.na(GOM.params$diet[6,2:57]),0)
-GOM.params$diet[5,2:57]<-replace(GOM.params$diet[5,2:57],is.na(GOM.params$diet[5,2:57]),0)
+GOM.params$diet[6,2:58]<-replace(GOM.params$diet[6,2:58],is.na(GOM.params$diet[6,2:58]),0)
+GOM.params$diet[5,2:58]<-replace(GOM.params$diet[5,2:58],is.na(GOM.params$diet[5,2:58]),0)
 
 #Shift AmLobster[12] predation
 #Shift 0.05% from Macrobenthos[11] to LgCopepods[5]
@@ -140,11 +140,11 @@ GOM.params$diet[2,6]<-GOM.params$diet[2,6]+0.01
 GOM.params$diet[3,6]<-GOM.params$diet[3,6]-0.01
 
 #For rest of groups, add portion to SmCope consumption
-GOM.params$diet[6,c(2:5,7:11,13:17,19:20,22:26,28:57)]<-
-  GOM.params$diet[6,c(2:5,7:11,13:17,19:20,22:26,28:57)]+
-  GOM.params$diet[5,c(2:5,7:11,13:17,19:20,22:26,28:57)]*(1-copes_ratio)
-GOM.params$diet[5,c(2:5,7:11,13:17,19:20,22:26,28:57)]<-
-  GOM.params$diet[5,c(2:5,7:11,13:17,19:20,22:26,28:57)]*copes_ratio
+GOM.params$diet[6,c(2:5,7:11,13:17,19:20,22:26,28:58)]<-
+  GOM.params$diet[6,c(2:5,7:11,13:17,19:20,22:26,28:58)]+
+  GOM.params$diet[5,c(2:5,7:11,13:17,19:20,22:26,28:58)]*(1-copes_ratio)
+GOM.params$diet[5,c(2:5,7:11,13:17,19:20,22:26,28:58)]<-
+  GOM.params$diet[5,c(2:5,7:11,13:17,19:20,22:26,28:58)]*copes_ratio
 
 
 check.rpath.params(GOM.params)

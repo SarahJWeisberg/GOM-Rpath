@@ -93,8 +93,8 @@ biomass[46]<-0.033519469
 #Multiply WhiteHake biomass by 0.75
 biomass[41]<-biomass[41]*0.75
 
-#Multiply SilverHake biomass by 3
-biomass[40]<-biomass[40]*3
+#Multiply SilverHake biomass by 2.75
+biomass[40]<-biomass[40]*2.75
 
 #Multiply WitchFlounder biomass by 5
 biomass[48]<-biomass[48]*5
@@ -156,7 +156,6 @@ biomass[52]<-biomass[52]*1.75
 
 #Multiply AtlScallop biomass by 1.35
 biomass[19]<-biomass[19]*1.35
-
 
 #Fill model
 GOM.params$model[,Biomass:=biomass]
@@ -349,6 +348,9 @@ ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
 ba[59:67]<-NA 
 
+
+# Fill biomass accoumation, unassimilated fraction, detrital fate ---------
+
 #Change barndoor ba
 ba[35]<-ba[35]/1000
 
@@ -369,7 +371,9 @@ GOM.params$model[Group %in% c('AmLobster', 'Macrobenthos', 'Megabenthos',
 GOM.params$model[, Detritus := c(rep(1, 57), rep(0, 10))]
 #GOM.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 9))]
 
-#Fisheries
+
+# Fisheries ---------------------------------------------------------------
+
 #Landings
 source(here("R/discards.R"))
 

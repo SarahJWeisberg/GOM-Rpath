@@ -18,7 +18,7 @@ xfun::session_info()
 # Mon Apr  8 15:44:38 2024 ------------------------------
 
 #Load packages
-library(readr);library (data.table);library(here)
+library(readr);library(data.table);library(here)
 
 #load stomach data
 load(here("data/GOM_foodhabits.RData"))

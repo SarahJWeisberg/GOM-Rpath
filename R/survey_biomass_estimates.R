@@ -73,5 +73,5 @@ swept <- swept[, biomass.area   := (tot.biomass*.001)/(Fall.q*GOM.area)]
 setkey(swept,RPATH,YEAR)
 swept <- swept[, sum(biomass.area), by = key(swept)]
 setnames(swept, 'V1','Biomass')
-biomass_80s<-swept[YEAR %in% 1980:1985, sum(Biomass)/6, by=RPATH]
+biomass_80s<-swept[YEAR %in% 1980:1985, mean(Biomass), by=RPATH]
 setnames(biomass_80s, 'V1','Biomass')
