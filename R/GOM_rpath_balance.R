@@ -618,9 +618,9 @@ GOM.params$diet[8,25]<-GOM.params$diet[8,25]+0.0011
 
 #Shifting predation on OtherDemersals
 #Shift predation of WhiteHake(41) from OtherDem(31) to Megabenthos(56)
-#Shift 3%
-GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.03
-GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.03
+#Shift 1%
+GOM.params$diet[31,42]<-GOM.params$diet[31,42]-0.01
+GOM.params$diet[56,42]<-GOM.params$diet[56,42]+0.01
 
 #Shift predation of WhiteHake(41) from OtherDem(31) to WhiteHake(41)
 #Shift 3%
@@ -690,11 +690,6 @@ GOM.params$diet[8,21]<-GOM.params$diet[8,21]+0.076
 #Shift 0.8%
 GOM.params$diet[50,41]<-GOM.params$diet[50,41]-0.008
 GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.008
-
-#Shift predation of BaleenWhales(54) from Butterfish(50) to SmCopepods(6)
-#Shift 0.7%
-GOM.params$diet[50,55]<-GOM.params$diet[50,55]-0.007
-GOM.params$diet[6,55]<-GOM.params$diet[6,55]+0.007
 
 #Shift predation of SummerFlounder(29) from Butterfish(50) to Megabenthos(56) 
 #Shift 8%
@@ -917,6 +912,10 @@ GOM.params$diet[58,12]<-GOM.params$diet[58,12]+0.03
 #Reassign copepod groups
 source(here("R/redo_copes.R"))
 
+#Shift predation of BaleenWhales(54) from Butterfish(50) to SmCopepods(6)
+#Shift 0.7%
+GOM.params$diet[50,55]<-GOM.params$diet[50,55]-0.007
+GOM.params$diet[6,55]<-GOM.params$diet[6,55]+0.007
 #Assign data pedigree
 #source(here("R/data_pedigree.R"))
 
@@ -936,7 +935,7 @@ EE[order(EE)]
 #write.csv(EE,"outputs/EE_8.csv")
 
 #Print final model
-GOM
+#GOM
 
 # #Save files
 save(GOM, file = "outputs/GOM_Rpath.RData")
