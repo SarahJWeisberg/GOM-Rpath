@@ -127,8 +127,8 @@ biomass[11]<-biomass[11]*0.4
 #Multiply Megabenthos biomass by 0.4
 biomass[56]<-biomass[56]*0.4
 
-#Multiply AmPlaice biomass by 1.3
-biomass[26]<-biomass[26]*1.3
+#Multiply AmPlaice biomass by 1.35
+biomass[26]<-biomass[26]*1.35
 
 #Multiply YTFlounder biomass by 1.2
 biomass[23]<-biomass[23]*1.2
@@ -145,8 +145,8 @@ biomass[31]<-biomass[31]*5
 #Multiply RedHake biomass by 1.8
 biomass[34]<-biomass[34]*1.8
 
-#Multiply Loligo biomass by 1.6
-biomass[9]<-biomass[9]*1.6
+#Multiply Loligo biomass by 1.65
+biomass[9]<-biomass[9]*1.65
 
 #Multiply LittleSkate biomass by 1.25
 biomass[44]<-biomass[44]*1.25
@@ -307,7 +307,7 @@ qb[48]<-qb[48]*2
 
 #Increase qb of SeaBirds
 #Really low estimate in EMAX, higher in NWACS
-qb[45]<-35
+qb[45]<-70
 
 #QB changes below made to keep PB/QB ratios within 0.1-0.3 range
 
@@ -338,18 +338,23 @@ qb[40]<-2
 #Decrease WhiteHake qb to 2
 qb[41]<-2
 
+#Increase qb of BaleenWhales to 4
+#Closer to initial EMAX estimate
+qb[54]<-3.75
+
+#Increase qb of Odontocetes to 8
+#In line with other models
+qb[55]<-8
+
 GOM.params$model[,QB:=qb]
 
-
+# Fill biomass accoumation, unassimilated fraction, detrital fate ---------
 #Fill biomass accumulation
 source(here("R/biomass_accumulation.R"))
 ba<-left_join(groups_fleets,biomass.accum,by="RPATH")
 ba<-as.vector(ba$ba)
 ba[is.na(ba)]<-0
 ba[59:67]<-NA 
-
-
-# Fill biomass accoumation, unassimilated fraction, detrital fate ---------
 
 #Change barndoor ba
 ba[35]<-ba[35]/1000
@@ -686,10 +691,10 @@ GOM.params$diet[8,21]<-GOM.params$diet[8,21]+0.076
 GOM.params$diet[50,41]<-GOM.params$diet[50,41]-0.008
 GOM.params$diet[8,41]<-GOM.params$diet[8,41]+0.008
 
-#Shift predation of BaleenWhales(54) from Butterfish(50) to Illex(8)
+#Shift predation of BaleenWhales(54) from Butterfish(50) to SmCopepods(6)
 #Shift 0.7%
 GOM.params$diet[50,55]<-GOM.params$diet[50,55]-0.007
-GOM.params$diet[8,55]<-GOM.params$diet[8,55]+0.007
+GOM.params$diet[6,55]<-GOM.params$diet[6,55]+0.007
 
 #Shift predation of SummerFlounder(29) from Butterfish(50) to Megabenthos(56) 
 #Shift 8%
@@ -915,6 +920,10 @@ source(here("R/redo_copes.R"))
 #Assign data pedigree
 #source(here("R/data_pedigree.R"))
 
+# Check for balance -------------------------------------------------------
+#Load Sean's prebal functions
+source(url("https://github.com/NOAA-EDAB/GBRpath/blob/master/R/PreBal.R?raw=true"))
+
 #Run model
 GOM <- rpath(GOM.params, eco.name = 'GOM Ecosystem')
 
@@ -932,32 +941,3 @@ GOM
 # #Save files
 save(GOM, file = "outputs/GOM_Rpath.RData")
 save(GOM.params,file = "outputs/GOM_params_Rpath.RData")
-# 
-# #Initiate webplot
-# webplot(GOM, labels = T)
-# 
-# #Examine TLs
-# #TL<-REco$TL
-# #TL[order(TL)]
-# 
-# #Rsim basic
-# GOM.sim <- rsim.scenario(GOM, GOM.params, years = 1:20)
-# #For AB method, need to set NoIntegrate flag manually 
-# GOM.sim$params$NoIntegrate[4:5]<-0
-# #Run simulation
-# GOM.run1 <- rsim.run(GOM.sim, method = 'AB', years = 1:20)
-# 
-# #plotting
-# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[1:10])
-# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[11:20])
-# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[21:30])
-# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[31:40])
-# rsim.plot(GOM.run1,spname = GOM.groups$RPATH[41:56])
-# 
-# #plot biomass vs. TL
-# biomass_TL<-as.data.frame(cbind(GOM$Biomass[1:56],GOM$TL[1:56]))
-# colnames(biomass_TL) <- c("biomass","TL")
-# biomass_TL<- biomass_TL%>% arrange(TL) %>% mutate(cum_biomass = cumsum(biomass))
-# 
-# ggplot(biomass_TL, aes(x=TL,y=cum_biomass))+
-#   geom_line()
