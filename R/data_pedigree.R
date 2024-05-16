@@ -19,10 +19,10 @@ pedigree<-as.data.table(read.csv(here('data/GOM_data_pedigree.csv')))
 pedigree<-pedigree[,-c(2:7)]
 #pedigree<-left_join(groups_fleets,pedigree,by='RPATH')
 #Remove pedigree for discards
-pedigree<-pedigree[1:57]
+pedigree<-pedigree[1:58]
 
 #Remove pedigree for fleets & discards
-GOM.params$pedigree<-GOM.params$pedigree[1:57]
+GOM.params$pedigree<-GOM.params$pedigree[1:58]
 
 #Biomass
 GOM.params$pedigree[, Biomass := pedigree$Biomass]
@@ -37,6 +37,6 @@ GOM.params$pedigree[, QB := pedigree$QB]
 GOM.params$pedigree[, Diet := pedigree$Diet]
 
 #Fleets
-GOM.params$pedigree[, c('Fixed Gear','HMS Fleet','LG Mesh','Trap','Other Dredge','Other','Pelagic','SM Mesh','Clam Dredge') := pedigree$Fleets]
+#GOM.params$pedigree[, c('Fixed Gear','HMS Fleet','LG Mesh','Trap','Other Dredge','Other','Pelagic','SM Mesh','Clam Dredge') := pedigree$Fleets]
 
 

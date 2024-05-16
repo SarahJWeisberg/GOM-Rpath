@@ -9,13 +9,16 @@
 
 # Wed May  8 11:16:39 2024 ------------------------------
 
-#Load packages
+# Load packages ------------------------------------------------------------
+
 library(devtools)
 remotes::install_github('NOAA-EDAB/Rpath')
 remotes::install_github('NOAA-EDAB/survdat')
 library(Rpath); library(data.table);library(dplyr);library(here);library(tinytex);
 library(survdat); library(lwgeom)
 
+
+# Initial set up and biomass estimates ------------------------------------
 #Load groups and fleets
 source(here("R/groups_fleets.R"))
 
@@ -50,7 +53,7 @@ biomass[10]<-biomass[10]*65
 #Multiply SmFlatfish biomass by 150
 biomass[15]<-biomass[15]*150
 
-#Multiply SpinyDogfish biomass by 0.5
+#Multiply SpinyDogfish biomass by 0.7
 biomass[42]<-biomass[42]*0.7
 
 #Multiply OtherPelagics biomass by 115
@@ -238,7 +241,7 @@ pb[20]<-0.75
 #0.47 in Heymans 2001
 pb[33]<-0.4
 
-#Decrease Redfish pb to 0.25- 43
+#Decrease Redfish pb to 0.25
 #0.3 from Heymans 2001
 #max lifespan = 40 years
 pb[43]<-0.25
@@ -506,6 +509,9 @@ GOM.params$model[, "Clam Dredge" := clam]
 #GOM.params$model[, "Clam Dredge.disc" := clam.d]
 
 
+# Diet --------------------------------------------------------------------
+
+
 #Complete diet table
 source(here("R/diet.R"))
 
@@ -513,7 +519,6 @@ source(here("R/diet.R"))
 source(here("R/diet_filling.R"))
 
 #Shifting predation on OtherCeph
-
 #Shift predation of Cod (24) from OtherCeph(10) to Illex(8)
 #Shift 1.1%
 GOM.params$diet[10,25]<-GOM.params$diet[10,25]-.011
@@ -667,7 +672,6 @@ GOM.params$diet[7,31]<-GOM.params$diet[7,31]+0.09
 #Shift 12%
 GOM.params$diet[31,31]<-GOM.params$diet[31,31]-0.12
 GOM.params$diet[56,31]<-GOM.params$diet[56,31]+0.12
-
 
 #Shift predation of Goosefish(39) from OtherDem(31) to Goosefish(39)
 #Shift 5%
@@ -917,7 +921,7 @@ source(here("R/redo_copes.R"))
 GOM.params$diet[50,55]<-GOM.params$diet[50,55]-0.007
 GOM.params$diet[6,55]<-GOM.params$diet[6,55]+0.007
 #Assign data pedigree
-#source(here("R/data_pedigree.R"))
+source(here("R/data_pedigree.R"))
 
 # Check for balance -------------------------------------------------------
 #Load Sean's prebal functions
