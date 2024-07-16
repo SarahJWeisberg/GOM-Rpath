@@ -81,6 +81,7 @@ biomass_fit<-biomass_fit[YEAR %in% 1985:2019]
 biomass_fit$Biomass <- drop_units(biomass_fit$Biomass)
 biomass_fit$Stdev <- drop_units(biomass_fit$Stdev)
 
+#get rid of groups not included in final model
 biomass_fit<-biomass_fit[!RPATH %in% c(NA, 'Fauna','Freshwater','SouthernDemersals')]
 
 #adjust biomass values for changes made during balancing
@@ -108,6 +109,11 @@ benthos<-benthos %>% mutate(ratio = Biomass_balanced/Biomass) %>% dplyr::select(
 #merge
 ratio<-bind_rows(ratio,benthos)
 
+#also want to deal with Herring -- don't want to just add a 10x multiplier to all values
+#instead use assessment estimates
+herring <- read.csv(here("fitting/Herring_Stock_Assessment.csv"))
+herring <- herring %>% filter(Year > 1984)
+
 #add adjusted biomass column 
 biomass_adjust<- left_join(biomass_fit,ratio,by="RPATH") %>% replace_na(list(ratio=1))
 biomass_adjust <- biomass_adjust %>% mutate(Value = Biomass*ratio)
@@ -117,6 +123,14 @@ biomass_adjust <- biomass_adjust %>% rename(Group = RPATH, Year = YEAR) %>% dply
 #set biomass as index or absolute as appropriate
 biomass_adjust$Type <- rep("absolute",length(biomass_adjust$Group))
 biomass_adjust$Scale <- rep(1,length(biomass_adjust$Group))
+
+#replace herring values
+for (i in 1:length(herring$Year)) {
+  test_year <- herring$Year[i]
+  biomass<-herring$scaled_biomass[i]
+  biomass_adjust <- biomass_adjust %>% mutate(Value, Value= ifelse((Group == "AtlHerring" & Year == test_year),biomass,Value)) 
+}
+
 
 #rename columns to comply with fitting code
 biomass_fit <- biomass_fit %>% rename(Group = RPATH, Year = YEAR, Value = Biomass)
@@ -128,26 +142,7 @@ biomass_fit$Scale <- rep(1,length(biomass_adjust$Group))
 write.csv(biomass_adjust,"fitting/biomass_fit.csv")
 write.csv(biomass_fit,"fitting/biomass_fit_index.csv")
 
-
-
 #visualize biomass trends over time
 ggplot(biomass_adjust,aes(x=Year, y = Value)) +
   geom_point() +
   facet_wrap(vars(Group),ncol = 4, scale = "free")
-
-#just Herring and Redfish
-herring<-biomass_adjust%>%filter(Group == "AtlHerring")
-herring$anom<-(herring$Value*100/mean(herring$Value))-100
-redfish<-biomass_adjust%>%filter(Group == "Redfish")
-redfish$anom<-(redfish$Value*100/mean(redfish$Value))-100
-redfish_herring<-rbind(herring,redfish)
-ggplot(redfish_herring, aes(x=Year))+
-    geom_line(aes(y=anom, color=Group))
-
-recent<-redfish_herring%>% filter(Year >=2005 & Year <=2012)
-
-#ggplot(fitting_groups,aes(x=Year, y = Index)) +
-# geom_smooth(method = "lm", se=FALSE, color="grey", formula = y ~ x)+
-#geom_point() +
-#facet_wrap(vars(Group),ncol = 2, scale = "free") +
-#labs(title = "Biomass Trends over Time", y="t/sq.km")

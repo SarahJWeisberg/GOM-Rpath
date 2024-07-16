@@ -9,14 +9,13 @@
 # Author: S. Weisberg
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
-# Tue Sep 26 12:46:19 2023 ------------------------------
+# Tue Nov 14 13:27:57 2023 ------------------------------
 
 #load packages
 library(sf) #r spatial package
 library(ggplot2) #plotting
 library(rnaturalearth) #simple map 
 library(lubridate) #dates
-library(spatialEco) #more advanced GIS
 library(dplyr) 
 library(tidyverse)
 library(zoo)
@@ -137,4 +136,19 @@ P
 
 lg<-ts %>% filter(class == "lg") %>% ungroup()
 sm<-ts %>% filter(class == "sm") %>% ungroup()
+
+# #compare results with top 4 taxa of sm grouping -- used in SOE reporting
+# sm_new <- annual %>% filter(spp %in% c("CENTROPAGES_HAMATUS","CENTROPAGES_TYPICUS","TEMORA_LONGICORNIS","PSEUDOCALANUS_SPP"))
+# sm_new<-sm_new %>% group_by(Year) %>% dplyr::summarise(biomass = sum(biomass)) 
+# sm_new_initial <- sm_new %>% 
+#   filter(Year<=1986) %>% dplyr::summarise(avg_80_85 = mean(biomass))
+# sm_new <- sm_new %>% mutate(avg_80_85 = sm_new_initial$avg_80_85)
+# sm_new<- sm_new %>% filter(Year>1986 & Year<2020) %>% mutate(force_b = biomass/avg_80_85*sm_start)%>%
+#   mutate(mean = mean(force_b), anomaly = (force_b - mean)/mean) %>% mutate(class="sm_new")
+# sm_new$Year <- as.numeric(sm_new$Year)
+# 
+# ggplot()+
+#   geom_line(data=sm,aes(x = Year, y = anomaly),color="blue")+
+#   geom_line(data=sm_new,aes(x = Year, y = anomaly),color="magenta")
+
 

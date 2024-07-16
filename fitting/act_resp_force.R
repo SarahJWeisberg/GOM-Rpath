@@ -11,7 +11,8 @@
 
 #first need a temperature time series
 #code from ecodata
-library(ecodata)
+# remotes::install_github('NOAA-EDAB/ecodata',force = T)
+# library(ecodata)
 # Process ocean temperature anomaly data
 
 #load packages
@@ -25,6 +26,7 @@ library(survdat)
 library(ggplot2)
 library(Rpath)
 
+#in situ bottom temp measurements from ecodata
 bottom_temp_GOM_csv<-read.csv(here("data/bot_temp_GOM.csv")) 
 temp<- bottom_temp_GOM_csv %>% dplyr::mutate(Time = as.Date(format(lubridate::date_decimal(Time))),
                                                     Var, Var = plyr::mapvalues(Var, from = c("Tsfc_anom",#Rename variables
@@ -50,6 +52,14 @@ ggplot(bottom_temp,aes(x=Time,y=Value))+
 
 #get SST in absolute values
 #sst<-anom %>% filter(Var == "sst_anomaly") %>% mutate(sst = Value+10.3727)
+
+#now try with GLORYS bottom temp data from Laura
+bottom_temp_GLORYS<-read.csv(here("data/gom_bt_for_sarah.csv")) 
+#remove first column
+bottom_temp_GLORYS<-bottom_temp_GLORYS %>% 
+  select(-X) %>%
+  mutate(year = lubridate::year(time), month = lubridate::month(time),time=as.Date(time)) %>%
+  filter(year < 2020)
 
 #let's start easy - respiration curves
 resp<-function(temp_c){
@@ -96,7 +106,6 @@ cons_groups<-GOM.groups %>% dplyr::filter(RPATH %in% c('OceanPout',
 'Windowpane','WinterFlounder',
 'WitchFlounder','BlackSeaBass','Butterfish'))
 
-
 #Cusk not included in Georges Bank model -- need to create RPATH name
 spp <- spp[SCINAME == 'BROSME BROSME', RPATH := 'Cusk']
 
@@ -104,8 +113,8 @@ survdat<-survey$survdat
 survdat<-left_join(survdat,spp, by = "SVSPP")
 
 #Load balanced model
-#load(here("outputs/GOM_Rpath.Rdata"))
-#load(here("outputs/GOM_params_Rpath.Rdata"))
+load(here("outputs/GOM_Rpath.Rdata"))
+load(here("outputs/GOM_params_Rpath.Rdata"))
 #Run Rsim to get initial resp_fraction
 GOM.sim<- rsim.scenario(GOM, GOM.params, years = 1985:2019)
 
@@ -153,10 +162,6 @@ cons$Q10<-as.numeric(cons$Q10)
 cons <- cons %>% mutate(index = which(GOM.groups$RPATH %in% cons_groups$RPATH),
                         start_rc = rc(Tmax = Tmax,Topt = Topt,Q10=Q10,Temp=start_temp))
 
-#change lobster-specific values
-#cons <- cons %>% mutate(bt_opt = replace(bt_opt, RPATH == "AmLobster", 20)) %>%
- # mutate(q10 = replace(q10, RPATH == "AmLobster", 1.8))#lobster specific values
-
 cons <- cons %>% mutate(qb = GOM$QB[cons$index],
                         biomass = GOM$Biomass[cons$index],
                         act_start = GOM.sim$params$ActiveRespFrac[cons$index+1], #because of outside
@@ -165,67 +170,84 @@ cons <- cons %>% mutate(qb = GOM$QB[cons$index],
 
 #params over time
 #first few years are missing from temp data
-bottom_temp<-bottom_temp %>% filter(Time >= 1991 & Time <=2019)
-cons_time<-c()
+#bottom_temp<-bottom_temp %>% filter(Time >= 1991 & Time <=2019)
+cons_time_fixed<-c()
 for (i in 1:length(cons$RPATH)) {
   group<-cons[i,]
-  cons_time_group<-bottom_temp %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=bottom_temp$Value), 
+  cons_time_group<-bottom_temp_GLORYS %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=bottom_temp_GLORYS$bt), 
                                      rel_rc = rc/group$start_rc,
                                      cons = rel_rc*group$qb*group$biomass,
-                                     rel_resp=rel_resp(temp_c = Value),
+                                     rel_resp=rel_resp(temp_c = bt),
                                      resp=rel_resp*group$resp_start,
                                      reL_act_resp=resp/(group$act_start*cons),
                                      RPATH = group$RPATH,
-                                     index = group$index)
+                                     index = group$index,
+                                     temp_type = "fixed")
+  cons_time_fixed<-rbind(cons_time_fixed,cons_time_group)
+}
+
+# #plot
+# ggplot(data=cons_time, aes(x=temp,y=cons))+
+#   geom_line()+
+#   facet_wrap(~RPATH)
+# 
+ggplot(data=cons_time_fixed, aes(x=time,y=reL_act_resp))+
+  geom_point(size=0.5)+
+  scale_x_date(date_labels = "%Y")+
+  facet_wrap(~RPATH)
+
+#look at cons curves for wide range of temp values
+temp_range<-as.data.frame(seq(0,15,by=1))
+colnames(temp_range)<-"temp"
+cons_time<-c()
+for (i in 1:length(cons$RPATH)) {
+  group<-cons[i,]
+  cons_time_group<-temp_range %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=temp), 
+                                           rel_rc = rc/group$start_rc,
+                                           cons = rel_rc*group$qb*group$biomass,
+                                           rel_resp=rel_resp(temp_c = temp),
+                                           resp=rel_resp*group$resp_start,
+                                           reL_act_resp=resp/(group$act_start*cons),
+                                           RPATH = group$RPATH,
+                                           index = group$index,
+                                           temp = temp_range$temp)
   cons_time<-rbind(cons_time,cons_time_group)
 }
 
-#plug into forcing
-for (i in 1:length(cons$RPATH)){
-  group<-cons_groups$RPATH[i]
-  cons_time_group<- cons_time %>% filter (RPATH == group)
-  index<-as.numeric(unique(cons_time_group$index)) + 1 #add 1 because of Outside
-  force_act_resp <- c(rep(1,6*12),rep(cons_time_group$reL_act_resp,each=12))
-  #adjust forcing
-  scene0$forcing$ForcedActresp[,index]<-force_act_resp
-}
-
-# spiny <- sst %>% 
-#   mutate(rc = rc(Tmax = test_max,Topt = test_opt,Q10=test_q10,Temp=sst), 
-#          rel_rc = rc/start_rc,
-#          cons = rel_rc*qb_spiny*b_spiny,
-#          rel_resp=rel_resp(temp_c = sst),
-#          resp=rel_resp*resp_start,
-#          reL_act_resp=resp/(act_start*cons))
-
-#force_act_resp <- c(rep(1,6*12),rep(force$reL_act_resp,each=12))  #6 years before we start with the forcing
-
-#adjust forcing
-#GOM.sim$forcing$ForcedActresp[,43]<-force_act_resp
-
-GOM.sim$params$NoIntegrate[4:5]<-0
-
-#run
-GOM.run <- rsim.run(GOM.sim, method = 'AB', years = fit.years)
-
-# #plot
-# rsim.plot(GOM.run, spname = GOM.groups$RPATH[1:10])
-# rsim.plot(GOM.run, spname = GOM.groups$RPATH[11:20])
-# rsim.plot(GOM.run, spname = GOM.groups$RPATH[21:30])
-# rsim.plot(GOM.run, spname = GOM.groups$RPATH[31:40])
-# rsim.plot(GOM.run, spname = GOM.groups$RPATH[41:56])
+# #try with species-specific temp
+# #source(here("fitting/thermal_habitat.R"))
+# biomass_annual_temp<-read.csv(here("outputs/biomass_weighted_annual_temp.csv"))
+# biomass_annual_temp <- biomass_annual_temp %>% filter(YEAR > 1986)
+# cons_time<-c()
+# for (i in 1:length(cons$RPATH)) {
+#   group<-cons[i,]
+#   temp_time<-biomass_annual_temp %>% filter(RPATH == group$RPATH)
+#   for (j in 1:length(temp_time$YEAR)){
+#     temp_year<- temp_time[j,]
+#     cons_time_group<- temp_year %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=temp_year$weighted_temp), 
+#                                            rel_rc = rc/group$start_rc,
+#                                            cons = rel_rc*group$qb*group$biomass,
+#                                            rel_resp=rel_resp(temp_c = weighted_temp),
+#                                            resp=rel_resp*group$resp_start,
+#                                            reL_act_resp=resp/(group$act_start*cons),
+#                                            RPATH = group$RPATH,
+#                                            index = group$index,
+#                                            temp_type = "variable")
+#   cons_time<-rbind(cons_time,cons_time_group)
+#   }
+# }
 # 
-# rsim.plot(run0, spname = GOM.groups$RPATH[1:10])
-# rsim.plot(run0, spname = GOM.groups$RPATH[11:20])
-# rsim.plot(run0, spname = GOM.groups$RPATH[21:30])
-# rsim.plot(run0, spname = GOM.groups$RPATH[31:40])
-# rsim.plot(run0, spname = GOM.groups$RPATH[41:56])
+# #merge
+# cons_time_vary <- cons_time %>% select(RPATH,YEAR,reL_act_resp,temp_type)
+# cons_time_fixed <- cons_time_fixed %>% rename(YEAR = Time) %>% select(RPATH,YEAR,reL_act_resp,temp_type)
+# comp <- bind_rows(cons_time_vary,cons_time_fixed)
 # 
-# rsim.plot(run1, spname = GOM.groups$RPATH[1:10])
-# rsim.plot(run1, spname = GOM.groups$RPATH[11:20])
-# rsim.plot(run1, spname = GOM.groups$RPATH[21:30])
-# rsim.plot(run1, spname = GOM.groups$RPATH[31:40])
-# rsim.plot(run1, spname = GOM.groups$RPATH[41:56])
+# ggplot(data = comp, aes(x=YEAR,y=reL_act_resp,color=temp_type))+
+#   geom_line()+
+#   facet_wrap(~RPATH)
+
+
+
 
 
 
