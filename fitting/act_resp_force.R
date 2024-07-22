@@ -202,7 +202,7 @@ colnames(temp_range)<-"temp"
 cons_time<-c()
 for (i in 1:length(cons$RPATH)) {
   group<-cons[i,]
-  cons_time_group<-temp_range %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=temp), 
+  cons_time_group<- temp_range %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=temp), 
                                            rel_rc = rc/group$start_rc,
                                            cons = rel_rc*group$qb*group$biomass,
                                            rel_resp=rel_resp(temp_c = temp),
@@ -214,7 +214,7 @@ for (i in 1:length(cons$RPATH)) {
   cons_time<-rbind(cons_time,cons_time_group)
 }
 
-# #try with species-specific temp
+# # #try with species-specific temp
 # #source(here("fitting/thermal_habitat.R"))
 # biomass_annual_temp<-read.csv(here("outputs/biomass_weighted_annual_temp.csv"))
 # biomass_annual_temp <- biomass_annual_temp %>% filter(YEAR > 1986)
@@ -224,7 +224,7 @@ for (i in 1:length(cons$RPATH)) {
 #   temp_time<-biomass_annual_temp %>% filter(RPATH == group$RPATH)
 #   for (j in 1:length(temp_time$YEAR)){
 #     temp_year<- temp_time[j,]
-#     cons_time_group<- temp_year %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=temp_year$weighted_temp), 
+#     cons_time_group<- temp_year %>%  mutate(rc = rc(Tmax = group$Tmax,Topt = group$Topt,Q10=group$Q10,Temp=temp_year$weighted_temp),
 #                                            rel_rc = rc/group$start_rc,
 #                                            cons = rel_rc*group$qb*group$biomass,
 #                                            rel_resp=rel_resp(temp_c = weighted_temp),
@@ -237,9 +237,9 @@ for (i in 1:length(cons$RPATH)) {
 #   }
 # }
 # 
-# #merge
+# # #merge
 # cons_time_vary <- cons_time %>% select(RPATH,YEAR,reL_act_resp,temp_type)
-# cons_time_fixed <- cons_time_fixed %>% rename(YEAR = Time) %>% select(RPATH,YEAR,reL_act_resp,temp_type)
+# cons_time_fixed <- cons_time_fixed %>% rename(YEAR = year) %>% select(RPATH,YEAR,reL_act_resp,temp_type)
 # comp <- bind_rows(cons_time_vary,cons_time_fixed)
 # 
 # ggplot(data = comp, aes(x=YEAR,y=reL_act_resp,color=temp_type))+

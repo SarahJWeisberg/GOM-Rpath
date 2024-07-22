@@ -61,7 +61,8 @@ mega_time<-mega_gom %>%
   mutate(biomass = macro*(anom+1))
 
 #visualize
-# macro_gom %>% filter(Var == "biomass" & Time > 1984) %>% 
+# mega_gom %>% filter(Var == "biomass" & Time > 1984) %>%
 #   ggplot(aes(x=Time,y=anom))+
 #   geom_line()+
-#   geom_point()
+#   geom_point()+
+#   geom_smooth(method = "loess")
