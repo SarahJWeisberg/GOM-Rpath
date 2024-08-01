@@ -7,7 +7,8 @@
 # Contact details: sarah.j.weisberg@stonybrook.edu
 
 
-# Wed May  8 11:16:39 2024 ------------------------------
+# Thu Aug  1 12:20:53 2024 ------------------------------
+
 
 # Load packages ------------------------------------------------------------
 
@@ -28,6 +29,11 @@ groups<-as.vector(groups_fleets$RPATH)
 types<-c(1,rep(0,56),rep(2,1),rep(3,9))
 GOM.params<-create.rpath.params(group = groups,type=types)
 rm(types)
+
+#count numbers of each group type
+nliving <- nrow(GOM.params$model[Type <  2, ])
+ndead   <- nrow(GOM.params$model[Type == 2, ])
+nfleets <- nrow(GOM.params$model[Type == 3, ])
 
 #Fill in biomass estimates
 source(here("R/EMAX_biomass_estimates.R"))
@@ -376,7 +382,7 @@ GOM.params$model[Group %in% c('AmLobster', 'Macrobenthos', 'Megabenthos',
                     Unassim := 0.3]
 
 #Detrital Fate
-GOM.params$model[, Detritus := c(rep(1, 57), rep(0, 10))]
+GOM.params$model[, Detritus := c(rep(1, nliving),rep(0,ndead),rep(1,nfleets))]
 #GOM.params$model[, Discards := c(rep(0, 56), rep(0,2),rep(1, 9))]
 
 
@@ -451,28 +457,32 @@ GOM.params$model[, "Clam Dredge" := clam]
 
 #Fill in discards
 #Fixed Gear
-#fixed.d<-left_join(groups_fleets,fixed.d,by="RPATH")
-#fixed.d<-as.vector(fixed.d$discards)
-#fixed.d[58:59]<-0
-#GOM.params$model[, "Fixed Gear.disc" := fixed.d]
+fixed.d<-left_join(groups_fleets,fixed.d,by="RPATH")
+fixed.d<-as.vector(fixed.d$discards)
+fixed.d[(nliving+1):(nliving+ndead)]<-0
+fixed.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "Fixed Gear.disc" := fixed.d]
 
 #Lg Mesh
-#lg_mesh.d<-left_join(groups_fleets,lg_mesh.d,by="RPATH")
-#lg_mesh.d<-as.vector(lg_mesh.d$discards)
-#lg_mesh.d[58:59]<-0
-#GOM.params$model[, "LG Mesh.disc" := lg_mesh.d]
+lg_mesh.d<-left_join(groups_fleets,lg_mesh.d,by="RPATH")
+lg_mesh.d<-as.vector(lg_mesh.d$discards)
+lg_mesh.d[[(nliving+1):(nliving+ndead)]]<-0
+lg_mesh.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "LG Mesh.disc" := lg_mesh.d]
 
 #Other
-#other.d<-left_join(groups_fleets,other.d,by="RPATH")
-#other.d<-as.vector(other.d$discards)
-#other.d[58:59]<-0
-#GOM.params$model[, "Other.disc" := other.d]
+other.d<-left_join(groups_fleets,other.d,by="RPATH")
+other.d<-as.vector(other.d$discards)
+other.d[[(nliving+1):(nliving+ndead)]]<-0
+other.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "Other.disc" := other.d]
 
 #SM Mesh
-#sm_mesh.d<-left_join(groups_fleets,sm_mesh.d,by="RPATH")
-#sm_mesh.d<-as.vector(sm_mesh.d$discards)
-#sm_mesh.d[58:59]<-0
-#GOM.params$model[, "SM Mesh.disc" := sm_mesh.d]
+sm_mesh.d<-left_join(groups_fleets,sm_mesh.d,by="RPATH")
+sm_mesh.d<-as.vector(sm_mesh.d$discards)
+sm_mesh.d[[(nliving+1):(nliving+ndead)]]<-0
+sm_mesh.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "SM Mesh.disc" := sm_mesh.d]
 
 #Scallop Dredge
 #scallop.d<-left_join(groups_fleets,scallop.d,by="RPATH")
@@ -481,32 +491,36 @@ GOM.params$model[, "Clam Dredge" := clam]
 #GOM.params$model[, "Scallop Dredge" := scallop.d]
 
 #Trap
-#trap.d<-left_join(groups_fleets,trap.d,by="RPATH")
-#trap.d<-as.vector(trap.d$discards)
-#trap.d[58:59]<-0
-#GOM.params$model[, "Trap.disc" := trap.d]
+trap.d<-left_join(groups_fleets,trap.d,by="RPATH")
+trap.d<-as.vector(trap.d$discards)
+trap.d[[(nliving+1):(nliving+ndead)]]<-0
+trap.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "Trap.disc" := trap.d]
 
 #HMS
-#hms.d<-left_join(groups_fleets,hms.d,by="RPATH")
-#hms.d<-as.vector(hms.d$discards)
-#hms.d[58:59]<-0
-#GOM.params$model[, "HMS Fleet.disc" := hms.d]
+hms.d<-left_join(groups_fleets,hms.d,by="RPATH")
+hms.d<-as.vector(hms.d$discards)
+hms.d[[(nliving+1):(nliving+ndead)]]<-0
+hms.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "HMS Fleet.disc" := hms.d]
 
 #Pelagic
-#pelagic.d<-left_join(groups_fleets,pelagic.d,by="RPATH")
-#pelagic.d<-as.vector(pelagic.d$discards)
-#pelagic.d[58:59]<-0
-#GOM.params$model[, "Pelagic.disc" := pelagic.d]
+pelagic.d<-left_join(groups_fleets,pelagic.d,by="RPATH")
+pelagic.d<-as.vector(pelagic.d$discards)
+pelagic.d[[(nliving+1):(nliving+ndead)]]<-0
+pelagic.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "Pelagic.disc" := pelagic.d]
 
 #Other Dredge
-#other_dredge.d<-left_join(groups_fleets,other_dredge.d,by="RPATH")
-#other_dredge.d<-as.vector(other_dredge.d$discards)
-#other_dredge.d[58:59]<-0
-#GOM.params$model[, "Other Dredge.disc" := other_dredge.d]
+other_dredge.d<-left_join(groups_fleets,other_dredge.d,by="RPATH")
+other_dredge.d<-as.vector(other_dredge.d$discards)
+other_dredge.d[[(nliving+1):(nliving+ndead)]]<-0
+other_dredge.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+GOM.params$model[, "Other Dredge.disc" := other_dredge.d]
 
 #Clam Dredge
-#clam.d<-c(rep(0,56),rep(0,2),rep(NA,9))
-#GOM.params$model[, "Clam Dredge.disc" := clam.d]
+clam.d<-c(rep(0,nliving),rep(0,ndead),rep(NA,nfleets))
+GOM.params$model[, "Clam Dredge.disc" := clam.d]
 
 
 # Diet --------------------------------------------------------------------
