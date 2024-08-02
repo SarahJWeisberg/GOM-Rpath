@@ -19,6 +19,7 @@ library(here); library(data.table); library(Rpath)
 
 #Source code from sense_beta branch of Rpath Repo
 library(devtools)
+remotes::install_github('NOAA-EDAB/Rpath@fit_merge_may2024')
 source_url('https://raw.githubusercontent.com/NOAA-EDAB/Rpath/sense_beta/R/ecosense.R')
 
 #Load balanced model
@@ -64,6 +65,9 @@ for (i in 1:length(fixers)){
   GOM.params$pedigree[to_fix,QB := QB_ped]
 }
 
+#fix PP
+GOM.params$pedigree[1,Biomass := 0]
+GOM.params$pedigree[1,PB := 0]
 
 #Set up sense runs
 all_years <- 1:50
@@ -72,7 +76,7 @@ orig.biomass<-scene$start_state$Biomass
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 1382
+NUM_RUNS <- 1239
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
@@ -92,23 +96,24 @@ for (irun in 1:NUM_RUNS){
   # {cat(irun,": fail in year ",GOMtest$crash_year,": ",failList,"\n"); kept[irun] <- F; flush.console()}
   #   else
   #   {cat(irun,": success!\n"); kept[irun]<-T;  flush.console()}}
-  #failList<-as.data.frame(failList)
-  #fail_groups<-rbind(fail_groups,failList)
+  # # failList<-as.data.frame(failList)
+  # # fail_groups<-rbind(fail_groups,failList)
   parlist[[irun]]$BURN_YEARS <- 1
 }
 
-fail_groups <- fail_groups %>% group_by(failList) %>% tally()
-colnames(fail_groups)<-c("group_num","total")
-groups_num<- as.data.frame(cbind(groups[1:nliving],seq(2,(nliving+1))))
-colnames(groups_num) <-c("name","group_num")
-groups_num$group_num<-as.numeric(groups_num$group_num)
-fail_fin<-left_join(fail_groups,groups_num,by="group_num")
+# fail_groups <- fail_groups %>% group_by(failList) %>% tally()
+# colnames(fail_groups)<-c("group_num","total")
+# groups_num<- as.data.frame(cbind(groups[1:nliving],seq(2,(nliving+1))))
+# colnames(groups_num) <-c("name","group_num")
+# groups_num$group_num<-as.numeric(groups_num$group_num)
+# fail_fin<-left_join(fail_groups,groups_num,by="group_num")
 
 # KEPT tells you which ecosystems were kept
 KEPT <- which(kept==T)
 nkept <- length(KEPT)
 nkept
 GOM_sense <- parlist[KEPT]
+
 
 GOM_sense_unbound<-parlist
 
