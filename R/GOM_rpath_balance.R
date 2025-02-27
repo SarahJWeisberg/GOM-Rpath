@@ -389,7 +389,7 @@ GOM.params$model[, Detritus := c(rep(1, nliving),rep(0,ndead),rep(1,nfleets))]
 # Fisheries ---------------------------------------------------------------
 
 #Landings
-source(here("R/discards.R"))
+#source(here("R/discards.R"))
 
 #Fixed Gear
 fixed<-left_join(groups_fleets,fixed,by="RPATH")
@@ -464,8 +464,11 @@ fixed.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
 GOM.params$model[, "Fixed Gear.disc" := fixed.d]
 
 #Lg Mesh
+lg_mesh.d <- discards_GOM_80s %>% 
+  dplyr::filter(FLEET == "LG Mesh")
 lg_mesh.d<-left_join(groups_fleets,lg_mesh.d,by="RPATH")
-lg_mesh.d<-as.vector(lg_mesh.d$discards)
+lg_mesh.d<-as.vector(lg_mesh.d$mean_disc)
+lg_mesh.d[is.na(lg_mesh.d)]<-0
 lg_mesh.d[[(nliving+1):(nliving+ndead)]]<-0
 lg_mesh.d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
 GOM.params$model[, "LG Mesh.disc" := lg_mesh.d]

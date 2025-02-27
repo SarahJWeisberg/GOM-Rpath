@@ -97,11 +97,24 @@ spp.land[,Stdev := Value * 0.1]
 spp.land[,Scale := rep(1,length(spp.land$Value))]
 
 #visualize landings trends over time
-ggplot(spp.land,aes(x=Year, y = Value)) +
+spp.land %>% 
+ggplot(aes(x=Year, y = Value)) +
   geom_point() +
   facet_wrap(vars(Group),ncol = 4, scales = "free")
+
+#looking at total annual landings by fleet
+as.data.frame(com.land) %>% group_by(FLEET, YEAR) %>% mutate(fleet_total = sum(landings)) %>%
+ggplot(aes(x=YEAR, y = fleet_total)) +
+  geom_point() +
+  facet_wrap(~FLEET, scales = "free")
+
+as.data.frame(com.land) %>% filter(FLEET == "Pelagic") %>%
+  ggplot(aes(x=YEAR, y = landings)) +
+  geom_point() +
+  facet_wrap(~RPATH)
+
 
 #add a column called 'catch?'
 
 #save file
-write.csv(spp.land,"fitting/landings_fit.csv")
+#write.csv(spp.land,"fitting/landings_fit.csv")

@@ -1,194 +1,149 @@
 #Title: GOM Rpath Discards Estimates
 
 # Purpose: To estimate discards (t/km^2) for functional groups in GOM RPATH model.
-#       Based on data from NOAA observer program since 1989. 
+#       Based on data from NOAA observer program.
 
-# Note: Data availability is mixed. To deal with this, I first calculate which group/gear combinations
-#       have discards < 10^-5 t/km^2, and round these down to 0. For group/gear 
-#       combinations > 10^-5 t/km^2, I average discard:kept (DK) ratios over the first
-#       five years of available data and apply this ratio to landings biomass to estimate
-#       discards. For groups where reported DK is highly variable (sd>mean), I average
-#       over first 10 years of available data rather than first 5 years.
-
-# DataFile:'observer_data.RData'
+# DataFile:'discards_fleet_year.csv'
 
 # Author: S. Weisberg
-# Contact details: sarah.j.weisberg@stonybrook.edu
+# Contact details: sarah.weisberg@noaa.gov
 
-# Tue Nov  1 15:36:06 2022 ------------------------------
+# Thu Jan  2 13:45:12 2025 ------------------------------
 
-#Note: need to come back and think more about megabenthos
+#load packages
+library(ggplot2)
+library(here)
+library(dplyr)
 
-library(here);library(tidyr);library(data.table)
+#load file
+#see NEUS repo
+discards <- read.csv(here("data/discards_fleet_year.csv"))
 
-#Load observer data
-load("data/observer_data.RData")
+discards_GOM <- discards %>%
+  dplyr::filter(EPU == "GOM")
 
-#Change "HMS" to "HMS Fleet" to avoid confusion
-ob.all[FLEET =="HMS",FLEET:="HMS Fleet"]
+discards_GOM <- discards_GOM %>%
+  dplyr::mutate(disc_t_km2 = as.numeric(sumDISMT/GOM.area))
 
-#Remove Scallop Dredge
-ob.all<-subset(ob.all, FLEET != "Scallop Dredge")
+#plot checks
+discards_GOM %>% filter(Fleet == "SM Mesh" & YEAR > 1979) %>%
+  ggplot() +
+  geom_point(aes(x = YEAR, y= disc_t_km2)) +
+  facet_wrap(~RPATH)
 
-#Load landings data
-source("R/landings_conversion.R")
+#trying to specifically think about the lobster issues
+#this looks at totals
+lobster_land <- com.land %>% filter(RPATH == "AmLobster") %>% 
+  drop_units() %>%
+  select(RPATH, FLEET, YEAR, landings) %>%
+  mutate(data = "Landings")
+lobster_disc <- discards_GOM %>% filter(RPATH == "AmLobster") %>%
+  group_by(YEAR) %>% mutate(sum_disc = sum(disc_t_km2))
 
-#Filter observer data for GOM only
-#remove EPU column
-ob_gom<-filter(ob.all, EPU == "GOM")
-ob_gom<-ob_gom[,-2]
+#let's look by fleet
+lobster_disc_fleet <- lobster_disc %>%
+  dplyr::select(RPATH, Fleet, YEAR, disc_t_km2) %>%
+  mutate(data = "Discards") %>%
+  rename(FLEET = Fleet, landings = disc_t_km2)
 
-#Merge filtered observer data with species codes
-ob_gom$NESPP3<-as.numeric(ob_gom$NESPP3)
-ob_gom<-left_join(ob_gom,spp,by="NESPP3")
+#compare discards with catch
+lobster_comp <- rbind(lobster_land,lobster_disc_fleet) %>% ungroup()
+lobster_comp <- as.data.frame(lobster_comp)
 
-#Remove NAs
-ob_gom<-na.exclude(ob_gom)
+#look at trap fishery alone
+lobster_comp %>% filter(FLEET == "Trap", YEAR > 1979) %>%
+ggplot()+
+  geom_line(aes(x = YEAR, y = landings, color = data))+
+  ylab("catch (t/km^2)")+
+  ggtitle("AmLobster Catch in Trap Fleet (GOM)")
 
-#Remove NESPP3 column
-ob_gom<-ob_gom[,-3]
+#look at other gear types -- do these results align with assessment?
+ggplot(lobster_disc, aes(x = YEAR, y = sumDISMT))+
+  geom_point()+
+  facet_wrap(~Fleet, scales = "free")
 
-#Because of the many:1 relationship of NESPP3:RPATH, will have some redundancy
-#Try to average over this
-#Could come back and try to weight the multispecies groups by biomass but that is 
-# probably overkill
-ob_gom<-ob_gom %>% 
-  group_by(YEAR,FLEET,RPATH) %>% 
-  summarise(DK = mean(DK))
+#let's combine all catch data into one df
+discards_GOM <- discards_GOM %>% 
+  select(Fleet, RPATH, YEAR, disc_t_km2) %>%
+  rename(FLEET = Fleet, catch = disc_t_km2) %>%
+  mutate(data = "Discards") 
+
+com.land <- com.land %>% 
+  mutate(data = "Landings") %>%
+  rename(catch = landings) %>%
+  drop_units()
+
+catch <- rbind(com.land,discards_GOM)
+
+#smooth dogfish
+catch %>% filter(RPATH == "Sharks" & YEAR > 1979) %>%
+ggplot() +
+  geom_point(aes(x = YEAR, y = catch, colour = data)) +
+  facet_wrap(~FLEET, scales = "free")
+
+#compare to starting values
+load(here("outputs/GOM_Rpath.RData"))
+load(here("outputs/GOM_params_Rpath.RData"))
+
+start_biomass <- as.data.frame(cbind(GOM.params$model$Group,GOM.params$model$Biomass))
+colnames(start_biomass) <- c("RPATH","Biomass")
+start_biomass <- start_biomass %>%
+  dplyr::mutate(Biomass = as.numeric(Biomass))
+
+discards_GOM_agg <- discards_GOM %>%
+  dplyr::group_by(YEAR,RPATH) %>%
+  dplyr::summarise(tot_disc = sum(disc_t_km2))
+
+discards_GOM_agg <- left_join(discards_GOM_agg, start_biomass,by="RPATH")
+
+discards_GOM_80s <- discards_GOM_agg %>%
+  dplyr::filter(YEAR <= 1985 & YEAR >=1980) %>%
+  dplyr::filter(!is.na(Biomass)) %>%
+  dplyr::group_by(RPATH) %>%
+  dplyr::mutate(mean_disc = mean(tot_disc), 
+                biomass_ratio = mean_disc/Biomass) %>%
+  dplyr::select(RPATH,mean_disc,Biomass,biomass_ratio) %>%
+  dplyr::distinct()
+
+#compare with landings
+landings <- as.data.frame(cbind(GOM$Group,rowSums(GOM$Landings)))
+colnames(landings) <- c("RPATH","landings")
+landings <- landings %>%
+  mutate(landings = as.numeric(landings))
+
+discards_GOM_80s <- left_join(discards_GOM_80s,landings,by="RPATH")
+
+discards_GOM_80s <- discards_GOM_80s %>%
+  mutate(landings_ratio = mean_disc/landings)
+
+long <- discards_GOM_80s %>%
+  tidyr::gather(key="metric",value="value",2:6) %>%
+  dplyr::filter(metric %in% c("mean_disc","Biomass","landings"))
+
+ggplot(data=long, aes(x=metric,y=value,fill=metric)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~RPATH,scales="free")
 
 
-#Find DK ratios for first available year for every gear/group combination
-firsts<-ob_gom %>% 
-  group_by(FLEET,RPATH) %>% 
-  mutate(first_YEAR = min(YEAR)) %>%
-  ungroup() %>%
-  filter(YEAR==first_YEAR)
+##more generic workflow -- how to get from data to Rpath inputs?
+discards_GOM_80s <- discards_GOM %>% 
+  dplyr::filter(YEAR < 1986 & YEAR > 1980) %>%
+  dplyr::group_by(RPATH, FLEET) %>%
+  dplyr::summarise(mean_disc = mean(catch))
 
-#remove duplicate year column
-#Rename DK column
-firsts<-firsts[,-1]
-names(firsts)[3]<-"first_DK"
-firsts<-unique(firsts)
+#isolate all fleets
+fleets <- as.vector(groups_fleets[(nliving+ndead+1):(nliving+ndead+nfleets)]$RPATH)
 
-#Merge with mean landings
-#Exclude NAs
-firsts<-merge(firsts,mean.land,by=c("RPATH","FLEET"))
-
-#Multiply landings by DK
-firsts$discards<-firsts$landings*firsts$first_DK
-
-#Exclude anything less than 10^-5
-firsts$discards<-as.numeric(firsts$discards)
-firsts<-subset(firsts, discards > 1e-05)
-
-#Merge top discards with all DK ratios
-top_discards<-merge(firsts,ob_gom,by=c("RPATH","FLEET"))
-
-#Average DK for first five years for each of the gear/group combos
-temp<-c()
-for (i in 1:length(firsts$discards)){
-  temp<-subset(top_discards,firsts$RPATH[i] == top_discards$RPATH & firsts$FLEET[i] == top_discards$FLEET)
-  temp<-subset(temp,YEAR<=first_YEAR+4)
-  firsts$five_means[i]<-mean(temp$DK)
-  firsts$cv[i]<-mean(temp$DK)/sd(temp$DK)
+#fill rpath parameter files with appropriate discards values
+for (i in 1:length(fleets)) {
+  d <- discards_GOM_80s %>% 
+    dplyr::filter(FLEET == fleets[i])
+  d<-left_join(groups_fleets,d,by="RPATH")
+  d<-as.vector(d$mean_disc)
+  d[is.na(d)]<-0
+  d[[(nliving+1):(nliving+ndead)]]<-0
+  d[(nliving+ndead+1):(nliving+ndead+nfleets)]<-NA
+  GOM.params$model[, paste(fleets[i],".disc",sep = "") := d]
 }
-
-#Separate into low and high variability (DK)
-#Cut-off is mean:sd (=cv) >1
-low_var<-subset(firsts,cv<=1 | is.na(cv)==T)
-low_var<-low_var %>%
-  select(RPATH,FLEET,five_means)
-names(low_var)[3]<-'DK'
-
-high_var<-subset(firsts,cv>1)
-
-#For high variability group, average DK over first 10 years
-temp<-c()
-for (i in 1:length(high_var$discards)){
-  temp<-subset(top_discards,high_var$RPATH[i] == top_discards$RPATH & high_var$FLEET[i] == top_discards$FLEET)
-  temp<-subset(temp,YEAR<=first_YEAR+9)
-  high_var$ten_mean[i]<-mean(temp$DK)
-}
-
-#Subset high variability
-high_var<-high_var %>%
-  select(RPATH,FLEET,ten_mean)
-names(high_var)[3]<-'DK'
-
-#Put it all together for model discard values
-discards<-firsts %>%
-  select(RPATH,FLEET,landings)
-
-discards<-left_join(discards,low_var,by=c("RPATH","FLEET"))
-discards<-left_join(discards,high_var,by=c("RPATH","FLEET"))
-discards[is.na(discards)]<-0
-
-discards$DK<-discards$DK.x+discards$DK.y
-discards<-discards[,-c(4,5)]
-discards$discards<-discards$landings*discards$DK
-discards<-discards[-c(3,4)]
-
-#Separate each fleet into its own data frame
-fixed.d<-filter(discards,FLEET == "Fixed Gear")
-lg_mesh.d<-filter(discards,FLEET == "LG Mesh")
-other.d<-filter(discards,FLEET == "Other")
-sm_mesh.d<-filter(discards,FLEET == "SM Mesh")
-#scallop.d<-filter(discards,FLEET == "Scallop Dredge")
-trap.d<-filter(discards,FLEET == "Trap")
-hms.d<-filter(discards,FLEET == "HMS Fleet")
-pelagic.d<-filter(discards,FLEET == "Pelagic")
-other_dredge.d<-filter(discards,FLEET == "Other Dredge")
-
-#Combine with all groups
-#Fill in zeros for groups not commercially exploited
-#Repeat for each gear type
-#Start with fixed gear
-fixed.d<-left_join(GOM.groups,fixed.d,by="RPATH")
-fixed.d$FLEET<-"Fixed Gear"
-fixed.d[is.na(fixed.d)]<-0
-
-#Large mesh
-lg_mesh.d<-left_join(GOM.groups,lg_mesh.d,by="RPATH")
-lg_mesh.d$FLEET<-"LG Mesh"
-lg_mesh.d[is.na(lg_mesh.d)]<-0
-
-#Other
-other.d<-left_join(GOM.groups,other.d,by="RPATH")
-other.d$FLEET<-"Other"
-other.d[is.na(other.d)]<-0
-
-#Small mesh
-sm_mesh.d<-left_join(GOM.groups,sm_mesh.d,by="RPATH")
-sm_mesh.d$FLEET<-"SM Mesh"
-sm_mesh.d[is.na(sm_mesh.d)]<-0
-
-#Scallop
-#Ignoring because I've removed this fishery from the model (because there is no catch)
-#scallop.d<-left_join(GOM.groups,scallop.d,by="RPATH")
-#scallop.d$FLEET<-"Scallop"
-#scallop.d[is.na(scallop.d)]<-0
-
-#Trap
-trap.d<-left_join(GOM.groups,trap.d,by="RPATH")
-trap.d$FLEET<-"Trap"
-trap.d[is.na(trap.d)]<-0
-
-#HMS
-hms.d<-left_join(GOM.groups,hms.d,by="RPATH")
-hms.d$FLEET<-"HMS Fleet"
-hms.d[is.na(hms.d)]<-0
-
-#Pelagic
-pelagic.d<-left_join(GOM.groups,pelagic.d,by="RPATH")
-pelagic.d$FLEET<-"Pelagic"
-pelagic.d[is.na(pelagic.d)]<-0
-
-#Other dredge
-other_dredge.d<-left_join(GOM.groups,other_dredge.d,by="RPATH")
-other_dredge.d$FLEET<-"Other Dredge"
-other_dredge.d[is.na(other_dredge.d)]<-0
-
-rm(high_var,low_var,temp,top_discards,ob.all,ob_gom,firsts)
-
 
 
