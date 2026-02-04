@@ -1,6 +1,6 @@
 # GOM-Rpath
 
-Files for building Rpath food web model of the Gulf of Maine (GOM), as in Weisberg et al. (2025).
+Files for building Rpath food web model of the Gulf of Maine (GOM), as in Weisberg et al. (2026).
 
 R folder contains R scripts; R scripts often reference one another. 
 Run R/GOM_rpath_balance.R to generate balanced model (reflecing 1980-85 period).
